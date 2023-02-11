@@ -19,6 +19,8 @@ public:
 
 	void CreateWindowSurface(VkInstance Instance, VkSurfaceKHR* Surface);
 
+	VkExtent2D GetExtent() { return VkExtent2D((uint32_t)Width, (uint32_t)Height); }
+
 private:
 	void InitWindow();
 

@@ -201,6 +201,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
     <ClCompile Include="Source\CRE_App.cpp" />
     <ClCompile Include="Source\CRE_Device.cpp" />
     <ClCompile Include="Source\CRE_GraphicsPipeline.cpp" />
+    <ClCompile Include="Source\CRE_Swap_Chain.cpp" />
     <ClCompile Include="Source\CRE_Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +227,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
     <ClInclude Include="Source\CRE_App.hpp" />
     <ClInclude Include="Source\CRE_Device.hpp" />
     <ClInclude Include="Source\CRE_GraphicsPipeline.hpp" />
+    <ClInclude Include="Source\CRE_Swap_Chain.hpp" />
     <ClInclude Include="Source\CRE_Window.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

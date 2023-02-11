@@ -1,4 +1,5 @@
 #include "CRE_Window.hpp"
+#include <stdexcept>
 
 CRE_Window::CRE_Window(int InWidth, int InHeight, std::string NewWindowName) :
 	Width(InWidth), Height(InHeight), WindowName(NewWindowName)
@@ -12,9 +13,17 @@ CRE_Window::~CRE_Window()
 	glfwTerminate();
 }
 
-inline bool CRE_Window::ShouldClose()
+bool CRE_Window::ShouldClose()
 {
 	return glfwWindowShouldClose(Window);
+}
+
+void CRE_Window::CreateWindowSurface(VkInstance Instance, VkSurfaceKHR* Surface)
+{
+	if (glfwCreateWindowSurface(Instance, Window, nullptr, Surface) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create window surface.");
+	}
 }
 
 void CRE_Window::InitWindow()

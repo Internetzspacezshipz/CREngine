@@ -257,6 +257,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CRE_PhysicalGameObject.cpp" />
     <ClCompile Include="Source\CRE_Mesh.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\CRE_App.cpp" />
@@ -275,6 +276,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CRE_PhysicalGameObject.hpp" />
     <ClInclude Include="Source\CRE_Mesh.hpp" />
     <ClInclude Include="Source\CRE_App.hpp" />
     <ClInclude Include="Source\CRE_Device.hpp" />

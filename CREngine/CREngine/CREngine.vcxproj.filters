@@ -39,6 +39,9 @@
     <ClCompile Include="Source\CRE_Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CRE_PhysicalGameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Mesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CRE_PhysicalGameObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

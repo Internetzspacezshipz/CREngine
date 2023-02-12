@@ -8,9 +8,12 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
 
 struct SimplePushConstantData
 {
+	glm::mat2 Transform{ 1.f };
 	glm::vec2 Offset;
 	alignas(16) glm::vec3 Color;
 };
@@ -21,7 +24,7 @@ CRE_App::CRE_App()
 
 	Device = new CRE_Device(*Window);
 
-	LoadMeshes();
+	LoadGameObjects();
 
 	//Order is important here. Must happen after the previous pointers have been initialized.
 	CreatePipelineLayout();
@@ -36,7 +39,8 @@ CRE_App::~CRE_App()
 
 	vkDestroyPipelineLayout(Device->device(), PipelineLayout, nullptr);
 
-	delete Mesh;
+	GameObjects.clear();
+
 	SwapChain.reset();//must destroy swapchain before device. This is dumb, but I don't care at the moment.
 	delete Device;
 	delete Window;
@@ -54,20 +58,24 @@ void CRE_App::Run()
 	vkDeviceWaitIdle(Device->device());
 }
 
-void CRE_App::LoadMeshes()
+void CRE_App::LoadGameObjects()
 {
 	std::vector<CRE_Mesh::Vertex> Verticies
 	{
 		{{0.5f, -0.5f}	,{1.f,0.f,0.f}},
 		{{1.0f, 0.5f}	,{0.f,1.f,0.f}},
 		{{-0.5f, 0.5f}	,{0.f,0.f,1.f}},
-
-		{{-1.f, -0.5f}	,{1.f,0.f,0.f}},
-		{{-1.f, 0.f}	,{0.f,1.f,0.f}},
-		{{-0.5f, 0.5f}	,{0.f,0.f,1.f}},
 	};
 
-	Mesh = new CRE_Mesh(Device, Verticies);
+	auto Mesh = std::make_shared<CRE_Mesh>(Device, Verticies);
+
+	CRE_PhysicalGameObject Triangle = CRE_PhysicalGameObject::CreateGameObject();
+	Triangle.MeshObject = Mesh;
+	Triangle.Transform.Translation.x = .2f;
+	Triangle.Transform.Scale = {2.f, .5f};
+	Triangle.Transform.Rotation = 0.25f * glm::two_pi<float>();
+
+	GameObjects.push_back(std::move(Triangle));
 }
 
 void CRE_App::CreatePipelineLayout()
@@ -198,8 +206,6 @@ void CRE_App::RecreateSwapChain()
 
 void CRE_App::RecordCommandBuffer(int ImageIndex)
 {
-	static int Frame = 0;
-	Frame = (Frame + 1) % 1000;
 	VkCommandBufferBeginInfo BeginInfo{};
 	BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	if (vkBeginCommandBuffer(CommandBuffers[ImageIndex], &BeginInfo) != VK_SUCCESS)
@@ -235,29 +241,37 @@ void CRE_App::RecordCommandBuffer(int ImageIndex)
 	vkCmdSetViewport(CommandBuffers[ImageIndex], 0, 1, &Viewport);
 	vkCmdSetScissor(CommandBuffers[ImageIndex], 0, 1, &Scissor);
 
-	GraphicsPipeline->Bind(CommandBuffers[ImageIndex]);
-	Mesh->Bind(CommandBuffers[ImageIndex]);
-
-	for (int i = 0; i < 4; i++)
-	{
-		SimplePushConstantData Push;
-		Push.Offset = { -0.5f + Frame * 0.0002f, -0.4f + i * 0.25f };
-		Push.Color = { 0.f,0.f, 0.2f + 0.2f * i };
-
-		vkCmdPushConstants(
-			CommandBuffers[ImageIndex],
-			PipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(SimplePushConstantData),
-			&Push);
-		Mesh->Draw(CommandBuffers[ImageIndex]);
-	}
+	RenderGameObjects(CommandBuffers[ImageIndex]);
 
 	vkCmdEndRenderPass(CommandBuffers[ImageIndex]);
 	if (vkEndCommandBuffer(CommandBuffers[ImageIndex]) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to end command buffer.");
+	}
+}
+
+void CRE_App::RenderGameObjects(VkCommandBuffer CommandBuffer)
+{
+	GraphicsPipeline->Bind(CommandBuffer);
+	for (auto& Elem : GameObjects)
+	{
+		Elem.Transform.Rotation = glm::mod(Elem.Transform.Rotation + 0.01f, glm::two_pi<float>());
+
+		SimplePushConstantData Push;
+		Push.Offset = Elem.Transform.Translation;
+		Push.Color = Elem.Color;
+		Push.Transform = Elem.Transform;
+
+		vkCmdPushConstants(
+			CommandBuffer,
+			PipelineLayout,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0,
+			sizeof(SimplePushConstantData),
+			&Push);
+
+		Elem.MeshObject->Bind(CommandBuffer);
+		Elem.MeshObject->Draw(CommandBuffer);
 	}
 }
 

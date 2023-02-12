@@ -4,8 +4,9 @@
 #include "CRE_Device.hpp"
 #include "CRE_Swap_Chain.hpp"
 #include "CRE_GraphicsPipeline.hpp"
-#include "CRE_Mesh.hpp"
+#include "CRE_PhysicalGameObject.hpp"
 
+//std incl
 #include <vector>
 #include <memory>
 
@@ -24,7 +25,7 @@ public:
 	void Run();
 
 private:
-	void LoadMeshes();
+	void LoadGameObjects();
 	void CreatePipelineLayout();
 	void CreatePipeline();
 	void CreateCommandBuffers();
@@ -33,6 +34,7 @@ private:
 
 	void RecreateSwapChain();
 	void RecordCommandBuffer(int ImageIndex);
+	void RenderGameObjects(VkCommandBuffer CommandBuffer);
 
 	//What a clusterfuck.
 
@@ -42,5 +44,6 @@ private:
 	CRE_GraphicsPipeline* GraphicsPipeline;
 	VkPipelineLayout PipelineLayout;
 	std::vector<VkCommandBuffer> CommandBuffers;
-	CRE_Mesh* Mesh;
+
+	std::vector<CRE_PhysicalGameObject> GameObjects;
 };

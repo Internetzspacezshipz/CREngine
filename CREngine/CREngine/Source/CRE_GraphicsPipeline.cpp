@@ -95,6 +95,11 @@ CRE_GraphicsPipeline::~CRE_GraphicsPipeline()
     vkDestroyPipeline(OwnedDevice.device(), GraphicsPipeline, nullptr);
 }
 
+void CRE_GraphicsPipeline::Bind(VkCommandBuffer CommandBuffer)
+{
+    vkCmdBindPipeline(CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
+}
+
 std::vector<char> CRE_GraphicsPipeline::ReadFile(const std::string& FilePath)
 {
     std::ifstream File(FilePath, std::ios::ate | std::ios::binary);

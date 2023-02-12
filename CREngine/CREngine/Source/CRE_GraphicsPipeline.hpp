@@ -37,8 +37,8 @@ public:
 	CRE_GraphicsPipeline(const CRE_GraphicsPipeline&) = delete;
 	void operator=(const CRE_GraphicsPipeline&) = delete;
 
+	void Bind(VkCommandBuffer CommandBuffer);
 	
-
 private:
 	static std::vector<char> ReadFile(const std::string& FilePath);
 	void CreateGraphicsPipeline(

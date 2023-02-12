@@ -38,17 +38,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Simple_VertShader.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Simple_FragShader.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\compileShaders.bat">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
     <None Include="Shaders\Compiled\Simple_FragShader.frag.spv" />
     <None Include="Shaders\Compiled\Simple_VertShader.vert.spv" />
+    <None Include="compileShaders.bat">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CRE_App.hpp">
@@ -66,5 +60,13 @@
     <ClInclude Include="Source\CRE_Swap_Chain.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Shaders\Simple_FragShader.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Simple_VertShader.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

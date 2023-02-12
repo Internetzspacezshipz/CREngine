@@ -72,23 +72,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
     <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,9 +114,22 @@
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)Shaders\compileShaders.bat"
-echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/Compiled" /S</Command>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
     </PostBuildEvent>
+    <CustomBuild>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Shader compile</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(ProjectDir)Shaders\Compiled\.%(FileName).spv;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild>
+      <AdditionalInputs>$(ProjectDir)Shaders;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -138,9 +155,22 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)Shaders\compileShaders.bat"
-echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/Compiled" /S</Command>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
     </PostBuildEvent>
+    <CustomBuild>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Shader compile</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(ProjectDir)Shaders\Compiled\.%(FileName).spv;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild>
+      <AdditionalInputs>$(ProjectDir)Shaders;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -164,9 +194,22 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
       <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)Shaders\compileShaders.bat"
-echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/Compiled" /S</Command>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
     </PostBuildEvent>
+    <CustomBuild>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Shader compile</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(ProjectDir)Shaders\Compiled\.%(FileName).spv;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild>
+      <AdditionalInputs>$(ProjectDir)Shaders;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -192,9 +235,22 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)Shaders\compileShaders.bat"
-echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/Compiled" /S</Command>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
     </PostBuildEvent>
+    <CustomBuild>
+      <Command>call "$(ProjectDir)compileShaders.bat"
+echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\Compiled" /S /Y</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Shader compile</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(ProjectDir)Shaders\Compiled\.%(FileName).spv;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild>
+      <AdditionalInputs>$(ProjectDir)Shaders;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -205,6 +261,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
     <ClCompile Include="Source\CRE_Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="compileShaders.bat" />
     <None Include="Shaders\Compiled\Simple_FragShader.frag.spv">
       <FileType>Document</FileType>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)Shaders</DestinationFolders>
@@ -219,9 +276,12 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders/
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shaders</DestinationFolders>
       <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shaders</DestinationFolders>
     </None>
-    <None Include="Shaders\compileShaders.bat" />
-    <None Include="Shaders\Simple_FragShader.frag" />
-    <None Include="Shaders\Simple_VertShader.vert" />
+    <CustomBuild Include="Shaders\Simple_FragShader.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <CustomBuild Include="Shaders\Simple_VertShader.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CRE_App.hpp" />

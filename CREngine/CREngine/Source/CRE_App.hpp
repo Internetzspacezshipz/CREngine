@@ -32,7 +32,7 @@ private:
 	CRE_Window* Window = nullptr;
 	CRE_Device* Device = nullptr;
 	CRE_Swap_Chain* SwapChain = nullptr;
-	std::unique_ptr<CRE_GraphicsPipeline> GraphicsPipeline;
+	CRE_GraphicsPipeline* GraphicsPipeline;
 	VkPipelineLayout PipelineLayout;
 	std::vector<VkCommandBuffer> CommandBuffers;
 };

@@ -75,24 +75,28 @@
     <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
     <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
     <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
     <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -253,6 +257,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CRE_Mesh.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\CRE_App.cpp" />
     <ClCompile Include="Source\CRE_Device.cpp" />
@@ -270,6 +275,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CRE_Mesh.hpp" />
     <ClInclude Include="Source\CRE_App.hpp" />
     <ClInclude Include="Source\CRE_Device.hpp" />
     <ClInclude Include="Source\CRE_GraphicsPipeline.hpp" />

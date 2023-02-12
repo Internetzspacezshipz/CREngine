@@ -11,6 +11,8 @@ CRE_App::CRE_App()
 
 	SwapChain = new CRE_Swap_Chain(*Device, Window->GetExtent());
 
+	LoadMeshes();
+
 	//Order is important here. Must happen after the previous pointers have been initialized.
 	CreatePipelineLayout();
 	CreatePipeline();
@@ -24,6 +26,7 @@ CRE_App::~CRE_App()
 
 	vkDestroyPipelineLayout(Device->device(), PipelineLayout, nullptr);
 
+	delete Mesh;
 	delete SwapChain;
 	delete Device;
 	delete Window;
@@ -39,6 +42,22 @@ void CRE_App::Run()
 
 	//wait until vulkan has cleaned everything up.
 	vkDeviceWaitIdle(Device->device());
+}
+
+void CRE_App::LoadMeshes()
+{
+	std::vector<CRE_Mesh::Vertex> Verticies
+	{
+		{{0.5f, -0.5f}},
+		{{1.0f, 0.5f}},
+		{{-0.5f, 0.5f}},
+
+		{{-1.f, -0.5f}},
+		{{-1.f, 0.f}},
+		{{-0.5f, 0.5f}},
+	};
+
+	Mesh = new CRE_Mesh(Device, Verticies);
 }
 
 void CRE_App::CreatePipelineLayout()
@@ -110,7 +129,8 @@ void CRE_App::CreateCommandBuffers()
 		vkCmdBeginRenderPass(CommandBuffers[i], &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		GraphicsPipeline->Bind(CommandBuffers[i]);
-		vkCmdDraw(CommandBuffers[i], 3, 1, 0, 0);
+		Mesh->Bind(CommandBuffers[i]);
+		Mesh->Draw(CommandBuffers[i]);
 
 		vkCmdEndRenderPass(CommandBuffers[i]);
 		if (vkEndCommandBuffer(CommandBuffers[i]) != VK_SUCCESS)

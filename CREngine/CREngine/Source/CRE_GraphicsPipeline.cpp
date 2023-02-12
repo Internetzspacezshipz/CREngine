@@ -1,4 +1,5 @@
 #include "CRE_GraphicsPipeline.hpp"
+#include "CRE_Mesh.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -164,12 +165,15 @@ void CRE_GraphicsPipeline::CreateGraphicsPipeline(const CRE_PipelineConfigInfo& 
     ShaderStages[1].pNext = nullptr;
     ShaderStages[1].pSpecializationInfo = nullptr;
 
+    auto AttributeDescriptions = CRE_Mesh::Vertex::GetAttributeDescriptions();
+    auto BindingDescriptions = CRE_Mesh::Vertex::GetBindingDescriptions();
+
     VkPipelineVertexInputStateCreateInfo VertexInputInfo{};
     VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    VertexInputInfo.vertexAttributeDescriptionCount = 0;
-    VertexInputInfo.vertexBindingDescriptionCount = 0;
-    VertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    VertexInputInfo.pVertexBindingDescriptions = nullptr;
+    VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(AttributeDescriptions.size());
+    VertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(BindingDescriptions.size());
+    VertexInputInfo.pVertexAttributeDescriptions = AttributeDescriptions.data();
+    VertexInputInfo.pVertexBindingDescriptions = BindingDescriptions.data();
 
     VkPipelineViewportStateCreateInfo ViewportInfo{};
     ViewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

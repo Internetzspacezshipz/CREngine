@@ -4,6 +4,7 @@
 #include "CRE_Device.hpp"
 #include "CRE_Swap_Chain.hpp"
 #include "CRE_GraphicsPipeline.hpp"
+#include "CRE_Mesh.hpp"
 
 #include <vector>
 #include <memory>
@@ -23,7 +24,7 @@ public:
 	void Run();
 
 private:
-
+	void LoadMeshes();
 	void CreatePipelineLayout();
 	void CreatePipeline();
 	void CreateCommandBuffers();
@@ -35,4 +36,5 @@ private:
 	CRE_GraphicsPipeline* GraphicsPipeline;
 	VkPipelineLayout PipelineLayout;
 	std::vector<VkCommandBuffer> CommandBuffers;
+	CRE_Mesh* Mesh;
 };

@@ -10,13 +10,16 @@
 #include <stdexcept>
 
 CRE_Swap_Chain::CRE_Swap_Chain(CRE_Device &deviceRef, VkExtent2D extent)
-    : device{deviceRef}, windowExtent{extent} {
-  createSwapChain();
-  createImageViews();
-  createRenderPass();
-  createDepthResources();
-  createFramebuffers();
-  createSyncObjects();
+    : device{deviceRef}, windowExtent{extent}
+{
+    init();
+}
+
+CRE_Swap_Chain::CRE_Swap_Chain(CRE_Device& deviceRef, VkExtent2D windowExtent, std::shared_ptr<CRE_Swap_Chain> PreviousSwapChain)
+    : device{deviceRef}, windowExtent{windowExtent}, OldSwapChain(PreviousSwapChain)
+{
+    init();
+    OldSwapChain = nullptr;
 }
 
 CRE_Swap_Chain::~CRE_Swap_Chain() {
@@ -117,6 +120,16 @@ VkResult CRE_Swap_Chain::submitCommandBuffers(
   return result;
 }
 
+void CRE_Swap_Chain::init()
+{
+    createSwapChain();
+    createImageViews();
+    createRenderPass();
+    createDepthResources();
+    createFramebuffers();
+    createSyncObjects();
+}
+
 void CRE_Swap_Chain::createSwapChain() {
   SwapChainSupportDetails swapChainSupport = device.getSwapChainSupport();
 
@@ -160,7 +173,7 @@ void CRE_Swap_Chain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = OldSwapChain == nullptr ? VK_NULL_HANDLE : OldSwapChain->swapChain;
 
   if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
@@ -360,7 +373,7 @@ void CRE_Swap_Chain::createSyncObjects() {
 VkSurfaceFormatKHR CRE_Swap_Chain::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &availableFormats) {
   for (const auto &availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }

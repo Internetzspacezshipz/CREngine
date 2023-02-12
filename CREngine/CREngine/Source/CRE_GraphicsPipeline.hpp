@@ -8,16 +8,29 @@
 
 struct CRE_PipelineConfigInfo
 {
-	static CRE_PipelineConfigInfo Default(uint32_t InWidth, uint32_t InHeight);
+	static void Default(CRE_PipelineConfigInfo& Info);
 
-	VkViewport viewport;
-	VkRect2D scissor;
+	CRE_PipelineConfigInfo()
+	{
+		//Clear memory, since certain fields not defined in the Vk structs need to be nullptr and zeroed.
+		memset(this, 0, sizeof(CRE_PipelineConfigInfo));
+		Default(*this);
+	};
+
+	CRE_PipelineConfigInfo(const CRE_PipelineConfigInfo&) = delete;
+	CRE_PipelineConfigInfo& operator=(const CRE_PipelineConfigInfo&) = delete;
+
+	VkPipelineViewportStateCreateInfo ViewportInfo;
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 	VkPipelineRasterizationStateCreateInfo rasterizationInfo;
 	VkPipelineMultisampleStateCreateInfo multisampleInfo;
 	VkPipelineColorBlendAttachmentState colorBlendAttachment;
 	VkPipelineColorBlendStateCreateInfo colorBlendInfo;
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+
+	std::vector<VkDynamicState> DynamicStateEnables;
+	VkPipelineDynamicStateCreateInfo DynamicStateInfo;
+
 	VkPipelineLayout pipelineLayout = nullptr;
 	VkRenderPass renderPass = nullptr;
 	uint32_t subpass = 0;
@@ -35,7 +48,7 @@ public:
 	~CRE_GraphicsPipeline();
 
 	CRE_GraphicsPipeline(const CRE_GraphicsPipeline&) = delete;
-	void operator=(const CRE_GraphicsPipeline&) = delete;
+	CRE_GraphicsPipeline& operator=(const CRE_GraphicsPipeline&) = delete;
 
 	void Bind(VkCommandBuffer CommandBuffer);
 	

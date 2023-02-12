@@ -37,7 +37,7 @@ public:
 
 	// Not copyable or movable
 	CRE_Device(const CRE_Device&) = delete;
-	void operator=(const CRE_Device&) = delete;
+	CRE_Device& operator=(const CRE_Device&) = delete;
 	CRE_Device(CRE_Device&&) = delete;
 	CRE_Device& operator=(CRE_Device&&) = delete;
 

@@ -28,11 +28,17 @@ private:
 	void CreatePipelineLayout();
 	void CreatePipeline();
 	void CreateCommandBuffers();
+	void FreeCommandBuffers();
 	void DrawFrame();
+
+	void RecreateSwapChain();
+	void RecordCommandBuffer(int ImageIndex);
+
+	//What a clusterfuck.
 
 	CRE_Window* Window = nullptr;
 	CRE_Device* Device = nullptr;
-	CRE_Swap_Chain* SwapChain = nullptr;
+	std::shared_ptr<CRE_Swap_Chain> SwapChain = nullptr;
 	CRE_GraphicsPipeline* GraphicsPipeline;
 	VkPipelineLayout PipelineLayout;
 	std::vector<VkCommandBuffer> CommandBuffers;

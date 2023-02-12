@@ -9,13 +9,11 @@ CRE_App::CRE_App()
 
 	Device = new CRE_Device(*Window);
 
-	SwapChain = new CRE_Swap_Chain(*Device, Window->GetExtent());
-
 	LoadMeshes();
 
 	//Order is important here. Must happen after the previous pointers have been initialized.
 	CreatePipelineLayout();
-	CreatePipeline();
+	RecreateSwapChain();
 	CreateCommandBuffers();
 }
 
@@ -27,7 +25,7 @@ CRE_App::~CRE_App()
 	vkDestroyPipelineLayout(Device->device(), PipelineLayout, nullptr);
 
 	delete Mesh;
-	delete SwapChain;
+	SwapChain.reset();//must destroy swapchain before device. This is dumb, but I don't care at the moment.
 	delete Device;
 	delete Window;
 }
@@ -48,13 +46,13 @@ void CRE_App::LoadMeshes()
 {
 	std::vector<CRE_Mesh::Vertex> Verticies
 	{
-		{{0.5f, -0.5f}},
-		{{1.0f, 0.5f}},
-		{{-0.5f, 0.5f}},
+		{{0.5f, -0.5f}	,{1.f,0.f,0.f}},
+		{{1.0f, 0.5f}	,{0.f,1.f,0.f}},
+		{{-0.5f, 0.5f}	,{0.f,0.f,1.f}},
 
-		{{-1.f, -0.5f}},
-		{{-1.f, 0.f}},
-		{{-0.5f, 0.5f}},
+		{{-1.f, -0.5f}	,{1.f,0.f,0.f}},
+		{{-1.f, 0.f}	,{0.f,1.f,0.f}},
+		{{-0.5f, 0.5f}	,{0.f,0.f,1.f}},
 	};
 
 	Mesh = new CRE_Mesh(Device, Verticies);
@@ -76,7 +74,18 @@ void CRE_App::CreatePipelineLayout()
 
 void CRE_App::CreatePipeline()
 {
-	auto PipelineConfig = CRE_PipelineConfigInfo::Default(SwapChain->width(), SwapChain->height());
+	assert(SwapChain != nullptr && "Missing swap chain!");
+	assert(PipelineLayout != nullptr && "Missing pipeline layout!");
+
+	//Delete old pipeline.
+	if (GraphicsPipeline != nullptr)
+	{
+		delete GraphicsPipeline;
+	}
+
+	//calling the static default function is not required, since it is called in the constructor now.
+	CRE_PipelineConfigInfo PipelineConfig{};
+
 	PipelineConfig.renderPass = SwapChain->getRenderPass();
 	PipelineConfig.pipelineLayout = PipelineLayout;
 
@@ -101,43 +110,12 @@ void CRE_App::CreateCommandBuffers()
 	{
 		throw std::runtime_error("Failed to alloc command buffers!");
 	}
+}
 
-	for (int i = 0; i < CommandBuffers.size(); i++)
-	{
-		VkCommandBufferBeginInfo BeginInfo{};
-		BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		if (vkBeginCommandBuffer(CommandBuffers[i], &BeginInfo) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to begin recording command buffer!");
-		}
-
-		VkRenderPassBeginInfo RenderPassInfo{};
-		RenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		RenderPassInfo.renderPass = SwapChain->getRenderPass();
-		RenderPassInfo.framebuffer = SwapChain->getFrameBuffer(i);
-
-		RenderPassInfo.renderArea.offset = { 0,0 };
-		RenderPassInfo.renderArea.extent = SwapChain->getSwapChainExtent();
-
-		std::array<VkClearValue, 2> ClearValues{};
-		ClearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.f };
-		ClearValues[1].depthStencil = { 1.f, 0 };
-
-		RenderPassInfo.clearValueCount = static_cast<uint32_t>(ClearValues.size());
-		RenderPassInfo.pClearValues = ClearValues.data();
-
-		vkCmdBeginRenderPass(CommandBuffers[i], &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		GraphicsPipeline->Bind(CommandBuffers[i]);
-		Mesh->Bind(CommandBuffers[i]);
-		Mesh->Draw(CommandBuffers[i]);
-
-		vkCmdEndRenderPass(CommandBuffers[i]);
-		if (vkEndCommandBuffer(CommandBuffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to end command buffer.");
-		}
-	}
+void CRE_App::FreeCommandBuffers()
+{
+	vkFreeCommandBuffers(Device->device(), Device->getCommandPool(), static_cast<uint32_t>(CommandBuffers.size()), CommandBuffers.data());
+	CommandBuffers.clear();
 }
 
 void CRE_App::DrawFrame()
@@ -145,16 +123,106 @@ void CRE_App::DrawFrame()
 	uint32_t ImageIndex;
 	auto Result = SwapChain->acquireNextImage(&ImageIndex);
 
+	if (Result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		RecreateSwapChain();
+		return;
+	}
+
 	if (Result != VK_SUCCESS && Result != VK_SUBOPTIMAL_KHR)
 	{
 		throw std::runtime_error("failed to aquire swap chain image.");
 	}
 
+	RecordCommandBuffer(ImageIndex);
 	Result = SwapChain->submitCommandBuffers(&CommandBuffers[ImageIndex], &ImageIndex);
+
+	if (Result == VK_ERROR_OUT_OF_DATE_KHR || Result == VK_SUBOPTIMAL_KHR || Window->WasWindowResized())
+	{
+		RecreateSwapChain();
+		return;
+	}
 
 	if (Result != VK_SUCCESS)
 	{
 		throw std::runtime_error("failed to submit command buffers.");
+	}
+}
+
+void CRE_App::RecreateSwapChain()
+{
+	auto Extent = Window->GetExtent();
+	while (Extent.width == 0 || Extent.height == 0)
+	{
+		Extent = Window->GetExtent();
+		glfwWaitEvents();
+	}
+
+	vkDeviceWaitIdle(Device->device());
+
+	if (SwapChain == nullptr)
+	{
+		SwapChain = std::make_shared<CRE_Swap_Chain>(*Device, Extent);
+	}
+	else
+	{
+		SwapChain = std::make_shared<CRE_Swap_Chain>(*Device, Extent, std::move(SwapChain));
+
+		if (SwapChain->imageCount() != CommandBuffers.size())
+		{
+			FreeCommandBuffers();
+			CreateCommandBuffers();
+		}
+	}
+
+	CreatePipeline();
+}
+
+void CRE_App::RecordCommandBuffer(int ImageIndex)
+{
+	VkCommandBufferBeginInfo BeginInfo{};
+	BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	if (vkBeginCommandBuffer(CommandBuffers[ImageIndex], &BeginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to begin recording command buffer!");
+	}
+
+	VkRenderPassBeginInfo RenderPassInfo{};
+	RenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	RenderPassInfo.renderPass = SwapChain->getRenderPass();
+	RenderPassInfo.framebuffer = SwapChain->getFrameBuffer(ImageIndex);
+
+	RenderPassInfo.renderArea.offset = { 0,0 };
+	RenderPassInfo.renderArea.extent = SwapChain->getSwapChainExtent();
+
+	std::array<VkClearValue, 2> ClearValues{};
+	ClearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.f };
+	ClearValues[1].depthStencil = { 1.f, 0 };
+
+	RenderPassInfo.clearValueCount = static_cast<uint32_t>(ClearValues.size());
+	RenderPassInfo.pClearValues = ClearValues.data();
+
+	vkCmdBeginRenderPass(CommandBuffers[ImageIndex], &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport Viewport{};
+	Viewport.x = 0.f;
+	Viewport.y = 0.f;
+	Viewport.width = static_cast<float>(SwapChain->getSwapChainExtent().width);
+	Viewport.height = static_cast<float>(SwapChain->getSwapChainExtent().height);
+	Viewport.minDepth = 0.f;
+	Viewport.maxDepth = 1.f;
+	VkRect2D Scissor{ {0, 0}, SwapChain->getSwapChainExtent()};
+	vkCmdSetViewport(CommandBuffers[ImageIndex], 0, 1, &Viewport);
+	vkCmdSetScissor(CommandBuffers[ImageIndex], 0, 1, &Scissor);
+
+	GraphicsPipeline->Bind(CommandBuffers[ImageIndex]);
+	Mesh->Bind(CommandBuffers[ImageIndex]);
+	Mesh->Draw(CommandBuffers[ImageIndex]);
+
+	vkCmdEndRenderPass(CommandBuffers[ImageIndex]);
+	if (vkEndCommandBuffer(CommandBuffers[ImageIndex]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to end command buffer.");
 	}
 }
 

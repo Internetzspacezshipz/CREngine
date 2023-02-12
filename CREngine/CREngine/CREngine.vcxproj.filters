@@ -38,8 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Compiled\Simple_FragShader.frag.spv" />
-    <None Include="Shaders\Compiled\Simple_VertShader.vert.spv" />
     <None Include="compileShaders.bat">
       <Filter>Source Files</Filter>
     </None>

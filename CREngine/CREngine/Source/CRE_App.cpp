@@ -1,7 +1,19 @@
 #include "CRE_App.hpp"
 
+//std incl
 #include <filesystem>
 #include <array>
+
+//glm graphics incl
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
+struct SimplePushConstantData
+{
+	glm::vec2 Offset;
+	alignas(16) glm::vec3 Color;
+};
 
 CRE_App::CRE_App()
 {
@@ -60,12 +72,18 @@ void CRE_App::LoadMeshes()
 
 void CRE_App::CreatePipelineLayout()
 {
+	VkPushConstantRange PushConstantRange;
+	PushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	PushConstantRange.offset = 0;
+	PushConstantRange.size = sizeof(SimplePushConstantData);
+
 	VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
 	PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	PipelineLayoutInfo.setLayoutCount = 0;
 	PipelineLayoutInfo.pSetLayouts = nullptr;
-	PipelineLayoutInfo.pushConstantRangeCount = 0;
-	PipelineLayoutInfo.pPushConstantRanges = nullptr;
+	PipelineLayoutInfo.pushConstantRangeCount = 1;
+	PipelineLayoutInfo.pPushConstantRanges = &PushConstantRange;
+
 	if (vkCreatePipelineLayout(Device->device(), &PipelineLayoutInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create Pipeline Layout.");
@@ -180,6 +198,8 @@ void CRE_App::RecreateSwapChain()
 
 void CRE_App::RecordCommandBuffer(int ImageIndex)
 {
+	static int Frame = 0;
+	Frame = (Frame + 1) % 1000;
 	VkCommandBufferBeginInfo BeginInfo{};
 	BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	if (vkBeginCommandBuffer(CommandBuffers[ImageIndex], &BeginInfo) != VK_SUCCESS)
@@ -217,7 +237,22 @@ void CRE_App::RecordCommandBuffer(int ImageIndex)
 
 	GraphicsPipeline->Bind(CommandBuffers[ImageIndex]);
 	Mesh->Bind(CommandBuffers[ImageIndex]);
-	Mesh->Draw(CommandBuffers[ImageIndex]);
+
+	for (int i = 0; i < 4; i++)
+	{
+		SimplePushConstantData Push;
+		Push.Offset = { -0.5f + Frame * 0.0002f, -0.4f + i * 0.25f };
+		Push.Color = { 0.f,0.f, 0.2f + 0.2f * i };
+
+		vkCmdPushConstants(
+			CommandBuffers[ImageIndex],
+			PipelineLayout,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0,
+			sizeof(SimplePushConstantData),
+			&Push);
+		Mesh->Draw(CommandBuffers[ImageIndex]);
+	}
 
 	vkCmdEndRenderPass(CommandBuffers[ImageIndex]);
 	if (vkEndCommandBuffer(CommandBuffers[ImageIndex]) != VK_SUCCESS)

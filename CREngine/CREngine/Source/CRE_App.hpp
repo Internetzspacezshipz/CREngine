@@ -1,9 +1,8 @@
 #pragma once
 
 #include "CRE_Window.hpp"
+#include "CRE_Renderer.hpp"
 #include "CRE_Device.hpp"
-#include "CRE_Swap_Chain.hpp"
-#include "CRE_GraphicsPipeline.hpp"
 #include "CRE_PhysicalGameObject.hpp"
 
 //std incl
@@ -26,24 +25,12 @@ public:
 
 private:
 	void LoadGameObjects();
-	void CreatePipelineLayout();
-	void CreatePipeline();
-	void CreateCommandBuffers();
-	void FreeCommandBuffers();
-	void DrawFrame();
-
-	void RecreateSwapChain();
-	void RecordCommandBuffer(int ImageIndex);
-	void RenderGameObjects(VkCommandBuffer CommandBuffer);
 
 	//What a clusterfuck.
 
 	CRE_Window* Window = nullptr;
 	CRE_Device* Device = nullptr;
-	std::shared_ptr<CRE_Swap_Chain> SwapChain = nullptr;
-	CRE_GraphicsPipeline* GraphicsPipeline;
-	VkPipelineLayout PipelineLayout;
-	std::vector<VkCommandBuffer> CommandBuffers;
+	CRE_Renderer* Renderer = nullptr;
 
 	std::vector<CRE_PhysicalGameObject> GameObjects;
 };

@@ -70,6 +70,7 @@ void CRE_Renderer::EndFrame()
 		if (Result == VK_ERROR_OUT_OF_DATE_KHR || Result == VK_SUBOPTIMAL_KHR || Window->WasWindowResized())
 		{
 			RecreateSwapChain();
+			Window->ResetWindowResizedFlag();
 		}
 		else if (Result != VK_SUCCESS)
 		{

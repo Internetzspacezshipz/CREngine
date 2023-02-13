@@ -5,7 +5,7 @@ std::vector<VkVertexInputAttributeDescription> CRE_Mesh::Vertex::GetAttributeDes
 	std::vector<VkVertexInputAttributeDescription> AttributesDescriptions(2);
 	AttributesDescriptions[0].binding = 0;
 	AttributesDescriptions[0].location = 0;
-	AttributesDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+	AttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	AttributesDescriptions[0].offset = offsetof(Vertex, Position);
 
 	AttributesDescriptions[1].binding = 0;

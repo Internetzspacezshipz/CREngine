@@ -51,22 +51,73 @@ void CRE_App::Run()
 	vkDeviceWaitIdle(Device->device());
 }
 
+std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset) {
+    std::vector<CRE_Mesh::Vertex> vertices{
+
+        // left face (white)
+        {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+        {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+        {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+        {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+        {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+        {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+
+        // right face (yellow)
+        {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+        {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+        {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+        {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+        {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+        {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+        // top face (orange, remember y axis points down)
+        {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+        {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+        {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+        {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+        {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+        {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+        // bottom face (red)
+        {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+        {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+        {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+        {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+        {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+        {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+        // nose face (blue)
+        {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+        {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+        {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+        {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+        {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+        {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+        // tail face (green)
+        {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+        {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+        {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+        {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+        {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+        {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+
+    };
+    for (auto& v : vertices) {
+        v.Position += offset;
+    }
+    return std::make_unique<CRE_Mesh>(device, vertices);
+}
+
 void CRE_App::LoadGameObjects()
 {
-	std::vector<CRE_Mesh::Vertex> Verticies
-	{
-		{{0.5f, -0.5f}	,{1.f,0.f,0.f}},
-		{{1.0f, 0.5f}	,{0.f,1.f,0.f}},
-		{{-0.5f, 0.5f}	,{0.f,0.f,1.f}},
-	};
+    std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{0.f, 0.f, 0.f});
 
-	auto Mesh = std::make_shared<CRE_Mesh>(Device, Verticies);
+    auto CubeGameObject = CRE_PhysicalGameObject::CreateGameObject();
+    CubeGameObject.MeshObject = Cube;
 
-	CRE_PhysicalGameObject Triangle = CRE_PhysicalGameObject::CreateGameObject();
-	Triangle.MeshObject = Mesh;
-	Triangle.Transform.Translation.x = .2f;
-	Triangle.Transform.Scale = {2.f, .5f};
-	Triangle.Transform.Rotation = 0.25f * glm::two_pi<float>();
+    CubeGameObject.Transform.Translation = {0.f, 0.f, 0.5f};
+    CubeGameObject.Transform.Scale = {0.5f, 0.5f, 0.5f};
 
-	GameObjects.push_back(std::move(Triangle));
+    GameObjects.push_back(std::move(CubeGameObject));
 }

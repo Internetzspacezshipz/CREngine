@@ -1,17 +1,16 @@
 #version 450
 
-layout(location = 0) in vec4 FragColor;
+layout(location = 0) in vec3 FragColor;
 
 layout (location = 0) out vec4 OutColor;
 
 layout(push_constant) uniform Push
 {
-	mat2 Transform;
-	vec2 Offset;
+	mat4 Transform;
 	vec3 Color;
 } PushOb;
 
 void main()
 {
-	OutColor = vec4(PushOb.Color, 1.0);
+	OutColor = vec4(FragColor, 1.0);
 }

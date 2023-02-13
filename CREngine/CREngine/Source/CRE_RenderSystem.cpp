@@ -12,8 +12,7 @@
 
 struct SimplePushConstantData
 {
-	glm::mat2 Transform{ 1.f };
-	glm::vec2 Offset;
+	glm::mat4 Transform{ 1.f };
 	alignas(16) glm::vec3 Color;
 };
 
@@ -80,11 +79,17 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, std::vec
 	GraphicsPipeline->Bind(CommandBuffer);
 	for (auto& Elem : GameObjects)
 	{
-		Elem.Transform.Rotation = glm::mod(Elem.Transform.Rotation + 0.01f, glm::two_pi<float>());
+		auto& Transform = Elem.Transform;
+
+		auto Euler = Transform.GetRotationAsEuler();
+		
+		//todo: make rotations not dumb.
+		Euler.x = fmod(Euler.x + 0.00001f, 3.14/4);
+		Euler.y = fmod(Euler.y + 0.00001f, 3.14/4);
+
+		Transform.SetRotationFromEuler(Euler);
 
 		SimplePushConstantData Push;
-		Push.Offset = Elem.Transform.Translation;
-		Push.Color = Elem.Color;
 		Push.Transform = Elem.Transform;
 
 		vkCmdPushConstants(

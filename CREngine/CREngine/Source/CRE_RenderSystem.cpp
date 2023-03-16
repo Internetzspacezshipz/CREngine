@@ -80,14 +80,14 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, std::vec
 	for (auto& Elem : GameObjects)
 	{
 		auto& Transform = Elem.Transform;
+		 
+		auto EulerDeg = Transform.GetRotationAsEulerDeg();
 
-		auto Euler = Transform.GetRotationAsEuler();
-		
-		//todo: make rotations not dumb.
-		Euler.x = fmod(Euler.x + 0.00001f, 3.14/4);
-		Euler.y = fmod(Euler.y + 0.00001f, 3.14/4);
+		//EulerDeg.x = NormalizeAxis(EulerDeg.x - 0.1f);
+		//EulerDeg.y = NormalizeAxis(EulerDeg.y + 0.1f);
+		//EulerDeg.z = NormalizeAxis(EulerDeg.z + 0.1f);
 
-		Transform.SetRotationFromEuler(Euler);
+		Transform.SetRotationFromEulerDeg(EulerDeg);
 
 		SimplePushConstantData Push;
 		Push.Transform = Elem.Transform;

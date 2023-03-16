@@ -26,11 +26,10 @@ public:
 private:
 	void LoadGameObjects();
 
-	//What a clusterfuck.
-
 	CRE_Window* Window = nullptr;
 	CRE_Device* Device = nullptr;
 	CRE_Renderer* Renderer = nullptr;
 
+	//Should not be here.
 	std::vector<CRE_PhysicalGameObject> GameObjects;
 };

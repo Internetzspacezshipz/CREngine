@@ -1,31 +1,7 @@
 #include "CRE_Mesh.hpp"
 
-std::vector<VkVertexInputAttributeDescription> CRE_Mesh::Vertex::GetAttributeDescriptions()
-{
-	std::vector<VkVertexInputAttributeDescription> AttributesDescriptions(2);
-	AttributesDescriptions[0].binding = 0;
-	AttributesDescriptions[0].location = 0;
-	AttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	AttributesDescriptions[0].offset = offsetof(Vertex, Position);
 
-	AttributesDescriptions[1].binding = 0;
-	AttributesDescriptions[1].location = 1;
-	AttributesDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	AttributesDescriptions[1].offset = offsetof(Vertex, Color);
-
-	return AttributesDescriptions;
-}
-
-std::vector<VkVertexInputBindingDescription> CRE_Mesh::Vertex::GetBindingDescriptions()
-{
-	std::vector<VkVertexInputBindingDescription> BindingDescriptions(1);
-	BindingDescriptions[0].binding = 0;
-	BindingDescriptions[0].stride = sizeof(Vertex);
-	BindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	return BindingDescriptions;
-}
-
-CRE_Mesh::CRE_Mesh(CRE_Device* InDevice, const std::vector<Vertex>& Verticies)
+CRE_Mesh::CRE_Mesh(CRE_Device* InDevice, const std::vector<CRE_Vertex>& Verticies)
 	: Device(InDevice)
 {
 	CreateVertexBuffers(Verticies);
@@ -51,7 +27,7 @@ void CRE_Mesh::Draw(VkCommandBuffer CommandBuffer)
 	vkCmdDraw(CommandBuffer, VertexCount, 1, 0 ,0);
 }
 
-void CRE_Mesh::CreateVertexBuffers(const std::vector<Vertex>& Verticies)
+void CRE_Mesh::CreateVertexBuffers(const std::vector<CRE_Vertex>& Verticies)
 {
 	VertexCount = static_cast<uint32_t>(Verticies.size());
 	assert(VertexCount >= 3 && "Vertex count must be at least three");

@@ -399,3 +399,6 @@ FodyWeavers.xsd
 
 # compiled shader code
 *.spv
+
+#specific intermediate folders in boost
+CREngine/ThirdParty/boost/*

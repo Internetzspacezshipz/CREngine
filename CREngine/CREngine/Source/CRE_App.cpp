@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include "CRE_Math.hpp"
 
 CRE_App::CRE_App()
 {
@@ -51,9 +52,10 @@ void CRE_App::Run()
 	vkDeviceWaitIdle(Device->device());
 }
 
-std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset) {
-    std::vector<CRE_Mesh::Vertex> vertices{
-
+std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset)
+{
+    std::vector<CRE_Vertex> vertices
+    {
         // left face (white)
         {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
         {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
@@ -101,9 +103,10 @@ std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset) 
         {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
         {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
         {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-
     };
-    for (auto& v : vertices) {
+
+    for (auto& v : vertices)
+    {
         v.Position += offset;
     }
     return std::make_unique<CRE_Mesh>(device, vertices);
@@ -111,13 +114,59 @@ std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset) 
 
 void CRE_App::LoadGameObjects()
 {
-    std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{0.f, 0.f, 0.f});
+    //3d box
+    if (false)
+    {
+        std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{ 0.f, 0.f, 0.f });
 
-    auto CubeGameObject = CRE_PhysicalGameObject::CreateGameObject();
-    CubeGameObject.MeshObject = Cube;
+        auto CubeGameObject = CRE_PhysicalGameObject::CreateGameObject();
+        CubeGameObject.MeshObject = Cube;
 
-    CubeGameObject.Transform.Translation = {0.f, 0.f, 0.5f};
-    CubeGameObject.Transform.Scale = {0.5f, 0.5f, 0.5f};
+        CubeGameObject.Transform.Translation = { 0.f, 0.f, 0.5f };
+        CubeGameObject.Transform.Scale = { 0.5f, 0.5f, 0.5f };
 
-    GameObjects.push_back(std::move(CubeGameObject));
+        GameObjects.push_back(std::move(CubeGameObject));
+    }
+
+    //make test 2d box.
+    if (true)
+    {
+        CRE_TransformBox2D Box;
+        Box.TopLeft = { -1.f, -1.f };
+        Box.BotRight = { 0.f, 0.f };
+        Box.CameraDistance = 0.1f;
+
+        //Box.Scale(-1.f, -1.f);
+
+        std::vector<CRE_Vertex> Tris = Box.GetRenderTris();
+
+        std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
+
+        auto BoxGameObject = CRE_PhysicalGameObject::CreateGameObject();
+
+        BoxGameObject.MeshObject = BoxPtr;
+
+        GameObjects.push_back(std::move(BoxGameObject));
+    }
+
+    //Make test 2d box 2
+    if (true)
+    {
+        CRE_TransformBox2D Box;
+        Box.TopLeft = { 0.f, 0.f };
+        Box.BotRight = { 1.f, 1.f } ;
+        Box.CameraDistance = 0.1f;
+
+        //Box.Scale(-1.f, -1.f);
+
+        std::vector<CRE_Vertex> Tris = Box.GetRenderTris();
+
+        std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
+
+        auto BoxGameObject = CRE_PhysicalGameObject::CreateGameObject();
+
+        BoxGameObject.MeshObject = BoxPtr;
+
+        GameObjects.push_back(std::move(BoxGameObject));
+    }
 }

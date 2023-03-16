@@ -23,11 +23,11 @@ void CRE_PipelineConfigInfo::Default(CRE_PipelineConfigInfo& Info)
 
     Info.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     Info.rasterizationInfo.depthClampEnable = VK_FALSE;
-    Info.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
+    Info.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE; 
     Info.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
     Info.rasterizationInfo.lineWidth = 1.0f;
-    Info.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-    Info.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    Info.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT; //Enable/disable backface culling.
+    Info.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE; //Determines which is the front face on a triangle.
     Info.rasterizationInfo.depthBiasEnable = VK_FALSE;
     Info.rasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
     Info.rasterizationInfo.depthBiasClamp = 0.0f;           // Optional
@@ -169,8 +169,8 @@ void CRE_GraphicsPipeline::CreateGraphicsPipeline(const CRE_PipelineConfigInfo& 
     ShaderStages[1].pNext = nullptr;
     ShaderStages[1].pSpecializationInfo = nullptr;
 
-    auto AttributeDescriptions = CRE_Mesh::Vertex::GetAttributeDescriptions();
-    auto BindingDescriptions = CRE_Mesh::Vertex::GetBindingDescriptions();
+    auto AttributeDescriptions = CRE_Vertex::GetAttributeDescriptions();
+    auto BindingDescriptions = CRE_Vertex::GetBindingDescriptions();
 
     VkPipelineVertexInputStateCreateInfo VertexInputInfo{};
     VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

@@ -9,6 +9,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <CRE_RenderableObject.hpp>
 
 struct SimplePushConstantData
 {
@@ -79,12 +80,16 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, const st
 	GraphicsPipeline->Bind(CommandBuffer);
 	for (auto& Elem : GameObjects)
 	{
-		if (Elem->MeshObject.get() == nullptr)
+		CRE_RenderableObject* Renderable = DCast<CRE_RenderableObject>(Elem);
+
+		//Only renderable objects for this system.
+		if (Renderable == nullptr 
+			|| Renderable->MeshObject.get() == nullptr)
 		{
 			continue;
 		}
 
-		auto& Transform = Elem->Transform;
+		auto& Transform = Renderable->Transform;
 		 
 		auto EulerDeg = Transform.GetRotationAsEulerDeg();
 
@@ -95,7 +100,7 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, const st
 		Transform.SetRotationFromEulerDeg(EulerDeg);
 
 		SimplePushConstantData Push;
-		Push.Transform = Elem->Transform;
+		Push.Transform = Renderable->Transform;
 
 		vkCmdPushConstants(
 			CommandBuffer,
@@ -105,7 +110,7 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, const st
 			sizeof(SimplePushConstantData),
 			&Push);
 
-		Elem->MeshObject->Bind(CommandBuffer);
-		Elem->MeshObject->Draw(CommandBuffer);
+		Renderable->MeshObject->Bind(CommandBuffer);
+		Renderable->MeshObject->Draw(CommandBuffer);
 	}
 }

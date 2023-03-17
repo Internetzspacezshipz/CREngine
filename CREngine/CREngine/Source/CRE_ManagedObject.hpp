@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <set>
 
 //Individual objects get an id.
 typedef uint32_t ObjGUID;
@@ -36,34 +37,35 @@ public:
 	ObjGUID GetId() const { return ID; }
 	virtual ClassGUID GetClass() const { return 0; }
 
-	std::shared_ptr<CRE_Mesh> MeshObject;
-	CRE_Transform Transform{};
-
 	// Inherited via CRE_SerializerInterface
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 };
 
-template<class B>
-class CRE_ManagedObjectFactory
+template<class NativeClass>
+class CRE_Class;
+
+
+template<>
+class CRE_Class<CRE_ManagedObject>
 {
-	std::map<ClassGUID, std::function<B*(const ObjGUID&)>> ClassCreators;
+	std::map<ClassGUID, std::function<CRE_ManagedObject* (const ObjGUID&)>> ClassCreators;
 	//Creation index. Not really important right now honestly.
 	ObjGUID CurrentIndex = 0;
 
 public:
-	static CRE_ManagedObjectFactory<B>& Get()
+	static CRE_Class<CRE_ManagedObject>& Get()
 	{
-		static CRE_ManagedObjectFactory<B> s_instance;
+		static CRE_Class<CRE_ManagedObject> s_instance;
 		return s_instance;
 	}
 
 	template<class T>
 	void RegisterClass(ClassGUID ClassID)
 	{
-		ClassCreators.insert( { ClassID, [](const ObjGUID& Index)->B*{ return new T(Index); } } );
+		ClassCreators.insert({ ClassID, [](const ObjGUID& Index)->CRE_ManagedObject* { return new T(Index); } });
 	}
 
-	B* Create(ClassGUID ClassID)
+	CRE_ManagedObject* Create(ClassGUID ClassID)
 	{
 		const auto it = ClassCreators.find(ClassID);
 		if (it == ClassCreators.end())
@@ -72,17 +74,65 @@ public:
 		}
 		return (it->second)(++CurrentIndex);
 	}
+
+	bool ContainsClass(ClassGUID ClassID)
+	{
+		return ClassCreators.contains(ClassID);
+	}
 };
 
-typedef CRE_ManagedObjectFactory<CRE_ManagedObject> CRE_ObjectFactory;
+template<class NativeClass>
+class CRE_Class
+{
+	std::set<ClassGUID> DerivedClasses;
+public:
 
-template<class B, class T>
-class CRE_Creator
+	static CRE_Class<NativeClass>& Get()
+	{
+		static CRE_Class<NativeClass> s_instance;
+		return s_instance;
+	}
+
+	template<class T>
+	void RegisterClass(ClassGUID ClassID)
+	{
+		DerivedClasses.insert(ClassID);
+	}
+
+	NativeClass* Create(ClassGUID ClassID)
+	{
+		return reinterpret_cast<NativeClass*>(CRE_Class<CRE_ManagedObject>::Get().Create(ClassID));
+	}
+
+	NativeClass* Create()
+	{
+		return reinterpret_cast<NativeClass*>(CRE_Class<CRE_ManagedObject>::Get().Create(NativeClass::StaticClass()));
+	}
+
+	bool ContainsClass(ClassGUID ClassID)
+	{
+		if (NativeClass::StaticClass() == ClassID)
+		{
+			return true;
+		}
+		return DerivedClasses.contains(ClassID);
+	}
+};
+
+
+//Base type for all object classes.
+typedef CRE_Class<CRE_ManagedObject> CRE_ObjectFactory;
+
+//Creates the class itself.
+template<class Base, class New>
+class CRE_Registrar
 {
 public:
-	explicit CRE_Creator(ClassGUID ClassID)
+	explicit CRE_Registrar(ClassGUID ClassID)
 	{
-		CRE_ManagedObjectFactory<B>::Get().RegisterClass<T>(ClassID);
+		CRE_Class<Base>::Get().RegisterClass<New>(ClassID);
+		//Must register with the child class manager as well in order to store type trees.
+		CRE_Class<New>::Get().RegisterClass<New>(ClassID);
 	}
 };
 
@@ -99,4 +149,18 @@ virtual ClassGUID GetClass() const override																							\
 }																																	\
 typedef BASE_CLASS_NAME Super;
 
-#define REGISTER_CLASS(BASE_CLASS_NAME, NEW_CLASS_NAME) static CRE_Creator<BASE_CLASS_NAME, NEW_CLASS_NAME> s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(NEW_CLASS_NAME))};
+#define REGISTER_CLASS(BASE_CLASS_NAME, NEW_CLASS_NAME) static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME> s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(NEW_CLASS_NAME))};
+
+//Dynamic Cast.
+template<typename To>
+To* DCast(CRE_ManagedObject* Object)
+{
+	if (Object != nullptr)
+	{
+		if (CRE_Class<To>::Get().ContainsClass(Object->GetClass()))
+		{
+			return reinterpret_cast<To*>(Object);
+		}
+	}
+	return nullptr;
+}

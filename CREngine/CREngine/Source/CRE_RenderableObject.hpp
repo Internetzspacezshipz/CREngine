@@ -12,13 +12,10 @@ class CRE_RenderableObject : public CRE_ManagedObject
 	virtual ~CRE_RenderableObject()
 	{}
 
+	std::shared_ptr<CRE_Mesh> MeshObject;
+	CRE_Transform Transform{};
+
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
-
-
-
-	int SomeRandomNumber = 4242;
-	int SomeOtherNumber = 5151;
-	bool Something = true;
 };
 
 REGISTER_CLASS(CRE_ManagedObject, CRE_RenderableObject);

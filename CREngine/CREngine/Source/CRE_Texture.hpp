@@ -14,6 +14,8 @@ class CRE_Texture : public CRE_SerializerInterface
 	//pixel array.
 	stbi_uc* Data;
 	//output data about size.
+	int ImageSize;
+	//W/H/Channels
 	int TexWidth;
 	int TexHeight;
 	int TexChannels;
@@ -26,5 +28,6 @@ public:
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 
 	bool Load();
+	bool SendToGPU();
 };
 

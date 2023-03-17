@@ -22,6 +22,9 @@ bool CRE_Texture::Load()
 	{
 		Data = stbi_load(Path.generic_string().c_str(), &TexWidth, &TexHeight, &TexChannels, STBI_rgb_alpha);
 
+		//Total Data size is 4 bytes/pixel * height * width.
+		ImageSize = TexWidth * TexHeight * 4;
+
 		if (!Data)
 		{
 			return false;

@@ -148,6 +148,7 @@ std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset)
 void CRE_App::LoadGameObjects()
 {
     CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
+    CRE_Class<CRE_RenderableObject>& RenderableClass = CRE_Class<CRE_RenderableObject>::Get();
 
     //3d box
     if (false)
@@ -155,7 +156,7 @@ void CRE_App::LoadGameObjects()
         std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{ 0.f, 0.f, 0.f });
 
         //Instantiate new renderable object from class.
-        auto CubeGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
+        auto CubeGameObject = RenderableClass.Create();
 
         CubeGameObject->MeshObject = Cube;
         CubeGameObject->Transform.Translation = { 0.f, 0.f, 0.5f };
@@ -179,7 +180,7 @@ void CRE_App::LoadGameObjects()
         std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
         //Instantiate new renderable object from class.
-        auto BoxGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
+        auto BoxGameObject = RenderableClass.Create();
 
         BoxGameObject->MeshObject = BoxPtr;
 
@@ -201,7 +202,7 @@ void CRE_App::LoadGameObjects()
         std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
         //Instantiate new renderable object from class.
-        auto BoxGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
+        auto BoxGameObject = RenderableClass.Create();
 
         BoxGameObject->MeshObject = BoxPtr;
 

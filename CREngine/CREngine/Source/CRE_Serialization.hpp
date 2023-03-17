@@ -6,31 +6,75 @@
 //Boost
 #include "boost/filesystem.hpp"
 
+template<typename Type>
+struct Has_Serializer_Function
+{
+	constexpr static bool Value = false;
+};
+
+//The interface to use when wanting to make something serializable.
+struct CRE_SerializerInterface
+{
+	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) = 0;
+};
+
+//Use type traits to define non-CRE types as serializable.
+template<>
+struct Has_Serializer_Function<CRE_SerializerInterface>
+{
+	constexpr static bool Value = true;
+};
+
+static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const std::string& VarName, CRE_SerializerInterface& Value)
+{
+	//Simply calls the virtual func, while moving into the variable in the TargetJson.
+	Value.Serialize(bSerializing, TargetJson[VarName]);
+}
+
+template<>
+struct Has_Serializer_Function<boost::filesystem::path>
+{
+	constexpr static bool Value = true;
+};
+
+static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const std::string& VarName, boost::filesystem::path& Value)
+{
+	if (bSerializing)
+	{
+		TargetJson[VarName] = Value.string();
+	}
+	else if (TargetJson.contains(VarName))
+	{
+		//Must create a new path for this one.
+		std::string ConvertString = TargetJson[VarName];
+		Value.assign(boost::filesystem::path(ConvertString));
+	}
+}
+
+
 //Serialization helper macros.
 
 //Serializes a single variable.
-#define JSON_SERIALIZE_VARIABLE(JsonVariable, bIsSerializing, VariableName)	   \
-if (bIsSerializing)															   \
-{																			   \
-	JsonVariable[""#VariableName""] = VariableName;							   \
-}																			   \
-else if (JsonVariable.contains(""#VariableName""))							   \
-{																			   \
-	VariableName = JsonVariable[""#VariableName""];							   \
+#define JSON_SERIALIZE_VARIABLE(JsonVariable, bIsSerializing, VariableName)	JSON_SERIALIZE_VARIABLE_STRNAME(JsonVariable, bIsSerializing, VariableName, ""#VariableName"")
+
+//Templated functions to properly select whether or not to use the VarSerialize function that may be defined by the user.
+template<typename Type>
+static typename boost::enable_if_c<Has_Serializer_Function<Type>::Value, void>::type JSON_SERIALIZE_VARIABLE_STRNAME(nlohmann::json& TargetJson, bool bSerializing, Type& Variable, const std::string& VarName)
+{
+	VarSerialize(bSerializing, TargetJson, VarName, Variable);
 }
 
-//Serializes an objects which can have any number of variables. The object must use the serialization interface.
-#define JSON_SERIALIZE_OBJECT(JsonVariable, bIsSerializing, VariableName)	   \
-if (bIsSerializing)															   \
-{																			   \
-	nlohmann::json NewObject;												   \
-	VariableName.Serialize(bIsSerializing, NewObject);						   \
-	JsonVariable[""#VariableName""] = NewObject;							   \
-}																			   \
-else  if (JsonVariable.contains(""#VariableName""))							   \
-{																			   \
-	nlohmann::json InnerObject = JsonVariable[""#VariableName""];			   \
-	VariableName.Serialize(bIsSerializing, InnerObject);					   \
+template<typename Type>
+static typename boost::enable_if_c<!Has_Serializer_Function<Type>::Value, void>::type JSON_SERIALIZE_VARIABLE_STRNAME(nlohmann::json& TargetJson, bool bSerializing, Type& Variable, const std::string& VarName)
+{
+	if (bSerializing)
+	{
+		TargetJson[VarName] = Variable;
+	}
+	else if (TargetJson.contains(VarName))
+	{
+		Variable = TargetJson[VarName];
+	}
 }
 
 //Serializes an array of objects which can have any number of variables. The objects must use the serialization interface.
@@ -99,16 +143,10 @@ else if (JsonVariable.contains(""#ArrayName""))										\
 	}																				\
 }
 
-//The interface to use when wanting to make something serializable.
-struct CRE_SerializerInterface
-{
-	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) = 0;
-};
-
 //CONST FOLDER LOCATIONS
-const boost::filesystem::path UseSettingsFileName = "Settings";
-
-const boost::filesystem::path SettingsSubFolder = "Settings";
+//Manifest file locations so we can just load all the data we need immediately.
+const boost::filesystem::path ManifestFileName = "Manifest";
+const boost::filesystem::path ManifestSubFolder = "Manifest";
 
 const std::string FileExtension = ".json";
 
@@ -116,13 +154,12 @@ const std::string FileExtension = ".json";
 class CRE_Serialization
 {
 	//Total path to given folders for simplicity of use.
-	boost::filesystem::path SettingsFolderPath;
-
-	nlohmann::json LoadFileToJson(boost::filesystem::path Path) const;
-	bool SaveJsonToFile(boost::filesystem::path Path, const nlohmann::json& Json) const;
+	boost::filesystem::path ManifestFolderPath;
 
 	CRE_Serialization();
 public:
+	nlohmann::json LoadFileToJson(boost::filesystem::path Path) const;
+	bool SaveJsonToFile(boost::filesystem::path Path, const nlohmann::json& Json) const;
 
 	static CRE_Serialization& Get()
 	{
@@ -130,6 +167,6 @@ public:
 		return DL;
 	}
 
-	nlohmann::json LoadUserSettings() const;
-	bool SaveUserSettings(nlohmann::json& InJson) const;
+	nlohmann::json LoadManifest() const;
+	bool SaveManifest(nlohmann::json& InJson) const;
 };

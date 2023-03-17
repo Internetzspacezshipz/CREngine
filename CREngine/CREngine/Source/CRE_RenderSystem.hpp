@@ -2,7 +2,7 @@
 
 #include "CRE_Device.hpp"
 #include "CRE_GraphicsPipeline.hpp"
-#include "CRE_PhysicalGameObject.hpp"
+#include <CRE_ManagedObject.hpp>
 
 //std incl
 #include <vector>
@@ -17,7 +17,7 @@ public:
 	CRE_RenderSystem(const CRE_RenderSystem&) = delete;
 	CRE_RenderSystem& operator= (const CRE_RenderSystem&) = delete;
 
-	void RenderGameObjects(VkCommandBuffer CommandBuffer, std::vector<CRE_PhysicalGameObject>& GameObjects);
+	void RenderGameObjects(VkCommandBuffer CommandBuffer, const std::vector<CRE_ManagedObject*>& GameObjects);
 
 private:
 	void CreatePipelineLayout();

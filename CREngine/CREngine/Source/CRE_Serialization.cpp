@@ -35,17 +35,17 @@ bool CRE_Serialization::SaveJsonToFile(boost::filesystem::path Path, const nlohm
 }
 
 CRE_Serialization::CRE_Serialization() :
-	SettingsFolderPath(boost::filesystem::current_path() / SettingsSubFolder)
+	ManifestFolderPath(boost::filesystem::current_path() / ManifestSubFolder)
 {
-	boost::filesystem::create_directories(SettingsFolderPath);
+	boost::filesystem::create_directories(ManifestFolderPath);
 }
 
-nlohmann::json CRE_Serialization::LoadUserSettings() const
+nlohmann::json CRE_Serialization::LoadManifest() const
 {
-	return LoadFileToJson(SettingsFolderPath / UseSettingsFileName);
+	return LoadFileToJson(ManifestFolderPath / ManifestFileName);
 }
 
-bool CRE_Serialization::SaveUserSettings(nlohmann::json& InJson) const
+bool CRE_Serialization::SaveManifest(nlohmann::json& InJson) const
 {
-	return SaveJsonToFile(SettingsFolderPath / UseSettingsFileName, InJson);
+	return SaveJsonToFile(ManifestFolderPath / ManifestFileName, InJson);
 }

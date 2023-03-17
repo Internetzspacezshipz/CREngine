@@ -1,5 +1,7 @@
 #include "CRE_App.hpp"
 #include "CRE_RenderSystem.hpp"
+#include "CRE_Serialization.hpp"
+#include "CRE_RenderableObject.hpp"
 
 //std incl
 #include <filesystem>
@@ -20,8 +22,6 @@ CRE_App::CRE_App()
 	Device = new CRE_Device(*Window);
 
 	Renderer = new CRE_Renderer(Window, Device);
-
-	LoadGameObjects();
 }
 
 CRE_App::~CRE_App()
@@ -36,6 +36,24 @@ void CRE_App::Run()
 {
 	CRE_RenderSystem RenderSystem{Device, Renderer->GetSwapChainRenderPass()};
 
+    //Load main files;
+    CRE_Serialization& Serializer = CRE_Serialization::Get();
+    CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
+
+    //Load objects
+    {
+        LoadGameObjects();
+
+        nlohmann::json Manifest = Serializer.LoadManifest();
+
+        for (auto& Elem : Manifest)
+        {
+            CRE_ManagedObject* NewObject = ObjectFactory.Create(Elem[0]);
+            GameObjects.push_back(NewObject);
+            NewObject->Serialize(false, Elem[1]);
+        }
+    }
+
 	while (!Window->ShouldClose())
 	{
 		glfwPollEvents();
@@ -47,6 +65,21 @@ void CRE_App::Run()
 			Renderer->EndFrame();
 		}
 	}
+
+    //Save objects.
+    {
+        nlohmann::json NewManifest;
+        for (auto* Elem : GameObjects)
+        {
+            nlohmann::json Inner;
+            Elem->Serialize(true, Inner);
+            nlohmann::json BaseJson{ Elem->GetClass(), Inner };
+            NewManifest.push_back(BaseJson);
+        }
+
+        Serializer.SaveManifest(NewManifest);
+    }
+
 
 	//wait until vulkan has cleaned everything up.
 	vkDeviceWaitIdle(Device->device());
@@ -114,18 +147,21 @@ std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset)
 
 void CRE_App::LoadGameObjects()
 {
+    CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
+
     //3d box
     if (false)
     {
         std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{ 0.f, 0.f, 0.f });
 
-        auto CubeGameObject = CRE_PhysicalGameObject::CreateGameObject();
-        CubeGameObject.MeshObject = Cube;
+        //Instantiate new renderable object from class.
+        auto CubeGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
 
-        CubeGameObject.Transform.Translation = { 0.f, 0.f, 0.5f };
-        CubeGameObject.Transform.Scale = { 0.5f, 0.5f, 0.5f };
+        CubeGameObject->MeshObject = Cube;
+        CubeGameObject->Transform.Translation = { 0.f, 0.f, 0.5f };
+        CubeGameObject->Transform.Scale = { 0.5f, 0.5f, 0.5f };
 
-        GameObjects.push_back(std::move(CubeGameObject));
+        GameObjects.push_back(CubeGameObject);
     }
 
     //make test 2d box.
@@ -142,11 +178,12 @@ void CRE_App::LoadGameObjects()
 
         std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
-        auto BoxGameObject = CRE_PhysicalGameObject::CreateGameObject();
+        //Instantiate new renderable object from class.
+        auto BoxGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
 
-        BoxGameObject.MeshObject = BoxPtr;
+        BoxGameObject->MeshObject = BoxPtr;
 
-        GameObjects.push_back(std::move(BoxGameObject));
+        GameObjects.push_back(BoxGameObject);
     }
 
     //Make test 2d box 2
@@ -163,10 +200,11 @@ void CRE_App::LoadGameObjects()
 
         std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
-        auto BoxGameObject = CRE_PhysicalGameObject::CreateGameObject();
+        //Instantiate new renderable object from class.
+        auto BoxGameObject = ObjectFactory.Create(CRE_RenderableObject::StaticClass());
 
-        BoxGameObject.MeshObject = BoxPtr;
+        BoxGameObject->MeshObject = BoxPtr;
 
-        GameObjects.push_back(std::move(BoxGameObject));
+        GameObjects.push_back(BoxGameObject);
     }
 }

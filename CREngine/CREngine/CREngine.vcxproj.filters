@@ -39,7 +39,7 @@
     <ClCompile Include="Source\CRE_Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CRE_PhysicalGameObject.cpp">
+    <ClCompile Include="Source\CRE_ManagedObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CRE_Renderer.cpp">
@@ -48,13 +48,19 @@
     <ClCompile Include="Source\CRE_RenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CRE_UserInterface.cpp">
+    <ClCompile Include="Source\CRE_UserInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CRE_Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CRE_Serialization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CRE_Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CRE_RenderableObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -85,7 +91,7 @@
     <ClInclude Include="Source\CRE_Mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CRE_PhysicalGameObject.hpp">
+    <ClInclude Include="Source\CRE_ManagedObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Renderer.hpp">
@@ -94,13 +100,22 @@
     <ClInclude Include="Source\CRE_RenderSystem.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CRE_UserInterface.hpp">
+    <ClInclude Include="Source\CRE_UserInterface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Input.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Serialization.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CRE_Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CRE_SimpleHashes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CRE_RenderableObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

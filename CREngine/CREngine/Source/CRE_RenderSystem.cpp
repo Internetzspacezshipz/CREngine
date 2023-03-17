@@ -74,12 +74,17 @@ void CRE_RenderSystem::CreatePipeline(VkRenderPass RenderPass)
 	GraphicsPipeline = new CRE_GraphicsPipeline(*Device, PipelineConfig, VPath.string(), FPath.string());
 }
 
-void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, std::vector<CRE_PhysicalGameObject>& GameObjects)
+void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, const std::vector<CRE_ManagedObject*>& GameObjects)
 {
 	GraphicsPipeline->Bind(CommandBuffer);
 	for (auto& Elem : GameObjects)
 	{
-		auto& Transform = Elem.Transform;
+		if (Elem->MeshObject.get() == nullptr)
+		{
+			continue;
+		}
+
+		auto& Transform = Elem->Transform;
 		 
 		auto EulerDeg = Transform.GetRotationAsEulerDeg();
 
@@ -90,7 +95,7 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, std::vec
 		Transform.SetRotationFromEulerDeg(EulerDeg);
 
 		SimplePushConstantData Push;
-		Push.Transform = Elem.Transform;
+		Push.Transform = Elem->Transform;
 
 		vkCmdPushConstants(
 			CommandBuffer,
@@ -100,7 +105,7 @@ void CRE_RenderSystem::RenderGameObjects(VkCommandBuffer CommandBuffer, std::vec
 			sizeof(SimplePushConstantData),
 			&Push);
 
-		Elem.MeshObject->Bind(CommandBuffer);
-		Elem.MeshObject->Draw(CommandBuffer);
+		Elem->MeshObject->Bind(CommandBuffer);
+		Elem->MeshObject->Draw(CommandBuffer);
 	}
 }

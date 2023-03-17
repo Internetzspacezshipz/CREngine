@@ -3,7 +3,7 @@
 #include "CRE_Window.hpp"
 #include "CRE_Renderer.hpp"
 #include "CRE_Device.hpp"
-#include "CRE_PhysicalGameObject.hpp"
+#include "CRE_ManagedObject.hpp"
 
 //std incl
 #include <vector>
@@ -30,6 +30,6 @@ private:
 	CRE_Device* Device = nullptr;
 	CRE_Renderer* Renderer = nullptr;
 
-	//Should not be here.
-	std::vector<CRE_PhysicalGameObject> GameObjects;
+	//List of managed objects which we control. We should move this somewhere else soon. This is a shitty spot for it.
+	std::vector<CRE_ManagedObject*> GameObjects;
 };

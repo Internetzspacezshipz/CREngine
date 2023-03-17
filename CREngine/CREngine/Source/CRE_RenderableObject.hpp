@@ -4,7 +4,7 @@
 
 class CRE_RenderableObject : public CRE_ManagedObject
 {
-	DEF_CLASS(CRE_ManagedObject, CRE_RenderableObject);
+	DEF_CLASS(CRE_RenderableObject, CRE_ManagedObject);
 
 	CRE_RenderableObject(const ObjGUID& InObjGUID) : Super(InObjGUID)
 	{}
@@ -18,4 +18,5 @@ class CRE_RenderableObject : public CRE_ManagedObject
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 };
 
-REGISTER_CLASS(CRE_ManagedObject, CRE_RenderableObject);
+REGISTER_CLASS(CRE_RenderableObject, CRE_ManagedObject);
+

@@ -17,6 +17,7 @@ typedef uint32_t ObjGUID;
 //Each class gets an ID as well, which will be used by serialization to make instances of the class.
 typedef uint32_t ClassGUID;
 
+//Base class for all gameplay related classes to inherit from.
 class CRE_ManagedObject : public CRE_SerializerInterface
 {
 	ObjGUID ID;
@@ -119,7 +120,6 @@ public:
 	}
 };
 
-
 //Base type for all object classes.
 typedef CRE_Class<CRE_ManagedObject> CRE_ObjectFactory;
 
@@ -136,7 +136,7 @@ public:
 	}
 };
 
-#define DEF_CLASS(BASE_CLASS_NAME, NEW_CLASS_NAME) public:																			\
+#define DEF_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) public:																			\
 static ClassGUID StaticClass()																										\
 { 																																	\
 	static ClassGUID ConcreteClassGUID = crc32_CONST(""#NEW_CLASS_NAME"", sizeof(NEW_CLASS_NAME));									\
@@ -149,7 +149,7 @@ virtual ClassGUID GetClass() const override																							\
 }																																	\
 typedef BASE_CLASS_NAME Super;
 
-#define REGISTER_CLASS(BASE_CLASS_NAME, NEW_CLASS_NAME) static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME> s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(NEW_CLASS_NAME))};
+#define REGISTER_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME> s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(NEW_CLASS_NAME))};
 
 //Dynamic Cast.
 template<typename To>

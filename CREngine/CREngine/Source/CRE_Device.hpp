@@ -5,7 +5,10 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <functional>
 
+//3rd party
+#include "vma.h"
 
 struct SwapChainSupportDetails 
 {

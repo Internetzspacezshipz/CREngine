@@ -344,7 +344,8 @@ void CRE_Swap_Chain::createDepthResources() {
   }
 }
 
-void CRE_Swap_Chain::createSyncObjects() {
+void CRE_Swap_Chain::createSyncObjects() 
+{
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -357,15 +358,17 @@ void CRE_Swap_Chain::createSyncObjects() {
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
-            VK_SUCCESS ||
-        vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
-            VK_SUCCESS ||
-        vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-      throw std::runtime_error("failed to create synchronization objects for a frame!");
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+    {
+        if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) 
+        {
+            throw std::runtime_error("failed to create synchronization objects for a frame!");
+        }
     }
-  }
 }
 
 VkSurfaceFormatKHR CRE_Swap_Chain::chooseSwapSurfaceFormat(

@@ -13,6 +13,9 @@
 //See corecrt_math_defines.h - used for pi and other constants.
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <vector>
+
+#include <vulkan/vulkan.h>
 
 inline float ClampAxis(float Angle)
 {

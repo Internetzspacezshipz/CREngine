@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CRE_Mesh.hpp"
 #include "CRE_Serialization.hpp"
 #include "CRE_SimpleHashes.h"
 
@@ -17,9 +16,10 @@ typedef uint32_t ObjGUID;
 //Each class gets an ID as well, which will be used by serialization to make instances of the class.
 typedef uint32_t ClassGUID;
 
-//Base class for all gameplay related classes to inherit from.
+//Virtual base class for all gameplay related classes to inherit from.
 class CRE_ManagedObject : public CRE_SerializerInterface
 {
+protected:
 	ObjGUID ID;
 
 	//Default move.
@@ -38,8 +38,11 @@ public:
 	ObjGUID GetId() const { return ID; }
 	virtual ClassGUID GetClass() const { return 0; }
 
+	//The "Constructor", which we call in the actual constructor.
+	virtual void Construct() {};
+
 	// Inherited via CRE_SerializerInterface
-	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
+	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override {};
 };
 
 template<class NativeClass>
@@ -74,6 +77,13 @@ public:
 			return nullptr; // not a derived class
 		}
 		return (it->second)(++CurrentIndex);
+	}
+
+	//Templated create.
+	template<typename Class>
+	Class* Create()
+	{
+		return reinterpret_cast<Class*>(Create(Class::StaticClass()));
 	}
 
 	bool ContainsClass(ClassGUID ClassID)
@@ -146,6 +156,10 @@ virtual ClassGUID GetClass() const override																							\
 { 																																	\
 	static ClassGUID ConcreteClassGUID = NEW_CLASS_NAME::StaticClass();																\
 	return ConcreteClassGUID; 																										\
+}																																	\
+NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
+{																																	\
+	Construct();																													\
 }																																	\
 typedef BASE_CLASS_NAME Super;
 

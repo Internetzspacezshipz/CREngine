@@ -1,7 +1,10 @@
 #include "CRE_App.hpp"
-#include "CRE_RenderSystem.hpp"
 #include "CRE_Serialization.hpp"
-#include "CRE_RenderableObject.hpp"
+#include "CRE_AssetList.h"
+#include "CRE_Globals.hpp"
+
+
+#include "BasicObjects/CRE_2DRenderable.hpp"
 
 //std incl
 #include <filesystem>
@@ -17,153 +20,51 @@
 
 CRE_App::CRE_App()
 {
-	Window = new CRE_Window(WIDTH, HEIGHT, "New Vulkan Window");
 
-	Device = new CRE_Device(*Window);
-
-	Renderer = new CRE_Renderer(Window, Device);
 }
 
 CRE_App::~CRE_App()
 {
-	GameObjects.clear();
 
-	delete Device;
-	delete Window;
 }
 
-void CRE_App::Run()
+void CRE_App::SetupEnginePointer(VulkanEngine* InEnginePointer)
 {
-	CRE_RenderSystem RenderSystem{Device, Renderer->GetSwapChainRenderPass()};
+    CRE_Globals::GetEnginePointer() = InEnginePointer;
+}
 
+void CRE_App::LoadInitialGameFiles()
+{
     //Load main files;
     CRE_Serialization& Serializer = CRE_Serialization::Get();
-    CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
 
-    //Load objects
+
+    //Load the root object and initialize a new asset list object with it to load all other relevant data.
+    nlohmann::json Manifest = Serializer.LoadManifest();
+    if (Manifest.is_null())
     {
+        //Load default/hardcoded objects. objects.
         LoadGameObjects();
-
-        nlohmann::json Manifest = Serializer.LoadManifest();
-
-        for (auto& Elem : Manifest)
-        {
-            CRE_ManagedObject* NewObject = ObjectFactory.Create(Elem[0]);
-            GameObjects.push_back(NewObject);
-            NewObject->Serialize(false, Elem[1]);
-        }
     }
-
-	while (!Window->ShouldClose())
-	{
-		glfwPollEvents();
-		if (auto CommandBuffer = Renderer->BeginFrame())
-		{
-			Renderer->BeginSwapChainRenderPass(CommandBuffer);
-			RenderSystem.RenderGameObjects(CommandBuffer, GameObjects);
-			Renderer->EndSwapChainRenderPass(CommandBuffer);
-			Renderer->EndFrame();
-		}
-	}
-
-    //Save objects.
-    {
-        nlohmann::json NewManifest;
-        for (auto* Elem : GameObjects)
-        {
-            nlohmann::json Inner;
-            Elem->Serialize(true, Inner);
-            nlohmann::json BaseJson{ Elem->GetClass(), Inner };
-            NewManifest.push_back(BaseJson);
-        }
-
-        Serializer.SaveManifest(NewManifest);
-    }
-
-
-	//wait until vulkan has cleaned everything up.
-	vkDeviceWaitIdle(Device->device());
+    RootObject = CRE_ObjectFactory::Get().Create<CRE_AssetList>();
+    RootObject->Serialize(false, Manifest);
 }
 
-std::unique_ptr<CRE_Mesh> createCubeModel(CRE_Device* device, glm::vec3 offset)
+void CRE_App::SaveGame()
 {
-    std::vector<CRE_Vertex> vertices
-    {
-        // left face (white)
-        {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-        {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-        {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-        {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-        {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-        {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+    CRE_Serialization& Serializer = CRE_Serialization::Get();
 
-        // right face (yellow)
-        {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-        {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-        {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-        {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-
-        // top face (orange, remember y axis points down)
-        {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-        {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-        {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-        {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-        {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-        {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-
-        // bottom face (red)
-        {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-        {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-        {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-        {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-
-        // nose face (blue)
-        {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-        {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-        {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-        {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-        {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-        {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-
-        // tail face (green)
-        {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-        {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-        {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-        {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-        {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-        {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-    };
-
-    for (auto& v : vertices)
-    {
-        v.Position += offset;
-    }
-    return std::make_unique<CRE_Mesh>(device, vertices);
+    //Save root object. Maybe we can make a save game object later on as well as other types of similar uses (settings object, etc).
+    nlohmann::json NewManifest;
+    RootObject->Serialize(false, NewManifest);
+    delete RootObject;
+    Serializer.SaveManifest(NewManifest);
 }
 
 void CRE_App::LoadGameObjects()
 {
     CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
-    CRE_Class<CRE_RenderableObject>& RenderableClass = CRE_Class<CRE_RenderableObject>::Get();
-
-    //3d box
-    if (false)
-    {
-        std::shared_ptr<CRE_Mesh> Cube = createCubeModel(Device, glm::vec3{ 0.f, 0.f, 0.f });
-
-        //Instantiate new renderable object from class.
-        auto CubeGameObject = RenderableClass.Create();
-
-        CubeGameObject->MeshObject = Cube;
-        CubeGameObject->Transform.Translation = { 0.f, 0.f, 0.5f };
-        CubeGameObject->Transform.Scale = { 0.5f, 0.5f, 0.5f };
-
-        GameObjects.push_back(CubeGameObject);
-    }
+    CRE_Class<CRE_2DRenderable>& RenderableClass = CRE_Class<CRE_2DRenderable>::Get();
 
     //make test 2d box.
     if (true)
@@ -177,14 +78,14 @@ void CRE_App::LoadGameObjects()
 
         std::vector<CRE_Vertex> Tris = Box.GetRenderTris();
 
-        std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
+        //std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
         //Instantiate new renderable object from class.
         auto BoxGameObject = RenderableClass.Create();
 
-        BoxGameObject->MeshObject = BoxPtr;
+        //BoxGameObject->MeshObject = BoxPtr;
 
-        GameObjects.push_back(BoxGameObject);
+        //GameObjects.push_back(BoxGameObject);
     }
 
     //Make test 2d box 2
@@ -199,13 +100,13 @@ void CRE_App::LoadGameObjects()
 
         std::vector<CRE_Vertex> Tris = Box.GetRenderTris();
 
-        std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
+       // std::shared_ptr<CRE_Mesh> BoxPtr = std::make_unique<CRE_Mesh>(Device, Tris);
 
         //Instantiate new renderable object from class.
         auto BoxGameObject = RenderableClass.Create();
 
-        BoxGameObject->MeshObject = BoxPtr;
+        //BoxGameObject->MeshObject = BoxPtr;
 
-        GameObjects.push_back(BoxGameObject);
+        //GameObjects.push_back(BoxGameObject);
     }
 }

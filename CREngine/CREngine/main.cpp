@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
-int main()
+/*int main()
 {
 	CRE_App Application{};
 
@@ -18,4 +18,26 @@ int main()
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
+}*/
+
+#include <vk_engine.h>
+
+int main(int argc, char* argv[])
+{
+	VulkanEngine engine;
+	CRE_App MainApp;
+
+	engine.init();
+
+	engine.run();
+
+	MainApp.LoadInitialGameFiles();
+
+	MainApp.SetupEnginePointer(&engine);
+
+	engine.cleanup();
+
+	MainApp.SaveGame();
+
+	return 0;
 }

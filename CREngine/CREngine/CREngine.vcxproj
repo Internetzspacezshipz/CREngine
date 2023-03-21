@@ -272,13 +272,21 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CRE_Texture.cpp" />
+    <ClCompile Include="Source\BasicObjects\CRE_Mesh.cpp" />
+    <ClCompile Include="Source\BasicObjects\CRE_Texture.cpp" />
     <ClCompile Include="Source\CRE_AssetList.cpp" />
     <ClCompile Include="Source\CRE_App.cpp" />
     <ClCompile Include="Source\CRE_ManagedObject.cpp" />
     <ClCompile Include="Source\BasicObjects\CRE_2DRenderable.cpp" />
     <ClCompile Include="Source\CRE_Serialization.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_impl_sdl2.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="Source\ThirdParty\vkbootstrap\VkBootstrap.cpp" />
     <ClCompile Include="Source\vk_engine.cpp" />
@@ -296,7 +304,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CRE_Texture.hpp" />
+    <ClInclude Include="Source\BasicObjects\CRE_Mesh.hpp" />
+    <ClInclude Include="Source\BasicObjects\CRE_Texture.hpp" />
     <ClInclude Include="Source\CRE_AssetList.h" />
     <ClInclude Include="Source\CRE_App.hpp" />
     <ClInclude Include="Source\CRE_Globals.hpp" />
@@ -306,6 +315,14 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\BasicObjects\CRE_2DRenderable.hpp" />
     <ClInclude Include="Source\CRE_Serialization.hpp" />
     <ClInclude Include="Source\CRE_SimpleHashes.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui_impl_sdl2.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui_impl_vulkan.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.h" />
     <ClInclude Include="Source\ThirdParty\vkbootstrap\VkBootstrap.h" />
     <ClInclude Include="Source\vk_engine.h" />

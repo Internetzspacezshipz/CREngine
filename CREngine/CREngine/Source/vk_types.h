@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
+typedef uint64_t AssetHandle;
+
 struct AllocatedBuffer {
 	VkBuffer _buffer;
 	VmaAllocation _allocation;

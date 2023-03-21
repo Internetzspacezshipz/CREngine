@@ -102,12 +102,6 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
 	});
 
-
-	engine._mainDeletionQueue.push_function([=]() {
-	
-		vmaDestroyImage(engine._allocator, newImage._image, newImage._allocation);
-	});
-
 	vmaDestroyBuffer(engine._allocator, stagingBuffer._buffer, stagingBuffer._allocation);
 
 	std::cout << "Texture loaded succesfully " << file << std::endl;

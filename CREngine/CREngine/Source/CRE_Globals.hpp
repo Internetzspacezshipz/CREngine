@@ -9,4 +9,6 @@ namespace CRE_Globals
 		static VulkanEngine* Engine;
 		return Engine;
 	}
+
+	//TODO: Add settings object pointer here.
 }

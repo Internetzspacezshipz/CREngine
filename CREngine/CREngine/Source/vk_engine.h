@@ -14,7 +14,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-class PipelineBuilder {
+//Vulkan bootstrap for helping with managment of swapchain and other vulkan parts.
+#include "thirdparty/vkbootstrap/VkBootstrap.h"
+
+class PipelineBuilder 
+{
 public:
 
 	std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
@@ -34,51 +38,55 @@ public:
 
 struct DeletionQueue
 {
-    std::deque<std::function<void()>> deletors;
+    std::deque<std::function<void(class VulkanEngine* Engine)>> deletors;
 
-    void push_function(std::function<void()>&& function) {
+    void push_function(std::function<void(VulkanEngine* Engine)>&& function) 
+	{
         deletors.push_back(function);
     }
 
-    void flush() {
+    void flush(VulkanEngine* Engine) 
+	{
         // reverse iterate the deletion queue to execute all the functions
-        for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
-            (*it)(); //call functors
+        for (auto it = deletors.rbegin(); it != deletors.rend(); it++) 
+		{
+            (*it)(Engine); //call functors
         }
 
         deletors.clear();
     }
 };
 
-struct MeshPushConstants {
+struct MeshPushConstants 
+{
 	glm::vec4 data;
 	glm::mat4 render_matrix;
 };
 
-
-struct Material {
+struct Material 
+{
 	VkDescriptorSet textureSet{VK_NULL_HANDLE};
 	VkPipeline pipeline;
 	VkPipelineLayout pipelineLayout;
 };
 
-struct Texture {
+struct Texture 
+{
 	AllocatedImage image;
 	VkImageView imageView;
 };
 
-struct RenderObject {
+struct RenderObject 
+{
 	Mesh* mesh;
 
 	Material* material;
 
 	glm::mat4 transformMatrix;
-
-	
 };
 
-
-struct FrameData {
+struct FrameData 
+{
 	VkSemaphore _presentSemaphore, _renderSemaphore;
 	VkFence _renderFence;
 
@@ -94,19 +102,22 @@ struct FrameData {
 	VkDescriptorSet objectDescriptor;
 };
 
-struct UploadContext {
+struct UploadContext 
+{
 	VkFence _uploadFence;
 	VkCommandPool _commandPool;	
 	VkCommandBuffer _commandBuffer;
 };
-struct GPUCameraData{
+
+struct GPUCameraData
+{
 	glm::mat4 view;
 	glm::mat4 proj;
 	glm::mat4 viewproj;
 };
 
-
-struct GPUSceneData {
+struct GPUSceneData 
+{
 	glm::vec4 fogColor; // w is for exponent
 	glm::vec4 fogDistances; //x for min, y for max, zw unused.
 	glm::vec4 ambientColor;
@@ -114,18 +125,27 @@ struct GPUSceneData {
 	glm::vec4 sunlightColor;
 };
 
-struct GPUObjectData {
+struct GPUObjectData 
+{
 	glm::mat4 modelMatrix;
 };
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
-class VulkanEngine {
+
+class VulkanEngine 
+{
+	friend DeletionQueue;
 public:
 
 	bool _isInitialized{ false };
-	int _frameNumber {0};
+
+	bool bFramebufferResized = false;
+
+	uint64_t _frameNumber {0};
 	int _selectedShader{ 0 };
+
+	bool bShouldBeFullscreen = true;
 
 	VkExtent2D _windowExtent{ 1700 , 900 };
 
@@ -146,14 +166,12 @@ public:
 	VkRenderPass _renderPass;
 
 	VkSurfaceKHR _surface;
-	VkSwapchainKHR _swapchain;
-	VkFormat _swachainImageFormat;
+
+	//Swapchain actual;
+	vkb::Swapchain _vkbSwapchain;
+	uint32_t swapchainImageIndex;
 
 	std::vector<VkFramebuffer> _framebuffers;
-	std::vector<VkImage> _swapchainImages;
-	std::vector<VkImageView> _swapchainImageViews;	
-
-    DeletionQueue _mainDeletionQueue;
 	
 	VmaAllocator _allocator; //vma lib allocator
 
@@ -181,7 +199,9 @@ public:
 	void cleanup();
 
 	//draw loop
-	void draw();
+	void Draw();
+
+	void DrawInterior(VkCommandBuffer cmd);
 
 	//run main loop
 	void run();
@@ -189,12 +209,29 @@ public:
 	FrameData& get_current_frame();
 	FrameData& get_last_frame();
 
+	//Pipelines
+
+	VkPipelineLayout meshPipeLayout;
+	VkPipelineLayout texturedPipeLayout;
+
+	VkPipeline meshPipeline;
+	VkPipeline texPipeline;
+
+
 	//default array of renderable objects
 	std::vector<RenderObject> _renderables;
 
-	std::unordered_map<std::string, Material> _materials;
-	std::unordered_map<std::string, Mesh> _meshes;
-	std::unordered_map<std::string, Texture> _loadedTextures;
+	//Map of paths to asset handles in order to check if we already have a thing loaded.
+	//Asset handles are unique, so this map goes for all the materials, meshes, and loaded textures.
+	std::unordered_map<std::string, AssetHandle> PathToHandle;
+
+	std::unordered_map<AssetHandle, Material>		_materials;
+	std::unordered_map<AssetHandle, Mesh>			_meshes;
+	std::unordered_map<AssetHandle, Texture>		_loadedTextures;
+
+	//annoying thing.
+	DeletionQueue _mainDeletionQueue;
+
 	//functions
 
 	//create material and add it to the map
@@ -202,9 +239,15 @@ public:
 
 	//returns nullptr if it cant be found
 	Material* get_material(const std::string& name);
+	Material* get_material(const AssetHandle& handle);
 
 	//returns nullptr if it cant be found
 	Mesh* get_mesh(const std::string& name);
+	Mesh* get_mesh(const AssetHandle& handle);
+
+	//returns nullptr if it cant be found
+	Texture* get_texture(const std::string& name);
+	Texture* get_texture(const AssetHandle& handle);
 
 	//our draw function
 	void draw_objects(VkCommandBuffer cmd, RenderObject* first, int count);
@@ -214,32 +257,73 @@ public:
 	size_t pad_uniform_buffer_size(size_t originalSize);
 
 	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
+
+
+	//New CRE funcs
+
+	AssetHandle LoadTexture(std::string Path);
+
+	void UnloadTexture(AssetHandle Handle);
+
+	AssetHandle LoadMesh(std::string Path);
+	//Create a mesh with direct mesh access and no original path.
+	AssetHandle LoadMesh(Mesh NewMesh);
+
+
 private:
 
-	void init_vulkan();
+	AssetHandle CurHandle = 0;
 
+	AssetHandle MakeHandle()
+	{
+		do
+		{
+			CurHandle++;
+			//Disallow this ever being 0. Zero is an error.
+		} while (CurHandle == 0);
+
+		return CurHandle;
+	}
+
+	void init_vulkan();
+	void cleanup_vulkan();
+
+	VkDescriptorPool imguiPool;
+	void init_imgui();
+	void cleanup_imgui();
+
+	//Swapchain funcs
 	void init_swapchain();
+	//Used to recreate the swapchain when window resize or fullscreen happens.
+	void recreate_swapchain();
+	void cleanup_swapchain();
+
 
 	void init_default_renderpass();
+	void cleanup_default_renderpass();
 
 	void init_framebuffers();
+	void cleanup_framebuffers();
 
 	void init_commands();
+	void cleanup_commands();
 
 	void init_sync_structures();
+	void cleanup_sync_structures();
 
 	void init_pipelines();
+	void cleanup_pipelines();
 
 	void init_scene();
+	void cleanup_scene();
 
 	void init_descriptors();
+	void cleanup_descriptors();
 
 	//loads a shader module from a spir-v file. Returns false if it errors
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
 
 	void load_meshes();
-
-	void load_images();
 
 	void upload_mesh(Mesh& mesh);
 };

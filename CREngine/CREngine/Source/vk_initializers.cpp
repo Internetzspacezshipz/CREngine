@@ -43,6 +43,7 @@ VkFramebufferCreateInfo vkinit::framebuffer_create_info(VkRenderPass renderPass,
 	info.attachmentCount = 1;
 	info.width = extent.width;
 	info.height = extent.height;
+	info.pAttachments = nullptr;
 	info.layers = 1;
 
 	return info;

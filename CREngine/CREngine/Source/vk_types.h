@@ -4,7 +4,15 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
+
+//Whether we should record VMA to look for memory leaks and such.
+#define VMA_REC 1
+
+#ifndef VMA_RECORDING_ENABLED
+#define VMA_RECORDING_ENABLED VMA_REC
+#endif
+
+#include "vk_mem_alloc.h"
 
 typedef uint64_t AssetHandle;
 

@@ -40,7 +40,7 @@ struct DeletionQueue
 {
     std::deque<std::function<void(class VulkanEngine* Engine)>> deletors;
 
-    void push_function(std::function<void(VulkanEngine* Engine)>&& function) 
+    void push_deletion_function(std::function<void(VulkanEngine* Engine)>&& function) 
 	{
         deletors.push_back(function);
     }
@@ -168,9 +168,10 @@ public:
 	VkSurfaceKHR _surface;
 
 	//Swapchain actual;
-	vkb::Swapchain _vkbSwapchain;
+	vkb::Swapchain _vkbSwapchain{};
 	uint32_t swapchainImageIndex;
 
+	std::vector<VkImageView> _swapchainImageViews;
 	std::vector<VkFramebuffer> _framebuffers;
 	
 	VmaAllocator _allocator; //vma lib allocator

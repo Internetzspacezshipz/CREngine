@@ -402,3 +402,5 @@ FodyWeavers.xsd
 
 #specific intermediate folders in boost
 CREngine/ThirdParty/boost/*
+CREngine/CREngine/imgui.ini
+CREngine/CREngine/VMA_RecFile.csv

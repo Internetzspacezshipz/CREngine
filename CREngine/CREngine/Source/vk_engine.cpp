@@ -16,7 +16,13 @@
 #include "vk_textures.h"
 
 #define VMA_IMPLEMENTATION
+
+#ifndef VMA_RECORDING_ENABLED
+#define VMA_RECORDING_ENABLED VMA_REC
+#endif
+
 #include "vk_mem_alloc.h"
+
 #include <filesystem>
 
 //Imgui incl
@@ -60,9 +66,6 @@ void VulkanEngine::init()
 		window_flags
 	);
 
-	//Set our window to be resizable.
-	SDL_SetWindowResizable(_window, SDL_TRUE);
-
 	init_vulkan();
 
 	init_swapchain();
@@ -95,7 +98,9 @@ void VulkanEngine::cleanup()
 		//make sure the gpu has stopped doing its things
 		vkDeviceWaitIdle(_device);
 
+		//The deletion queue is stupid and bad. Should get rid of it completely, but we can do that later on.
 		_mainDeletionQueue.flush(this);
+
 	}
 }
 
@@ -243,6 +248,12 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 				bShouldBeFullscreen = !bShouldBeFullscreen;
 				SDL_SetWindowFullscreen(_window, bShouldBeFullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_FALSE);
 
+				if (!bShouldBeFullscreen)
+				{
+					//Set our window to be resizable.
+					SDL_SetWindowResizable(_window, SDL_TRUE);
+				}
+
 				//recreate_swapchain();
 			}
 		}
@@ -305,8 +316,18 @@ void VulkanEngine::init_vulkan()
 	//use vkbootstrap to select a gpu. 
 	//We want a gpu that can write to the SDL surface and supports vulkan 1.2
 	vkb::PhysicalDeviceSelector selector{ vkb_inst };
+
+	//extensions for Vulkan that are required for this to run properly.
+	std::vector<const char*> requiredExtensions
+	{
+		//https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_shader_draw_parameters.html
+		//Required to avoid "The SPIR-V Capability (DrawParameters) was declared, but none of the requirements were met to use it." validator error.
+		VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
+	};
+
 	vkb::PhysicalDevice physicalDevice = selector
 		.set_minimum_version(1, 1)
+		.add_required_extensions(requiredExtensions)
 		.set_surface(_surface)
 		.select()
 		.value();
@@ -331,13 +352,25 @@ void VulkanEngine::init_vulkan()
 	allocatorInfo.physicalDevice = _chosenGPU;
 	allocatorInfo.device = _device;
 	allocatorInfo.instance = _instance;
+
+#ifdef _DEBUG
+#if VMA_REC
+	//Add record settings if we're doing debugging
+	VmaRecordSettings vmaRecordSettings;
+	vmaRecordSettings.flags = VMA_RECORD_FLUSH_AFTER_CALL_BIT;
+	vmaRecordSettings.pFilePath = "VMA_RecFile.csv";
+
+	allocatorInfo.pRecordSettings = &vmaRecordSettings;
+#endif
+#endif
+
 	vmaCreateAllocator(&allocatorInfo, &_allocator);
 
 	vkGetPhysicalDeviceProperties(_chosenGPU, &_gpuProperties);
 
 	std::cout << "The gpu has a minimum buffer alignement of " << _gpuProperties.limits.minUniformBufferOffsetAlignment << std::endl;
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_vulkan();
@@ -416,7 +449,7 @@ void VulkanEngine::init_imgui()
 	ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_imgui();
@@ -427,6 +460,8 @@ void VulkanEngine::cleanup_imgui()
 {
 	vkDestroyDescriptorPool(_device, imguiPool, nullptr);
 	ImGui_ImplVulkan_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void VulkanEngine::init_swapchain()
@@ -482,7 +517,7 @@ void VulkanEngine::init_swapchain()
 
 	VK_CHECK(vkCreateImageView(_device, &dview_info, nullptr, &_depthImageView));
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		//Engine->cleanup_framebuffers();
@@ -507,9 +542,19 @@ void VulkanEngine::recreate_swapchain()
 
 void VulkanEngine::cleanup_swapchain()
 {
-	_vkbSwapchain.destroy_image_views({ _depthImageView });
-	vmaDestroyImage(_allocator, _depthImage._image, _depthImage._allocation);
-	vkb::destroy_swapchain(_vkbSwapchain);
+	if (_vkbSwapchain.swapchain)
+	{
+		cleanup_framebuffers();
+
+		//vkDestroyImageView(_device, _depthImageView, 0);
+		_vkbSwapchain.destroy_image_views({ _depthImageView });
+		vmaDestroyImage(_allocator, _depthImage._image, _depthImage._allocation);
+		vkb::destroy_swapchain(_vkbSwapchain);
+
+		_depthImageView = nullptr;
+		_depthImage._image = nullptr;
+		_vkbSwapchain.swapchain = nullptr;
+	}
 }
 
 void VulkanEngine::init_default_renderpass()
@@ -595,7 +640,7 @@ void VulkanEngine::init_default_renderpass()
 	
 	VK_CHECK(vkCreateRenderPass(_device, &render_pass_info, nullptr, &_renderPass));
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_default_renderpass();
@@ -612,44 +657,35 @@ void VulkanEngine::init_framebuffers()
 {
 	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
 	VkFramebufferCreateInfo fb_info = vkinit::framebuffer_create_info(_renderPass, _windowExtent);
-
 	
 	const uint32_t swapchain_imagecount = _vkbSwapchain.image_count;
 	_framebuffers = std::vector<VkFramebuffer>(swapchain_imagecount);
 
-	auto ImageViews = _vkbSwapchain.get_image_views().value();
+	_swapchainImageViews.resize(swapchain_imagecount);
+	_swapchainImageViews = _vkbSwapchain.get_image_views().value();
 
-	for (int i = 0; i < swapchain_imagecount; i++) {
-
+	for (int i = 0; i < swapchain_imagecount; i++)
+	{
 		VkImageView attachments[2];
-		attachments[0] = ImageViews[i];
+		attachments[0] = _swapchainImageViews[i];
 		attachments[1] = _depthImageView;
 
 		fb_info.pAttachments = attachments;
 		fb_info.attachmentCount = 2;
 		VK_CHECK(vkCreateFramebuffer(_device, &fb_info, nullptr, &_framebuffers[i]));
 	}
-
-	//cleanup_framebuffers is called from cleanup_swapchain.
 }
 
 void VulkanEngine::cleanup_framebuffers()
 {
-	const uint32_t swapchain_imagecount = _vkbSwapchain.image_count;
+	_vkbSwapchain.destroy_image_views(_swapchainImageViews);
 
-	auto ImageViews = _vkbSwapchain.get_image_views().value();
-
-	for (int i = 0; i < swapchain_imagecount; i++) {
-
-		VkImageView attachments[2];
-		attachments[0] = ImageViews[i];
-		attachments[1] = _depthImageView;
-
+	for (int i = 0; i < _vkbSwapchain.image_count; i++)
+	{
 		vkDestroyFramebuffer(_device, _framebuffers[i], nullptr);
 	}
 
-	_vkbSwapchain.destroy_image_views(ImageViews);
-
+	_swapchainImageViews.clear();
 	//Remember to clear the framebuffers array out.
 	_framebuffers.clear();
 }
@@ -671,7 +707,7 @@ void VulkanEngine::init_commands()
 
 		VK_CHECK(vkAllocateCommandBuffers(_device, &cmdAllocInfo, &_frames[i]._mainCommandBuffer));
 
-		_mainDeletionQueue.push_function(
+		_mainDeletionQueue.push_deletion_function(
 		[i](VulkanEngine* Engine) 
 		{
 			vkDestroyCommandPool(Engine->_device, Engine->_frames[i]._commandPool, nullptr);
@@ -683,7 +719,7 @@ void VulkanEngine::init_commands()
 	//create pool for upload context
 	VK_CHECK(vkCreateCommandPool(_device, &uploadCommandPoolInfo, nullptr, &_uploadContext._commandPool));
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_commands();
@@ -716,7 +752,7 @@ void VulkanEngine::init_sync_structures()
 		VK_CHECK(vkCreateFence(_device, &fenceCreateInfo, nullptr, &_frames[i]._renderFence));
 
 		//enqueue the destruction of the fence
-		_mainDeletionQueue.push_function(
+		_mainDeletionQueue.push_deletion_function(
 		[i](VulkanEngine* Engine) 
 		{
 			vkDestroyFence(Engine->_device, Engine->_frames[i]._renderFence, nullptr);
@@ -727,7 +763,7 @@ void VulkanEngine::init_sync_structures()
 		VK_CHECK(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &_frames[i]._renderSemaphore));
 
 		//enqueue the destruction of semaphores
-		_mainDeletionQueue.push_function(
+		_mainDeletionQueue.push_deletion_function(
 		[i](VulkanEngine* Engine)
 		{
 			vkDestroySemaphore(Engine->_device, Engine->_frames[i]._presentSemaphore, nullptr);
@@ -740,7 +776,7 @@ void VulkanEngine::init_sync_structures()
 
 	VK_CHECK(vkCreateFence(_device, &uploadFenceCreateInfo, nullptr, &_uploadContext._uploadFence));
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_sync_structures();
@@ -755,8 +791,9 @@ void VulkanEngine::cleanup_sync_structures()
 
 void VulkanEngine::init_pipelines()
 {
-	VkShaderModule colorMeshShader;
+	//Later we should move these into loadable objects and rewrite them.
 
+	VkShaderModule colorMeshShader;
 	if (!load_shader_module("default_lit.frag.spv", &colorMeshShader))
 	{
 		std::cout << "Error when building the colored mesh shader" << std::endl;
@@ -774,16 +811,11 @@ void VulkanEngine::init_pipelines()
 		std::cout << "Error when building the mesh vertex shader module" << std::endl;
 	}
 
-	
 	//build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
 	PipelineBuilder pipelineBuilder;
 
-	pipelineBuilder._shaderStages.push_back(
-		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
-
-	pipelineBuilder._shaderStages.push_back(
-		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
-
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
 
 	//we start from just the default empty pipeline layout info
 	VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
@@ -872,23 +904,23 @@ void VulkanEngine::init_pipelines()
 	create_material(meshPipeline, meshPipeLayout, "defaultmesh");
 
 	pipelineBuilder._shaderStages.clear();
-	pipelineBuilder._shaderStages.push_back(
-		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
 
-	pipelineBuilder._shaderStages.push_back(
-		vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
 
 	pipelineBuilder._pipelineLayout = texturedPipeLayout;
 	texPipeline = pipelineBuilder.build_pipeline(_device, _renderPass);
 	create_material(texPipeline, texturedPipeLayout, "texturedmesh");
 
-
 	vkDestroyShaderModule(_device, meshVertShader, nullptr);
 	vkDestroyShaderModule(_device, colorMeshShader, nullptr);
 	vkDestroyShaderModule(_device, texturedMeshShader, nullptr);
 	
+	//We no longer need these objects. They may be destroyed.
+	vkDestroyPipelineLayout(_device, meshPipeLayout, nullptr);
+	vkDestroyPipelineLayout(_device, texturedPipeLayout, nullptr);
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_pipelines();
@@ -897,9 +929,6 @@ void VulkanEngine::init_pipelines()
 
 void VulkanEngine::cleanup_pipelines()
 {
-	vkDestroyPipelineLayout(_device, meshPipeLayout, nullptr);
-	vkDestroyPipelineLayout(_device, texturedPipeLayout, nullptr);
-
 	vkDestroyPipeline(_device, meshPipeline, nullptr);
 	vkDestroyPipeline(_device, texPipeline, nullptr);
 }
@@ -1091,7 +1120,7 @@ void VulkanEngine::upload_mesh(Mesh& mesh)
 		&mesh._vertexBuffer._allocation,
 		nullptr));
 	//add the destruction of triangle mesh buffer to the deletion queue
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[&mesh](VulkanEngine* Engine)
 	{
 		vmaDestroyBuffer(Engine->_allocator, mesh._vertexBuffer._buffer, mesh._vertexBuffer._allocation);
@@ -1349,7 +1378,7 @@ void VulkanEngine::init_scene()
 	VkSampler blockySampler;
 	vkCreateSampler(_device, &samplerInfo, nullptr, &blockySampler);
 
-	_mainDeletionQueue.push_function([=]() {
+	_mainDeletionQueue.push_deletion_function([=]() {
 		vkDestroySampler(_device, blockySampler, nullptr);
 	});
 
@@ -1453,7 +1482,7 @@ uint64_t VulkanEngine::LoadTexture(std::string Path)
 	VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, NewTexture.image._image, VK_IMAGE_ASPECT_COLOR_BIT);
 	vkCreateImageView(_device, &imageinfo, nullptr, &NewTexture.imageView);
 	
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[NewHandle](VulkanEngine* Engine)
 	{
 		Engine->UnloadTexture(NewHandle);
@@ -1613,7 +1642,7 @@ void VulkanEngine::init_descriptors()
 	}
 
 
-	_mainDeletionQueue.push_function(
+	_mainDeletionQueue.push_deletion_function(
 	[](VulkanEngine* Engine)
 	{
 		Engine->cleanup_descriptors();

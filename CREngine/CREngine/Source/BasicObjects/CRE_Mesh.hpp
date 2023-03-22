@@ -19,5 +19,4 @@ class CRE_Mesh : public CRE_ManagedObject
 	AssetHandle Handle;
 };
 
-REGISTER_CLASS(CRE_Mesh, CRE_ManagedObject);
 

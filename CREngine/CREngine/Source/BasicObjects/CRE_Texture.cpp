@@ -2,6 +2,8 @@
 #include "vk_engine.h"
 #include "CRE_Globals.hpp"
 
+REGISTER_CLASS(CRE_Texture, CRE_ManagedObject);
+
 void CRE_Texture::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {
 	Super::Serialize(bSerializing, TargetJson);

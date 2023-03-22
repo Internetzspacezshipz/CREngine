@@ -24,14 +24,12 @@ int main(int argc, char* argv[])
 
 	VulkanEngine engine;
 	CRE_App MainApp;
-
 	engine.init();
 
-	engine.run();
-
+	MainApp.SetupGlobalVariables(&engine);
 	MainApp.LoadInitialGameFiles();
 
-	MainApp.SetupEnginePointer(&engine);
+	engine.run();
 
 	engine.cleanup();
 

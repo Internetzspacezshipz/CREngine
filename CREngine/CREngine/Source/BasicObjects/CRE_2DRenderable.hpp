@@ -17,5 +17,4 @@ class CRE_2DRenderable : public CRE_ManagedObject
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 };
 
-REGISTER_CLASS(CRE_2DRenderable, CRE_ManagedObject);
 

@@ -1,6 +1,6 @@
 #include "CRE_App.hpp"
 #include "CRE_Serialization.hpp"
-#include "CRE_AssetList.h"
+#include "CRE_AssetList.hpp"
 #include "CRE_Globals.hpp"
 
 
@@ -17,6 +17,8 @@
 #include <glm/gtc/constants.hpp>
 
 #include "CRE_Math.hpp"
+#include "UserInterface/CRE_UI_AssetListEditor.hpp"
+#include "vk_engine.h"
 
 CRE_App::CRE_App()
 {
@@ -28,16 +30,30 @@ CRE_App::~CRE_App()
 
 }
 
-void CRE_App::SetupEnginePointer(VulkanEngine* InEnginePointer)
+void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 {
     CRE_Globals::GetEnginePointer() = InEnginePointer;
+    CRE_Globals::GetAppPointer() = this;
+    
+    InEnginePointer->UIDrawFunction =
+    [this]()
+    {
+        DrawUIObjects();
+    };
+}
+
+void CRE_App::DrawUIObjects()
+{
+    for (CRE_UI_Base* Element : UIObjects)
+    {
+        Element->DrawUI();
+    }
 }
 
 void CRE_App::LoadInitialGameFiles()
 {
     //Load main files;
     CRE_Serialization& Serializer = CRE_Serialization::Get();
-
 
     //Load the root object and initialize a new asset list object with it to load all other relevant data.
     nlohmann::json Manifest = Serializer.LoadManifest();
@@ -48,6 +64,9 @@ void CRE_App::LoadInitialGameFiles()
     }
     RootObject = CRE_ObjectFactory::Get().Create<CRE_AssetList>();
     RootObject->Serialize(false, Manifest);
+
+    CRE_UI_AssetListEditor* BaseAssetListEditor = CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>();
+    UIObjects.push_back(BaseAssetListEditor);
 }
 
 void CRE_App::SaveGame()

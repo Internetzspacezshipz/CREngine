@@ -19,4 +19,3 @@ class CRE_Texture : public CRE_ManagedObject
 	AssetHandle Handle;
 };
 
-REGISTER_CLASS(CRE_Texture, CRE_ManagedObject);

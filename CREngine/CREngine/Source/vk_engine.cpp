@@ -55,7 +55,7 @@ void VulkanEngine::init()
 	// We initialize SDL and create a window with it. 
 	SDL_Init(SDL_INIT_VIDEO);
 
-	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN /*| SDL_WINDOW_FULLSCREEN_DESKTOP*/);
 	
 	_window = SDL_CreateWindow(
 		"Vulkan Engine",
@@ -213,11 +213,8 @@ void VulkanEngine::Draw()
 	_frameNumber++;
 }
 
-bool bQuit = false;
-
 void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 {
-
 	SDL_Event Event;
 
 	//Handle events on queue
@@ -228,7 +225,7 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 		//close the window when user alt-f4s or clicks the X button			
 		if (Event.type == SDL_QUIT)
 		{
-			bQuit = true;
+			bWantsQuit = true;
 		}
 		else if (Event.type == SDL_KEYDOWN)
 		{
@@ -253,8 +250,11 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 					//Set our window to be resizable.
 					SDL_SetWindowResizable(_window, SDL_TRUE);
 				}
+			}
 
-				//recreate_swapchain();
+			if (Event.key.keysym.sym == SDLK_BACKQUOTE)
+			{
+				bDrawUI = !bDrawUI;
 			}
 		}
 	}
@@ -263,9 +263,15 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
-	//imgui commands here.
-	//TODO: add array of objects that use Imgui 
-	ImGui::ShowDemoWindow();
+
+	//Call the UIDrawFunction to ask the CRE_App to call all UI object Draw functions.
+	if (bDrawUI)
+	{
+		if (UIDrawFunction)
+		{
+			UIDrawFunction();
+		}
+	}
 	ImGui::Render();
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 }
@@ -277,7 +283,7 @@ void VulkanEngine::run()
 
 	//TODO: move this to the app.
 	//main loop
-	while (!bQuit)
+	while (!bWantsQuit)
 	{
 		Draw();
 	}

@@ -272,6 +272,10 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CRE_Globals.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp" />
+    <ClCompile Include="Source\UserInterface\CRE_UI_AssetListEditor.cpp" />
+    <ClCompile Include="Source\BasicObjects\CRE_UI_Base.cpp" />
     <ClCompile Include="Source\BasicObjects\CRE_Mesh.cpp" />
     <ClCompile Include="Source\BasicObjects\CRE_Texture.cpp" />
     <ClCompile Include="Source\CRE_AssetList.cpp" />
@@ -304,9 +308,12 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h" />
+    <ClInclude Include="Source\UserInterface\CRE_UI_AssetListEditor.hpp" />
+    <ClInclude Include="Source\BasicObjects\CRE_UI_Base.hpp" />
     <ClInclude Include="Source\BasicObjects\CRE_Mesh.hpp" />
     <ClInclude Include="Source\BasicObjects\CRE_Texture.hpp" />
-    <ClInclude Include="Source\CRE_AssetList.h" />
+    <ClInclude Include="Source\CRE_AssetList.hpp" />
     <ClInclude Include="Source\CRE_App.hpp" />
     <ClInclude Include="Source\CRE_Globals.hpp" />
     <ClInclude Include="Source\CRE_ManagedObject.hpp" />

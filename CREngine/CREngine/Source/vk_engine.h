@@ -140,12 +140,20 @@ public:
 
 	bool _isInitialized{ false };
 
+	bool bWantsQuit = false;
+
 	bool bFramebufferResized = false;
+
+	bool bShouldBeFullscreen = false;
+
+	bool bDrawUI = false;
+
+	//Things we should have the option of drawing each frame.
+	std::function<void()> UIDrawFunction;
 
 	uint64_t _frameNumber {0};
 	int _selectedShader{ 0 };
 
-	bool bShouldBeFullscreen = true;
 
 	VkExtent2D _windowExtent{ 1700 , 900 };
 
@@ -202,6 +210,7 @@ public:
 	//draw loop
 	void Draw();
 
+	//This function lives inside Draw, and will allow new objects to be drawn and altered.
 	void DrawInterior(VkCommandBuffer cmd);
 
 	//run main loop

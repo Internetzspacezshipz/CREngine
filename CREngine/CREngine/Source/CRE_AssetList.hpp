@@ -18,4 +18,3 @@ class CRE_AssetList : public CRE_ManagedObject
 	std::vector<std::shared_ptr<CRE_ManagedObject>> LoadedObjects;
 };
 
-REGISTER_CLASS(CRE_AssetList, CRE_ManagedObject);

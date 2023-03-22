@@ -167,6 +167,10 @@ public:
 		return DL;
 	}
 
-	nlohmann::json LoadManifest() const;
-	bool SaveManifest(nlohmann::json& InJson) const;
+	class CRE_AssetList* LoadManifest() const;
+	bool SaveManifest(CRE_AssetList* InManifest) const;
+	
+protected:
+	nlohmann::json LoadManifest_Internal() const;
+	bool SaveManifest_Internal(nlohmann::json& InJson) const;
 };

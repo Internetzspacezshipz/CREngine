@@ -17,6 +17,11 @@
 //Vulkan bootstrap for helping with managment of swapchain and other vulkan parts.
 #include "thirdparty/vkbootstrap/VkBootstrap.h"
 
+//for keycodes.
+#include <SDL_keycode.h>
+
+#include "CRE_KeySystem.hpp"
+
 class PipelineBuilder 
 {
 public:
@@ -148,8 +153,13 @@ public:
 
 	bool bDrawUI = false;
 
-	//Things we should have the option of drawing each frame.
+	//Call to this every frame for drawing UI elements..
 	std::function<void()> UIDrawFunction;
+
+	CRE_KeySystem _KeySystem;
+
+	KeySubscriber_wp FullscreenKeybind_RAlt;
+	KeySubscriber_wp FullscreenKeybind_LAlt;
 
 	uint64_t _frameNumber {0};
 	int _selectedShader{ 0 };

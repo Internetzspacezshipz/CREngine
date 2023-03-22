@@ -91,6 +91,8 @@ public:
 		return reinterpret_cast<Class*>(Create(Class::StaticClass()));
 	}
 
+	std::map<ClassGUID, CRE_ClassBase*>& GetClassInfos() { return ClassInfos; };
+
 	CRE_ClassBase* GetClass(ClassGUID ClassID)  { return ClassInfos[ClassID]; }
 };
 
@@ -99,7 +101,9 @@ class CRE_ClassBase
 {
 protected:
 	CRE_ClassBase* Parent = nullptr;
+	std::set<CRE_ClassBase*> Children;
 	ClassGUID ThisGUID = 0;
+	std::string FriendlyClassName;
 public:
 	bool IsChildOf(ClassGUID ClassID) const
 	{
@@ -121,6 +125,8 @@ public:
 	}
 
 	ClassGUID GetClassGUID() const { return ThisGUID; }
+	std::set<CRE_ClassBase*> GetChildren() const { return Children; }
+	std::string GetClassFriendlyName() const { return FriendlyClassName; }
 };
 
 template<class NativeClass>
@@ -135,11 +141,35 @@ public:
 	}
 
 	template<class T>
-	void RegisterParent()
+	CRE_Class<NativeClass>& RegisterParent()
 	{
 		//Parent must be 0 when this is called.
 		assert(Parent == 0);
 		Parent = &CRE_Class<T>::Get();
+		return *this;
+	}
+
+	template<class T>
+	CRE_Class<NativeClass>& RegisterChild()
+	{
+		Children.emplace(&CRE_Class<T>::Get());
+		return *this;
+	}
+
+	CRE_Class<NativeClass>& SetGUID(const ClassGUID& InGUID)
+	{
+		//GUID must be 0 when this is called.
+		assert(ThisGUID == 0);
+		ThisGUID = InGUID;
+		return *this;
+	}
+
+	CRE_Class<NativeClass>& SetFriendlyClassName(const std::string& InFriendlyClassName)
+	{
+		//ClassName must be 0 when this is called.
+		assert(FriendlyClassName.size() == 0);
+		FriendlyClassName = InFriendlyClassName;
+		return *this;
 	}
 
 	NativeClass* Create()
@@ -153,26 +183,39 @@ template<class Base, class New>
 class CRE_Registrar
 {
 public:
-	explicit CRE_Registrar(ClassGUID ClassID)
+	explicit CRE_Registrar(const ClassGUID& ClassID, const std::string& FriendlyClassName)
 	{
-		CRE_ObjectFactory::Get().RegisterClass<New>(ClassID);
+		CRE_ObjectFactory::Get()
+			.RegisterClass<New>(ClassID);
 		//Must register the new class's parent (Base).
-		CRE_Class<New>::Get().RegisterParent<Base>();
+		CRE_Class<Base>::Get()
+			.RegisterChild<New>();
+		CRE_Class<New>::Get()
+			.RegisterParent<Base>()
+			.SetFriendlyClassName(FriendlyClassName)
+			.SetGUID(ClassID);
+	}
+};
+
+//For registering the absolute base class.
+template<class New>
+class CRE_Registrar<void, New>
+{
+public:
+	explicit CRE_Registrar(const ClassGUID& ClassID, const std::string& FriendlyClassName)
+	{
+		CRE_ObjectFactory::Get()
+			.RegisterClass<New>(ClassID);
+		CRE_Class<New>::Get()
+			.SetFriendlyClassName(FriendlyClassName)
+			.SetGUID(ClassID);
 	}
 };
 
 //Def Class should be done within the header of each class, inside the class definition.
 #define DEF_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) public:																			\
-static ClassGUID StaticClass()																										\
-{ 																																	\
-	static ClassGUID ConcreteClassGUID = crc32_CONST(""#NEW_CLASS_NAME"", sizeof(""#NEW_CLASS_NAME""));								\
-	return ConcreteClassGUID; 																										\
-}																																	\
-virtual ClassGUID GetClass() const override																							\
-{ 																																	\
-	static ClassGUID ConcreteClassGUID = NEW_CLASS_NAME::StaticClass();																\
-	return ConcreteClassGUID; 																										\
-}																																	\
+static ClassGUID StaticClass();																										\
+virtual ClassGUID GetClass() const override;																						\
 NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
 {																																	\
 	Construct();																													\
@@ -180,7 +223,19 @@ NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
 typedef BASE_CLASS_NAME Super;
 
 //Register class should be done inside the CPP file of each class.
-#define REGISTER_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME> s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(""#NEW_CLASS_NAME""))};
+#define REGISTER_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME)																													\
+static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME>s_##NEW_CLASS_NAME##Creator{crc32_CONST(""#NEW_CLASS_NAME"", sizeof(""#NEW_CLASS_NAME"")),""#NEW_CLASS_NAME""};	\
+ClassGUID NEW_CLASS_NAME::StaticClass()																																	\
+{ 																																										\
+	static ClassGUID ConcreteClassGUID = crc32_CONST(""#NEW_CLASS_NAME"", sizeof(""#NEW_CLASS_NAME""));																	\
+	return ConcreteClassGUID; 																																			\
+}																																										\
+ClassGUID NEW_CLASS_NAME::GetClass() const																																\
+{ 																																										\
+	static ClassGUID ConcreteClassGUID = NEW_CLASS_NAME::StaticClass();																									\
+	return ConcreteClassGUID; 																																			\
+}																																										\
+
 
 //Dynamic Cast.
 template<typename To>

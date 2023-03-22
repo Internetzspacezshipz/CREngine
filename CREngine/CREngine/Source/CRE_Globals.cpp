@@ -12,3 +12,9 @@ CRE_App*& CRE_Globals::GetAppPointer()
 	static CRE_App* App;
 	return App;
 }
+
+CRE_KeySystem*& CRE_Globals::GetKeySystemPointer()
+{
+	static CRE_KeySystem* App;
+	return App;
+}

@@ -239,6 +239,7 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 			}
 
 			//alt-enter for fullscreen.
+			/*
 			if (Event.key.keysym.sym == SDLK_RETURN
 				&& Event.key.keysym.mod &KMOD_ALT)
 			{
@@ -250,13 +251,15 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 					//Set our window to be resizable.
 					SDL_SetWindowResizable(_window, SDL_TRUE);
 				}
-			}
+			}*/
 
-			if (Event.key.keysym.sym == SDLK_BACKQUOTE)
-			{
-				bDrawUI = !bDrawUI;
-			}
+			//if (Event.key.keysym.sym == SDLK_BACKQUOTE)
+			//{
+			//	bDrawUI = !bDrawUI;
+			//}
 		}
+
+		_KeySystem.Process(Event);
 	}
 
 
@@ -265,7 +268,7 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 	ImGui::NewFrame();
 
 	//Call the UIDrawFunction to ask the CRE_App to call all UI object Draw functions.
-	if (bDrawUI)
+	//if (bDrawUI)
 	{
 		if (UIDrawFunction)
 		{
@@ -382,6 +385,25 @@ void VulkanEngine::init_vulkan()
 		Engine->cleanup_vulkan();
 	});
 
+
+	//Fullscreen
+	FullscreenKeybind_RAlt = _KeySystem.BindToKeys({SDLK_RETURN, SDLK_RALT},
+	[this](bool bActive)
+	{
+		if (bActive)
+		{
+			bShouldBeFullscreen = !bShouldBeFullscreen;
+			SDL_SetWindowFullscreen(_window, bShouldBeFullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_FALSE);
+
+			if (!bShouldBeFullscreen)
+			{
+				//Set our window to be resizable.
+				SDL_SetWindowResizable(_window, SDL_TRUE);
+			}
+		}
+	});
+
+	FullscreenKeybind_LAlt = _KeySystem.BindToKeys({SDLK_RETURN, SDLK_LALT}, FullscreenKeybind_RAlt);
 }
 
 void VulkanEngine::cleanup_vulkan()

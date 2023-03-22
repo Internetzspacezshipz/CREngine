@@ -11,8 +11,6 @@ void CRE_AssetList::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {
 	Super::Serialize(bSerializing, TargetJson);
 
-	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, AssetListPath);
-
 	CRE_Serialization& Serializer = CRE_Serialization::Get();
 
 	if (!bSerializing)

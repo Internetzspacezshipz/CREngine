@@ -33,6 +33,7 @@ CRE_App::~CRE_App()
 void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 {
     CRE_Globals::GetEnginePointer() = InEnginePointer;
+    CRE_Globals::GetKeySystemPointer() = &InEnginePointer->_KeySystem;
     CRE_Globals::GetAppPointer() = this;
     
     InEnginePointer->UIDrawFunction =
@@ -56,14 +57,7 @@ void CRE_App::LoadInitialGameFiles()
     CRE_Serialization& Serializer = CRE_Serialization::Get();
 
     //Load the root object and initialize a new asset list object with it to load all other relevant data.
-    nlohmann::json Manifest = Serializer.LoadManifest();
-    if (Manifest.is_null())
-    {
-        //Load default/hardcoded objects. objects.
-        LoadGameObjects();
-    }
-    RootObject = CRE_ObjectFactory::Get().Create<CRE_AssetList>();
-    RootObject->Serialize(false, Manifest);
+    RootObject = Serializer.LoadManifest();
 
     CRE_UI_AssetListEditor* BaseAssetListEditor = CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>();
     UIObjects.push_back(BaseAssetListEditor);
@@ -74,10 +68,8 @@ void CRE_App::SaveGame()
     CRE_Serialization& Serializer = CRE_Serialization::Get();
 
     //Save root object. Maybe we can make a save game object later on as well as other types of similar uses (settings object, etc).
-    nlohmann::json NewManifest;
-    RootObject->Serialize(false, NewManifest);
+    Serializer.SaveManifest(RootObject);
     delete RootObject;
-    Serializer.SaveManifest(NewManifest);
 }
 
 void CRE_App::LoadGameObjects()

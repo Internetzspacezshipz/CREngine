@@ -15,6 +15,8 @@ class CRE_UI_AssetListEditor : public CRE_UI_Base
 	virtual void Construct() override;
 
 	bool bIsOpen = false;
+	bool bOpenDemo = false;
+
 	KeySubscriber_wp OpenKeyBind;
 	CRE_AssetList* CurrentAssetList;
 };

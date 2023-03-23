@@ -17,16 +17,52 @@ CRE_UI_AssetListEditor::~CRE_UI_AssetListEditor()
 void RecurseClass(CRE_ClassBase* Class)
 {
 	ImGui::PushID(Class);
-
-	ImGui::Text(Class->GetClassFriendlyName().c_str());
-	ImGui::SameLine();
 	ImGui::Value("ClassID", Class->GetClassGUID());
+
+	//ImGui::SameLine();
+	ImGui::Text(Class->GetClassFriendlyName().c_str());
 
 	ImGui::Indent(20.f);
 
 	for (CRE_ClassBase* Child : Class->GetChildren())
 	{
 		RecurseClass(Child);
+	}
+
+	ImGui::Unindent(20.f);
+
+	ImGui::PopID();
+}
+
+
+void RecurseClass_Table(CRE_ClassBase* Class)
+{
+	ImGui::PushID(Class);
+	//ImGui::SameLine();
+
+	ImGui::Indent(20.f);
+
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	//Class name + 
+	std::string GUIDStr = std::format("{}", Class->GetClassGUID());
+
+	if (ImGui::Button(GUIDStr.c_str(), {80.f, ImGui::GetTextLineHeightWithSpacing() }))
+	{
+		ImGui::LogToClipboard();
+		ImGui::LogText(GUIDStr.c_str());
+		ImGui::LogFinish();
+	}
+
+	ImGui::TableNextColumn();
+
+	ImGui::Text(Class->GetClassFriendlyName().c_str());
+
+
+	for (CRE_ClassBase* Child : Class->GetChildren())
+	{
+		RecurseClass_Table(Child);
 	}
 
 	ImGui::Unindent(20.f);
@@ -78,11 +114,41 @@ void CRE_UI_AssetListEditor::DrawUI()
 			CurrentAssetList->Serialize(false, OutJson);
 		}
 
+		ImGui::Checkbox("IMGUI_DEMO", &bOpenDemo);
+		if (bOpenDemo)
+		{
+			ImGui::ShowDemoWindow(&bOpenDemo);
+		}
+
 		if (ImGui::CollapsingHeader("List Asset"))
 		{
 			CRE_ClassBase* Base = CRE_ObjectFactory::Get().GetClass(CRE_ManagedObject::StaticClass());
 
-			RecurseClass(Base);
+			const int column_count = 2;
+			const char* column_names[column_count] = { "Class ID", "Class Name" };
+			static ImGuiTableColumnFlags column_flags[column_count] = { ImGuiTableColumnFlags_DefaultSort, ImGuiTableColumnFlags_None };
+
+			const ImGuiTableFlags flags
+				= ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY
+				| ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
+				| ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable;
+
+			ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 9);
+
+			if (ImGui::BeginTable("table_columns_flags", column_count, flags, outer_size))
+			{
+				for (int column = 0; column < column_count; column++)
+				{
+					ImGui::TableSetupColumn(column_names[column], column_flags[column]);
+				}
+				ImGui::TableHeadersRow();
+
+				//float indent_step = (float)((int)ImGui::GetTextLineHeightWithSpacing() / 2);
+
+				RecurseClass_Table(Base);
+
+				ImGui::EndTable();
+			}
 		}
 
 		for (auto& Elem : CurrentAssetList->LoadedObjects)

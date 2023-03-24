@@ -6,12 +6,188 @@
 #include <stdlib.h>
 #include <SDL.h>
 
+#include "BasicObjects/CRE_Texture.hpp"
+#include "BasicObjects/CRE_Mesh.hpp"
+
 REGISTER_CLASS(CRE_UI_AssetListEditor, CRE_UI_Base);
 
 //Remove keybind here.
 CRE_UI_AssetListEditor::~CRE_UI_AssetListEditor()
 {
 	OpenKeyBind.lock()->Remove();
+}
+
+static ImVec2 DefaultButtonSize{50.f, 20.f};
+static ImGuiTreeNodeFlags DefaultCollapsingHeaderFlags = ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnArrow;
+
+struct CRE_EditorUIManager
+{
+	typedef fu2::function<void(CRE_ManagedObject*)> UIFunc;
+	typedef fu2::function<void(CRE_ManagedObject*)>* UIFunc_p;
+
+	static CRE_EditorUIManager& Get()
+	{
+		static CRE_EditorUIManager Manager;
+		return Manager;
+	}
+
+	std::unordered_map<ClassGUID, UIFunc> AssetToUIFunc;
+
+	void CallEditUI(CRE_ManagedObject* Object)
+	{
+		auto Found = AssetToUIFunc.find(Object->GetClass());
+		if (Found == AssetToUIFunc.end())
+		{
+			return;
+		}
+		Found->second(Object);
+	}
+
+	bool HasEditUI(CRE_ManagedObject* Object)
+	{
+		auto Found = AssetToUIFunc.find(Object->GetClass());
+		if (Found == AssetToUIFunc.end())
+		{
+			return false;
+		}
+		return true;
+	}
+};
+
+struct RegEditorUIFunc
+{
+	RegEditorUIFunc(ClassGUID ClassID, CRE_EditorUIManager::UIFunc InFunc)
+	{
+		CRE_EditorUIManager::Get().AssetToUIFunc.emplace(ClassID, InFunc);
+	}
+};
+
+static RegEditorUIFunc TextureEdit(CRE_Texture::StaticClass(),
+[](CRE_ManagedObject* Object)
+{
+	CRE_Texture* Casted = DCast<CRE_Texture>(Object);
+//TODO: Make macros for these pragmas.
+#pragma warning(push)
+#pragma warning(disable:4244)
+	std::string Str(Casted->File.native().begin(), Casted->File.native().end());
+#pragma warning(pop)
+
+	ImGui::Indent(20.f);
+
+	if (ImGui::InputText("Path", &Str))
+	{
+		Casted->File = Str;
+	}
+
+	if (Texture* Tex = Casted->GetTextureActual())
+	{
+		if (ImGui::CollapsingHeader("ShowImage", DefaultCollapsingHeaderFlags))
+		{
+			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 0.f);//added 1 here to make sure it can never div/zero
+
+			float Scale = 500.f/LargestSide;
+
+			//Shows actual texture size.
+			ImGui::Text("Size: %.0fx%.0f", (float)Tex->image.texWidth, (float)Tex->image.texHeight);
+
+			//The size we want to zoom to.
+			float my_tex_w_zoomed = (float)Tex->image.texWidth * Scale;
+			float my_tex_h_zoomed = (float)Tex->image.texHeight * Scale;
+
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+			ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+			ImGui::Image(Tex->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
+		}
+	}
+	ImGui::Unindent(20.f);
+});
+
+#if 0
+static RegEditorUIFunc MeshEdit(CRE_Mesh::StaticClass(),
+[](CRE_ManagedObject* Object)
+{
+	CRE_Mesh* Casted = DCast<CRE_Mesh>(Object);
+
+	std::string Str(Casted->File.native().begin(), Casted->File.native().end());
+
+	ImGui::Indent(20.f);
+
+	if (ImGui::InputText("Path", &Str))
+	{
+		Casted->File = Str;
+	}
+
+	if (Mesh* Tex = Casted->GetMeshActual())
+	{
+		if (ImGui::CollapsingHeader("Show Mesh", DefaultCollapsingHeaderFlags))
+		{
+
+			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 0.f);//added 1 here to make sure it can never div/zero
+
+			float Scale = 500.f / LargestSide;
+
+			//Shows actual texture size.
+			ImGui::Text("Size: %.0fx%.0f", (float)Tex->image.texWidth, (float)Tex->image.texHeight);
+
+			//The size we want to zoom to.
+			float my_tex_w_zoomed = (float)Tex->image.texWidth * Scale;
+			float my_tex_h_zoomed = (float)Tex->image.texHeight * Scale;
+
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+			ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+			ImGui::Image(Tex->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
+		}
+	}
+});
+#endif
+
+//Returns true to ask for deletion.
+bool ShowObjectInfo(CRE_ManagedObject* Object)
+{
+	bool bShouldDelete = false;
+
+	ImGui::PushID(Object);
+	ImGui::Separator();
+
+	std::string StringName = Object->GetId().GetString();
+	if (ImGui::InputText("Object Instance", &StringName, ImGuiInputTextFlags_::ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		Object->Rename(StringName);
+	}
+
+	ImGui::Value("ClassID", Object->GetClass());
+	auto* CO = Object->GetClassObj();
+
+	ImGui::Text(CO->GetClassFriendlyName().c_str());
+	ImGui::SameLine();
+
+	if (ImGui::Button("Delete Object", DefaultButtonSize))
+	{
+		bShouldDelete = true;
+	}
+
+	CRE_EditorUIManager& EditUIMan = CRE_EditorUIManager::Get();
+
+	if (EditUIMan.HasEditUI(Object))
+	{
+		if (ImGui::CollapsingHeader("Edit Object", DefaultCollapsingHeaderFlags))
+		{
+			ImGui::PushID(Object->GetClass());
+			EditUIMan.CallEditUI(Object);
+			ImGui::PopID();
+		}
+	}
+
+	ImGui::Separator();
+
+	ImGui::PopID();
+	return bShouldDelete;
 }
 
 void RecurseClass(CRE_ClassBase* Class)
@@ -34,40 +210,71 @@ void RecurseClass(CRE_ClassBase* Class)
 	ImGui::PopID();
 }
 
-
-void RecurseClass_Table(CRE_ClassBase* Class)
+void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 {
 	ImGui::PushID(Class);
 	//ImGui::SameLine();
 
-	ImGui::Indent(20.f);
-
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 
-	//Class name + 
-	std::string GUIDStr = std::format("{}", Class->GetClassGUID());
-
-	if (ImGui::Button(GUIDStr.c_str(), {80.f, ImGui::GetTextLineHeightWithSpacing() }))
+	//Clicking the class name spawns the object.
+	if (ImGui::Button(Class->GetClassFriendlyName().c_str(), {90.f, ImGui::GetTextLineHeightWithSpacing()}))
 	{
-		ImGui::LogToClipboard();
-		ImGui::LogText(GUIDStr.c_str());
-		ImGui::LogFinish();
+		WantsToSpawn = Class;
+		//Do copy to clipboard - maybe this could be another button.
+		//ImGui::LogToClipboard();
+		//ImGui::LogText(GUIDStr.c_str());
+		//ImGui::LogFinish();
 	}
 
 	ImGui::TableNextColumn();
 
 	ImGui::Text(Class->GetClassFriendlyName().c_str());
 
+	ImGui::Indent(20.f);
 
 	for (CRE_ClassBase* Child : Class->GetChildren())
 	{
-		RecurseClass_Table(Child);
+		RecurseClass_Table(Child, WantsToSpawn);
 	}
 
 	ImGui::Unindent(20.f);
 
 	ImGui::PopID();
+}
+
+CRE_ClassBase* CRE_UI_AssetListEditor::ShowTable_Classes(CRE_ClassBase* Class)
+{
+	const int column_count = 2;
+	const char* column_names[column_count] = { "Class ID", "Class Name" };
+	static ImGuiTableColumnFlags column_flags[column_count] = { ImGuiTableColumnFlags_DefaultSort, ImGuiTableColumnFlags_None };
+
+	const ImGuiTableFlags flags
+		= ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY
+		| ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
+		| ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable;
+
+	ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 9);
+
+	CRE_ClassBase* WantsToSpawn = nullptr;
+
+	if (ImGui::BeginTable("table_columns_flags", column_count, flags, outer_size))
+	{
+		for (int column = 0; column < column_count; column++)
+		{
+			ImGui::TableSetupColumn(column_names[column], column_flags[column]);
+		}
+		ImGui::TableHeadersRow();
+
+		//float indent_step = (float)((int)ImGui::GetTextLineHeightWithSpacing() / 2);
+
+		RecurseClass_Table(Class, WantsToSpawn);
+
+		ImGui::EndTable();
+	}
+
+	return WantsToSpawn;
 }
 
 void CRE_UI_AssetListEditor::DrawUI()
@@ -76,7 +283,7 @@ void CRE_UI_AssetListEditor::DrawUI()
 	{
 		CRE_Serialization& Serialization = CRE_Serialization::Get();
 		CRE_App* App = CRE_Globals::GetAppPointer();
-
+		CRE_ObjectFactory& OF = CRE_ObjectFactory::Get();
 		if (CurrentAssetList == nullptr)
 		{
 			CurrentAssetList = App->GetRootAssetList();
@@ -97,18 +304,15 @@ void CRE_UI_AssetListEditor::DrawUI()
 			}
 		}
 
-		if (ImGui::Button("Save", { 50.f,20.f }))
+		if (ImGui::Button("Save", DefaultButtonSize))
 		{
 			nlohmann::json OutJson;
 			CurrentAssetList->Serialize(true, OutJson);
-
-			Serialization.SaveJsonToFile(CurrentAssetList->AssetListPath, OutJson);
-			//Save logic.
 		}
 
 		ImGui::SameLine();
 
-		if (ImGui::Button("Load", { 50.f,20.f }))
+		if (ImGui::Button("Load", DefaultButtonSize))
 		{
 			nlohmann::json OutJson = Serialization.LoadFileToJson(CurrentAssetList->AssetListPath);
 			CurrentAssetList->Serialize(false, OutJson);
@@ -120,41 +324,39 @@ void CRE_UI_AssetListEditor::DrawUI()
 			ImGui::ShowDemoWindow(&bOpenDemo);
 		}
 
-		if (ImGui::CollapsingHeader("List Asset"))
+		CRE_ClassBase* WantsToSpawn = nullptr;
+
+		if (ImGui::CollapsingHeader("List Asset", DefaultCollapsingHeaderFlags))
 		{
-			CRE_ClassBase* Base = CRE_ObjectFactory::Get().GetClass(CRE_ManagedObject::StaticClass());
-
-			const int column_count = 2;
-			const char* column_names[column_count] = { "Class ID", "Class Name" };
-			static ImGuiTableColumnFlags column_flags[column_count] = { ImGuiTableColumnFlags_DefaultSort, ImGuiTableColumnFlags_None };
-
-			const ImGuiTableFlags flags
-				= ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY
-				| ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
-				| ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable;
-
-			ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 9);
-
-			if (ImGui::BeginTable("table_columns_flags", column_count, flags, outer_size))
-			{
-				for (int column = 0; column < column_count; column++)
-				{
-					ImGui::TableSetupColumn(column_names[column], column_flags[column]);
-				}
-				ImGui::TableHeadersRow();
-
-				//float indent_step = (float)((int)ImGui::GetTextLineHeightWithSpacing() / 2);
-
-				RecurseClass_Table(Base);
-
-				ImGui::EndTable();
-			}
+			CRE_ClassBase* Base = OF.GetClass(CRE_ManagedObject::StaticClass());
+			WantsToSpawn = ShowTable_Classes(Base);
 		}
 
-		for (auto& Elem : CurrentAssetList->LoadedObjects)
+
+		if (WantsToSpawn)
 		{
-			//Do thing
-			Elem->GetClass();
+			CurrentAssetList->LoadedObjects.emplace_back(OF.Create(WantsToSpawn->GetClassGUID()));
+		}
+
+
+		FilterExisting.Draw("Filter existing objects");
+
+		auto it = CurrentAssetList->LoadedObjects.begin();
+		while (it != CurrentAssetList->LoadedObjects.end())
+		{
+			Object_sp Ob = (*it);
+			
+			if (FilterExisting.PassFilter(Ob->GetId().GetString().c_str()))
+			{
+				if (ShowObjectInfo(Ob.get()))
+				{
+					it = CurrentAssetList->LoadedObjects.erase(it);
+				}
+				else
+				{
+					it++;
+				}
+			}
 		}
 
 		ImGui::End();

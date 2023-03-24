@@ -27,7 +27,7 @@ nlohmann::json CRE_Serialization::LoadFileToJson(std::filesystem::path Path) con
 
 bool CRE_Serialization::SaveJsonToFile(std::filesystem::path Path, const nlohmann::json& InJson) const
 {
-		Path = ManifestSubFolder / Path;
+	Path = ManifestSubFolder / Path;
 
 	std::ofstream File(Path += FileExtension, std::ios_base::out);
 	if (!File.is_open() || File.fail())

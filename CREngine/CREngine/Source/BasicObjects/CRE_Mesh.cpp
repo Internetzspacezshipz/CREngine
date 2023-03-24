@@ -13,7 +13,10 @@ void CRE_Mesh::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 	VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
 	if (!bSerializing)
 	{
-		Handle = Engine->LoadMesh(File.string());
+		if (File.string().size())
+		{
+			Handle = Engine->LoadMesh(File.string());
+		}
 	}
 }
 
@@ -21,4 +24,12 @@ Mesh* CRE_Mesh::GetMeshActual()
 {
 	VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
 	return Engine->get_mesh(Handle);
+}
+
+void CRE_Mesh::ChangeMeshDrawn()
+{
+	if (Mesh* ActualMesh = GetMeshActual())
+	{
+		auto Engine = CRE_Globals::GetEnginePointer();
+	}
 }

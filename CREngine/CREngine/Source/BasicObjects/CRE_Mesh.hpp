@@ -15,6 +15,8 @@ class CRE_Mesh : public CRE_ManagedObject
 
 	Mesh* GetMeshActual();
 
+	void ChangeMeshDrawn();
+
 	std::filesystem::path File;
 	AssetHandle Handle;
 };

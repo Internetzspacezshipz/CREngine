@@ -79,6 +79,9 @@ struct Texture
 {
 	AllocatedImage image;
 	VkImageView imageView;
+
+	VkDescriptorSet DescriptorSet;
+	VkSampler Sampler;
 };
 
 struct RenderObject 
@@ -89,6 +92,9 @@ struct RenderObject
 
 	glm::mat4 transformMatrix;
 };
+
+typedef std::weak_ptr<RenderObject> RO_wp;
+typedef std::shared_ptr<RenderObject> RO_sp;
 
 struct FrameData 
 {
@@ -153,7 +159,7 @@ public:
 
 	bool bDrawUI = false;
 
-	//Call to this every frame for drawing UI elements..
+	//Call to this every frame for drawing ImGui UI elements.
 	std::function<void()> UIDrawFunction;
 
 	CRE_KeySystem _KeySystem;
@@ -238,8 +244,8 @@ public:
 	VkPipeline texPipeline;
 
 
-	//default array of renderable objects
-	std::vector<RenderObject> _renderables;
+	//weak pointer array of render objects. If actual render object is destroyed by dereferencing, it will be destroyed here if not in use.
+	std::vector<RO_wp> _renderables;
 
 	//Map of paths to asset handles in order to check if we already have a thing loaded.
 	//Asset handles are unique, so this map goes for all the materials, meshes, and loaded textures.
@@ -270,7 +276,7 @@ public:
 	Texture* get_texture(const AssetHandle& handle);
 
 	//our draw function
-	void draw_objects(VkCommandBuffer cmd, RenderObject* first, int count);
+	void draw_objects(VkCommandBuffer cmd, const std::vector<RO_wp>& ObjectVec);
 
 	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 

@@ -4,7 +4,7 @@
 #include "CRE_Globals.hpp"
 
 
-#include "BasicObjects/CRE_2DRenderable.hpp"
+#include "BasicObjects/CRE_Renderable.hpp"
 
 //std incl
 #include <filesystem>
@@ -65,17 +65,21 @@ void CRE_App::LoadInitialGameFiles()
 
 void CRE_App::SaveGame()
 {
+    //for now don't save anything - it will be controlled through the UI.
+#if 0
     CRE_Serialization& Serializer = CRE_Serialization::Get();
 
     //Save root object. Maybe we can make a save game object later on as well as other types of similar uses (settings object, etc).
     Serializer.SaveManifest(RootObject);
+#endif;
+    //Make sure to delete the root object. - maybe later we can wrap this in an SPtr
     delete RootObject;
 }
 
 void CRE_App::LoadGameObjects()
 {
     CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
-    CRE_Class<CRE_2DRenderable>& RenderableClass = CRE_Class<CRE_2DRenderable>::Get();
+    CRE_Class<CRE_Renderable>& RenderableClass = CRE_Class<CRE_Renderable>::Get();
 
     //make test 2d box.
     if (true)

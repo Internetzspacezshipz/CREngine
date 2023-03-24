@@ -27,7 +27,7 @@
     <ClCompile Include="Source\CRE_ManagedObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\BasicObjects\CRE_2DRenderable.cpp">
+    <ClCompile Include="Source\BasicObjects\CRE_Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CRE_Serialization.cpp">
@@ -112,7 +112,7 @@
     <ClInclude Include="Source\CRE_Math.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BasicObjects\CRE_2DRenderable.hpp">
+    <ClInclude Include="Source\BasicObjects\CRE_Renderable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Serialization.hpp">

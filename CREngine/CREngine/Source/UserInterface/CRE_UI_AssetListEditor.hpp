@@ -14,11 +14,15 @@ class CRE_UI_AssetListEditor : public CRE_UI_Base
 	virtual void DrawUI() override;
 	virtual void Construct() override;
 
+	CRE_ClassBase* ShowTable_Classes(CRE_ClassBase* Class);
+
 	bool bIsOpen = false;
 	bool bOpenDemo = false;
 
 	KeySubscriber_wp OpenKeyBind;
 	CRE_AssetList* CurrentAssetList;
+
+private:
+	//Text filter for existing objects
+	ImGuiTextFilter FilterExisting;
 };
-
-

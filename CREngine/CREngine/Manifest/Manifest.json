@@ -1,1 +1,12 @@
-null
+[
+  {
+    "File": "lost_empire-RGB.png",
+    "ID": "SomeTex",
+    "_CLASS_ID_TYPE_": "CRE_Texture"
+  },
+  {
+    "File": "lost_empire-RGBA.png",
+    "ID": "AnotehrTexture",
+    "_CLASS_ID_TYPE_": "CRE_Texture"
+  }
+]

@@ -71,12 +71,31 @@ namespace detail
     }
 } //namespace detail
 
-constexpr uint32_t crc32_CONST(const char* str, size_t len)
+//for consteval of string length
+template <std::size_t S>
+consteval std::size_t strlen_consteval(char const (&)[S]) { return S - 1; }
+
+//C++ 20 - Consteval will ALWAYS be done at compile time - uses constexpr functions inside detail to do the actual work.
+consteval uint32_t crc32_CONSTEVAL(const char* str, size_t len)
 {
     return detail::crc32(str, len) ^ 0xFFFFFFFF;
 }
 
-static uint32_t crc32(const char* str, size_t len)
+//Constexpr function CAN be done at compile time...
+constexpr uint32_t crc32(const char* str, size_t len)
 {
     return detail::crc32(str, len) ^ 0xFFFFFFFF;
+}
+
+//std::string versions
+
+//C++ 20 - Consteval will ALWAYS be done at compile time - uses constexpr functions inside detail to do the actual work.
+consteval uint32_t crc32_CONSTEVAL(const std::string& str)
+{
+    return detail::crc32(str.c_str(), str.length()) ^ 0xFFFFFFFF;
+}
+
+constexpr uint32_t crc32(const std::string& str)
+{
+    return detail::crc32(str.c_str(), str.length()) ^ 0xFFFFFFFF;
 }

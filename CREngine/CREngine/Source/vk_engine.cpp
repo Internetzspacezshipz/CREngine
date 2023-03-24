@@ -160,9 +160,9 @@ void VulkanEngine::Draw()
 	
 	vkCmdBeginRenderPass(cmd, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	DrawInterior(cmd);
+	draw_objects(cmd, _renderables);	
 
-	draw_objects(cmd, _renderables.data(), _renderables.size());	
+	DrawInterior(cmd);
 
 	//finalize the render pass
 	vkCmdEndRenderPass(cmd);
@@ -237,26 +237,6 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 					_selectedShader = 0;
 				}
 			}
-
-			//alt-enter for fullscreen.
-			/*
-			if (Event.key.keysym.sym == SDLK_RETURN
-				&& Event.key.keysym.mod &KMOD_ALT)
-			{
-				bShouldBeFullscreen = !bShouldBeFullscreen;
-				SDL_SetWindowFullscreen(_window, bShouldBeFullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_FALSE);
-
-				if (!bShouldBeFullscreen)
-				{
-					//Set our window to be resizable.
-					SDL_SetWindowResizable(_window, SDL_TRUE);
-				}
-			}*/
-
-			//if (Event.key.keysym.sym == SDLK_BACKQUOTE)
-			//{
-			//	bDrawUI = !bDrawUI;
-			//}
 		}
 
 		_KeySystem.Process(Event);
@@ -1256,15 +1236,19 @@ Texture* VulkanEngine::get_texture(const AssetHandle& handle)
 	}
 }
 
-void VulkanEngine::draw_objects(VkCommandBuffer cmd,RenderObject* first, int count)
+void VulkanEngine::draw_objects(VkCommandBuffer cmd, const std::vector<RO_wp>& ObjectVec)
 {
+	//TODO: Sort ObjectVec before entry to this function as an optimization.
+
+
 	//make a model view matrix for rendering the object
 	//camera view
-	glm::vec3 camPos = { 0.f,-6.f,-10.f };
+	glm::vec3 camPos = { 0.f, -6.f, -10.f };
 
 	glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+
 	//camera projection
-	glm::mat4 projection = glm::perspective(glm::radians(70.f), 1700.f / 900.f, 0.1f, 200.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)_windowExtent.width / (float)_windowExtent.height, 0.1f, 200.0f);
 	projection[1][1] *= -1;	
 
 	GPUCameraData camData;
@@ -1281,7 +1265,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd,RenderObject* first, int cou
 
 	float framed = (_frameNumber / 120.f);
 
-	_sceneParameters.ambientColor = { sin(framed),0,cos(framed),1 };
+	_sceneParameters.ambientColor = { sin(framed), 0, cos(framed), 1 };
 
 	char* sceneData;
 	vmaMapMemory(_allocator, _sceneParameterBuffer._allocation , (void**)&sceneData);
@@ -1300,10 +1284,11 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd,RenderObject* first, int cou
 	
 	GPUObjectData* objectSSBO = (GPUObjectData*)objectData;
 	
-	for (int i = 0; i < count; i++)
+	
+	for (int i = 0; i < ObjectVec.size(); i++)
 	{
-		RenderObject& object = first[i];
-		objectSSBO[i].modelMatrix = object.transformMatrix;
+		RO_sp object = ObjectVec[i].lock();
+		objectSSBO[i].modelMatrix = object->transformMatrix;
 	}
 	
 	vmaUnmapMemory(_allocator, get_current_frame().objectBuffer._allocation);
@@ -1311,30 +1296,30 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd,RenderObject* first, int cou
 	Mesh* lastMesh = nullptr;
 	Material* lastMaterial = nullptr;
 	
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < ObjectVec.size(); i++)
 	{
-		RenderObject& object = first[i];
+		RO_sp object = ObjectVec[i].lock();
 
 		//only bind the pipeline if it doesnt match with the already bound one
-		if (object.material != lastMaterial) {
-
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
-			lastMaterial = object.material;
+		if (object->material != lastMaterial) 
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object->material->pipeline);
+			lastMaterial = object->material;
 
 			uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object->material->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
 		
 			//object data descriptor
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object->material->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
 
-			if (object.material->textureSet != VK_NULL_HANDLE) {
+			if (object->material->textureSet != VK_NULL_HANDLE)
+			{
 				//texture descriptor
-				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipelineLayout, 2, 1, &object.material->textureSet, 0, nullptr);
-
+				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object->material->pipelineLayout, 2, 1, &object->material->textureSet, 0, nullptr);
 			}
 		}
 
-		glm::mat4 model = object.transformMatrix;
+		glm::mat4 model = object->transformMatrix;
 		//final render matrix, that we are calculating on the cpu
 		glm::mat4 mesh_matrix = model;
 
@@ -1342,17 +1327,19 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd,RenderObject* first, int cou
 		constants.render_matrix = mesh_matrix;
 
 		//upload the mesh to the gpu via pushconstants
-		vkCmdPushConstants(cmd, object.material->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+		vkCmdPushConstants(cmd, object->material->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
 
 		//only bind the mesh if its a different one from last bind
-		if (object.mesh != lastMesh) {
+		if (object->mesh != lastMesh)
+		{
 			//bind the mesh vertex buffer with offset 0
 			VkDeviceSize offset = 0;
-			vkCmdBindVertexBuffers(cmd, 0, 1, &object.mesh->_vertexBuffer._buffer, &offset);
-			lastMesh = object.mesh;
+			vkCmdBindVertexBuffers(cmd, 0, 1, &object->mesh->_vertexBuffer._buffer, &offset);
+			lastMesh = object->mesh;
 		}
+
 		//we can now draw
-		vkCmdDraw(cmd, object.mesh->_vertices.size(), 1,0 , i);
+		vkCmdDraw(cmd, object->mesh->_vertices.size(), 1, 0, i);
 	}
 }
 
@@ -1509,12 +1496,29 @@ uint64_t VulkanEngine::LoadTexture(std::string Path)
 
 	VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, NewTexture.image._image, VK_IMAGE_ASPECT_COLOR_BIT);
 	vkCreateImageView(_device, &imageinfo, nullptr, &NewTexture.imageView);
-	
+
 	_mainDeletionQueue.push_deletion_function(
 	[NewHandle](VulkanEngine* Engine)
 	{
 		Engine->UnloadTexture(NewHandle);
 	});
+
+
+	VkSamplerCreateInfo sampler_info{};
+	sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	sampler_info.magFilter = VK_FILTER_LINEAR;
+	sampler_info.minFilter = VK_FILTER_LINEAR;
+	sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // outside image bounds just use border color
+	sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.minLod = -1000;
+	sampler_info.maxLod = 1000;
+	sampler_info.maxAnisotropy = 1.0f;
+	
+	auto err = vkCreateSampler(_device, &sampler_info, nullptr, &NewTexture.Sampler);
+
+	NewTexture.DescriptorSet = ImGui_ImplVulkan_AddTexture(NewTexture.Sampler, NewTexture.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	_loadedTextures[NewHandle] = NewTexture;
 	PathToHandle[Path] = NewHandle;
@@ -1527,6 +1531,7 @@ void VulkanEngine::UnloadTexture(AssetHandle Handle)
 
 	_vkbSwapchain.destroy_image_views({ Tex->imageView });
 	vmaDestroyImage(_allocator, Tex->image._image, Tex->image._allocation);
+	vkDestroySampler(_device, Tex->Sampler, nullptr);
 }
 
 uint64_t VulkanEngine::LoadMesh(std::string Path)

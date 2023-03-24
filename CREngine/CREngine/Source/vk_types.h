@@ -16,12 +16,19 @@
 
 typedef uint64_t AssetHandle;
 
-struct AllocatedBuffer {
+struct AllocatedBuffer
+{
 	VkBuffer _buffer;
 	VmaAllocation _allocation;
 };
 
-struct AllocatedImage {
+struct AllocatedImage
+{
+	int texWidth;
+	int texHeight;
+	int texChannelsActual;
+	int texChannelsCreated;
+
 	VkImage _image;
 	VmaAllocation _allocation;
 };

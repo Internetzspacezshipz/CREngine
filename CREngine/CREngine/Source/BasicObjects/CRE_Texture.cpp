@@ -13,7 +13,10 @@ void CRE_Texture::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 	VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
 	if (!bSerializing)
 	{
-		Handle = Engine->LoadTexture(File.string());
+		if (File.string().size())
+		{
+			Handle = Engine->LoadTexture(File.string());
+		}
 	}
 }
 

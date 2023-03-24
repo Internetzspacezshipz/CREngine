@@ -13,17 +13,18 @@
 
 bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage & outImage)
 {
-	int texWidth, texHeight, texChannels;
-
-	stbi_uc* pixels = stbi_load((getAssetsPath() / file).string().c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load((getAssetsPath() / file).string().c_str(), &outImage.texWidth, &outImage.texHeight, &outImage.texChannelsActual, STBI_rgb_alpha);
 
 	if (!pixels) {
 		std::cout << "Failed to load texture file " << file << std::endl;
 		return false;
 	}
 	
+	//four for now, since RGB images will have an empty alpha channel appended.
+	outImage.texChannelsCreated = 4;
+
 	void* pixel_ptr = pixels;
-	VkDeviceSize imageSize = texWidth * texHeight * 4;
+	VkDeviceSize imageSize = outImage.texWidth * outImage.texHeight * outImage.texChannelsCreated;
 
 	VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -39,19 +40,17 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 	stbi_image_free(pixels);
 
 	VkExtent3D imageExtent;
-	imageExtent.width = static_cast<uint32_t>(texWidth);
-	imageExtent.height = static_cast<uint32_t>(texHeight);
+	imageExtent.width = static_cast<uint32_t>(outImage.texWidth);
+	imageExtent.height = static_cast<uint32_t>(outImage.texHeight);
 	imageExtent.depth = 1;
 	
 	VkImageCreateInfo dimg_info = vkinit::image_create_info(image_format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, imageExtent);
-
-	AllocatedImage newImage;	
 	
 	VmaAllocationCreateInfo dimg_allocinfo = {};
 	dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	//allocate and create the image
-	vmaCreateImage(engine._allocator, &dimg_info, &dimg_allocinfo, &newImage._image, &newImage._allocation, nullptr);
+	vmaCreateImage(engine._allocator, &dimg_info, &dimg_allocinfo, &outImage._image, &outImage._allocation, nullptr);
 	
 	//transition image to transfer-receiver	
 	engine.immediate_submit([&](VkCommandBuffer cmd) {
@@ -67,7 +66,7 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 
 		imageBarrier_toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageBarrier_toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		imageBarrier_toTransfer.image = newImage._image;
+		imageBarrier_toTransfer.image = outImage._image;
 		imageBarrier_toTransfer.subresourceRange = range;
 
 		imageBarrier_toTransfer.srcAccessMask = 0;
@@ -86,9 +85,9 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 		copyRegion.imageSubresource.baseArrayLayer = 0;
 		copyRegion.imageSubresource.layerCount = 1;
 		copyRegion.imageExtent = imageExtent;
-
+		
 		//copy the buffer into the image
-		vkCmdCopyBufferToImage(cmd, stagingBuffer._buffer, newImage._image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+		vkCmdCopyBufferToImage(cmd, stagingBuffer._buffer, outImage._image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
 		VkImageMemoryBarrier imageBarrier_toReadable = imageBarrier_toTransfer;
 
@@ -106,6 +105,5 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 
 	std::cout << "Texture loaded succesfully " << file << std::endl;
 
-	outImage = newImage;
 	return true;
 }

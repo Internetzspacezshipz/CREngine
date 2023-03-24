@@ -282,7 +282,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClCompile Include="Source\CRE_AssetList.cpp" />
     <ClCompile Include="Source\CRE_App.cpp" />
     <ClCompile Include="Source\CRE_ManagedObject.cpp" />
-    <ClCompile Include="Source\BasicObjects\CRE_2DRenderable.cpp" />
+    <ClCompile Include="Source\BasicObjects\CRE_Renderable.cpp" />
     <ClCompile Include="Source\CRE_Serialization.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui.cpp" />
@@ -322,7 +322,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\CRE_ManagedObject.hpp" />
     <ClInclude Include="Source\CRE_Math.hpp" />
     <ClInclude Include="Source\CRE_Paths.hpp" />
-    <ClInclude Include="Source\BasicObjects\CRE_2DRenderable.hpp" />
+    <ClInclude Include="Source\BasicObjects\CRE_Renderable.hpp" />
     <ClInclude Include="Source\CRE_Serialization.hpp" />
     <ClInclude Include="Source\CRE_SimpleHashes.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />

@@ -77,6 +77,8 @@ inline float ClampAngle(float AngleDegrees, float MinAngleDegrees, float MaxAngl
 	return NormalizeAxis(AngleDegrees);
 }
 
+#define CARRAYSIZE(_ARR) ((int)(sizeof(_ARR) / sizeof(*(_ARR))))
+
 struct CRE_Transform
 {
 	glm::vec3 Translation{};

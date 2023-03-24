@@ -2,13 +2,14 @@
 #include "CRE_Globals.hpp"
 #include "CRE_App.hpp"
 #include "CRE_AssetList.hpp"
-
-#include <stdlib.h>
-#include <SDL.h>
-
+//
+//#include <SDL.h>
+//
 #include "BasicObjects/CRE_Texture.hpp"
-#include "BasicObjects/CRE_Mesh.hpp"
-
+//#include "BasicObjects/CRE_Mesh.hpp"
+//#include "CRE_Utilities.hpp"
+//#include "CRE_Math.hpp"
+//
 REGISTER_CLASS(CRE_UI_AssetListEditor, CRE_UI_Base);
 
 //Remove keybind here.
@@ -83,7 +84,7 @@ static RegEditorUIFunc TextureEdit(CRE_Texture::StaticClass(),
 	{
 		if (ImGui::CollapsingHeader("ShowImage", DefaultCollapsingHeaderFlags))
 		{
-			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 0.f);//added 1 here to make sure it can never div/zero
+			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 1.f);//added 1 here to make sure it can never div/zero
 
 			float Scale = 500.f/LargestSide;
 

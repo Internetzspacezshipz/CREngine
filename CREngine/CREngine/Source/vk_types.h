@@ -12,6 +12,10 @@
 #define VMA_RECORDING_ENABLED VMA_REC
 #endif
 
+//Due to vk_mem_alloc.h including Windows.h
+//we end up with a collision between the #define min/max and std::min/max in some annoying file
+//So define NOMINMAX to avoid this crap.
+#define NOMINMAX
 #include "vk_mem_alloc.h"
 
 typedef uint64_t AssetHandle;

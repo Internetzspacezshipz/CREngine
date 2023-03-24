@@ -2,6 +2,11 @@
 
 REGISTER_CLASS(CRE_ManagedObject, void);
 
+CRE_ClassBase* CRE_ManagedObject::GetClassObj() const
+{
+	return CRE_ObjectFactory::Get().GetClass(GetClass());
+}
+
 void CRE_ManagedObject::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {
 	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, ID);
@@ -14,15 +19,15 @@ void CRE_ManagedObject::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 	}
 }
 
-std::unordered_map<IDNum_t, std::string>& CRE_ObjectIDRegistry::GetMap()
+Map<IDNum_t, std::string>& CRE_ObjectIDRegistry::GetMap()
 {
-	static std::unordered_map<IDNum_t, std::string> Map;
+	static Map<IDNum_t, std::string> Map;
 	return Map;
 }
 
 std::string CRE_ObjectIDRegistry::CreateUniqueString(const std::string& In)
 {
-	std::unordered_map<IDNum_t, std::string>& Map = GetMap();
+	Map<IDNum_t, std::string>& Map = GetMap();
 	int Index = 0;
 	std::string UniqueString = In;
 	do
@@ -63,7 +68,7 @@ CRE_ObjID::CRE_ObjID(std::string Name)
 	Number = crc32(Name.c_str(), Name.length());
 
 	//Check if we have this number yet...
-	std::unordered_map<IDNum_t, std::string>& Map = CRE_ObjectIDRegistry::GetMap();
+	Map<IDNum_t, std::string>& Map = CRE_ObjectIDRegistry::GetMap();
 	if (!Map.contains(Number))
 	{
 		Map.emplace(Number, Name);

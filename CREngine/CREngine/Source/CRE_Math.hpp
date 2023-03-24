@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cmath>
+//#include <cmath>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -11,11 +11,33 @@
 #include <glm/gtx/quaternion.hpp>
 
 //See corecrt_math_defines.h - used for pi and other constants.
-#define _USE_MATH_DEFINES
-#include <math.h>
-#include <vector>
+//#define _USE_MATH_DEFINES
+//#include <math.h>
 
 #include <vulkan/vulkan.h>
+
+
+//#define Min(A,B) std::min({ A, B })
+//#define Max(A,B) std::max({ A, B })
+//
+//#define Min(A, B, C) std::min({ A, B, C })
+//#define Max(A, B, C) std::max({ A, B, C })
+
+/*
+template<typename T>
+__forceinline T Min(T A, T B) { return ; }
+
+template<typename T>
+__forceinline T Max(T A, T B) { return std::max({ A, B }); }
+
+template<typename T>
+__forceinline T Min(T A, T B, T C) { return std::min({ A, B, C }); }
+
+template<typename T>
+__forceinline T Max(T A, T B, T C) { return std::max({ A, B, C }); }
+*/
+
+
 
 inline float ClampAxis(float Angle)
 {
@@ -44,6 +66,8 @@ inline float NormalizeAxis(float Angle)
 
 	return Angle;
 }
+
+#define M_PI    3.14159265358979323846264338327950288
 
 template<class T>
 inline static auto RadiansToDegrees(T const& RadVal) -> decltype(RadVal* (180.f / (T)M_PI))
@@ -76,8 +100,6 @@ inline float ClampAngle(float AngleDegrees, float MinAngleDegrees, float MaxAngl
 	// already in range, just return it
 	return NormalizeAxis(AngleDegrees);
 }
-
-#define CARRAYSIZE(_ARR) ((int)(sizeof(_ARR) / sizeof(*(_ARR))))
 
 struct CRE_Transform
 {
@@ -212,3 +234,5 @@ struct CRE_TransformBox2D
 		BotRight.y *= Y;
 	}
 };
+
+#undef M_PI

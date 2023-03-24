@@ -310,6 +310,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CRE_KeySystem.hpp" />
+    <ClInclude Include="Source\CRE_Utilities.hpp" />
+    <ClInclude Include="Source\CRE_Types.hpp" />
     <ClInclude Include="Source\ThirdParty\func\func.hpp" />
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\UserInterface\CRE_UI_AssetListEditor.hpp" />

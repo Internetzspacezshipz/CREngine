@@ -1,12 +1,12 @@
 #include "CRE_KeySystem.hpp"
 #include <SDL_events.h>
 
-KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, FuncType InFunc)
+KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc)
 {
 	return BindToKey(Keycode, std::make_shared<KeyActivator>(KeyActivator(std::move(InFunc))));
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(const std::vector<SDL_Keycode>& Keycodes, FuncType InFunc)
+KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc)
 {
 	return BindToKeys(Keycodes, std::make_shared<KeyActivator>(KeyActivator(std::move(InFunc))));
 }
@@ -31,7 +31,7 @@ KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivator_sp I
 	return KS;
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(const std::vector<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator)
+KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator)
 {
 	KeySubscriber_sp KS = std::make_shared<KeySubscriber>();
 
@@ -60,7 +60,7 @@ KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeySubscriber_wp 
 	return BindToKey(Keycode, InExisting.lock()->Activator);
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(std::vector<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting)
+KeySubscriber_wp CRE_KeySystem::BindToKeys(Array<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting)
 {
 	return BindToKeys(Keycodes, InExisting.lock()->Activator);
 }
@@ -91,22 +91,9 @@ void CRE_KeySystem::Process(const SDL_Event& Event)
 	}
 }
 
-void CRE_KeySystem::DoRemovals(std::vector<KeySubscriber_sp>& KeySubArr)
+void CRE_KeySystem::DoRemovals(Array<KeySubscriber_sp>& KeySubArr)
 {
-	std::vector<KeySubscriber_sp> NewArray;
-
-	//Slowly shrink over time if needed.
-	NewArray.reserve(KeySubArr.size() - 1);
-
-	for (KeySubscriber_sp Elem : KeySubArr)
-	{
-		if (!Elem->bWantsRemoval)
-		{
-			NewArray.emplace_back(Elem);
-		}
-	}
-
-	KeySubArr = NewArray;
+	RemoveByPredicate(KeySubArr, [](KeySubscriber_sp Item) { return Item->bWantsRemoval; });
 }
 
 void KeySubscriber::Remove()

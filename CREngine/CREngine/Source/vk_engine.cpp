@@ -160,7 +160,9 @@ void VulkanEngine::Draw()
 	
 	vkCmdBeginRenderPass(cmd, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	draw_objects(cmd, _renderables);	
+	RemoveInvalidRenderables();
+
+	draw_objects(cmd, _renderables);
 
 	DrawInterior(cmd);
 
@@ -281,6 +283,11 @@ FrameData& VulkanEngine::get_current_frame()
 FrameData& VulkanEngine::get_last_frame()
 {
 	return _frames[(_frameNumber -1) % 2];
+}
+
+void VulkanEngine::RemoveInvalidRenderables()
+{
+	RemoveByPredicate(_renderables, [](RO_wp Rendwp) { return Rendwp.expired(); });
 }
 
 void VulkanEngine::init_vulkan()

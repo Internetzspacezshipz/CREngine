@@ -21,6 +21,7 @@
 #include <SDL_keycode.h>
 
 #include "CRE_KeySystem.hpp"
+#include "CRE_Utilities.hpp"
 
 class PipelineBuilder 
 {
@@ -91,6 +92,8 @@ struct RenderObject
 	Material* material;
 
 	glm::mat4 transformMatrix;
+
+	bool bRenderEnable = false;
 };
 
 typedef std::weak_ptr<RenderObject> RO_wp;
@@ -246,6 +249,9 @@ public:
 
 	//weak pointer array of render objects. If actual render object is destroyed by dereferencing, it will be destroyed here if not in use.
 	std::vector<RO_wp> _renderables;
+
+	//The minimum size of the _renderables vector
+	void RemoveInvalidRenderables();
 
 	//Map of paths to asset handles in order to check if we already have a thing loaded.
 	//Asset handles are unique, so this map goes for all the materials, meshes, and loaded textures.

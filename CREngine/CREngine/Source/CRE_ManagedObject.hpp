@@ -3,13 +3,7 @@
 #include "CRE_Serialization.hpp"
 #include "CRE_SimpleHashes.h"
 
-#include <functional>
-#include <inttypes.h>
-#include <iostream>
-#include <string>
-#include <map>
-#include <set>
-
+#include "CRE_Utilities.hpp"
 
 //Individual objects get an id - it's really big too.
 
@@ -24,7 +18,7 @@ class CRE_ObjectIDRegistry
 	friend class CRE_ObjectFactory;
 
 
-	static std::unordered_map<IDNum_t, std::string>& GetMap();
+	static Map<IDNum_t, std::string>& GetMap();
 	static std::string CreateUniqueString(const std::string& In);
 };
 
@@ -96,7 +90,6 @@ class CRE_ClassBase;
 //Def Class should be done within the header of each class, inside the class definition.
 #define DEF_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) public:																			\
 static ClassGUID StaticClass();																										\
-CRE_ClassBase* GetClassObj() const;																									\
 virtual ClassGUID GetClass() const override;																						\
 NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
 {																																	\
@@ -115,10 +108,6 @@ ClassGUID NEW_CLASS_NAME::StaticClass()																								\
 ClassGUID NEW_CLASS_NAME::GetClass() const																							\
 { 																																	\
 	return NEW_CLASS_NAME::StaticClass(); 																							\
-}																																	\
-CRE_ClassBase* NEW_CLASS_NAME::GetClassObj() const																					\
-{																																	\
-	return CRE_ObjectFactory::Get().GetClass<NEW_CLASS_NAME>();																		\
 }
 
 //Virtual base class for all gameplay related classes to inherit from.
@@ -162,7 +151,7 @@ class CRE_ClassBase
 {
 protected:
 	CRE_ClassBase* Parent = nullptr;
-	std::set<CRE_ClassBase*> Children;
+	Set<CRE_ClassBase*> Children;
 	ClassGUID ThisGUID;
 public:
 	bool IsChildOf(ClassGUID ClassID) const
@@ -185,16 +174,16 @@ public:
 	}
 
 	ClassGUID GetClassGUID() const { return ThisGUID; }
-	std::set<CRE_ClassBase*> GetChildren() const { return Children; }
+	Set<CRE_ClassBase*> GetChildren() const { return Children; }
 	std::string GetClassFriendlyName() const { return ThisGUID.GetString(); }
 };
 
 class CRE_ObjectFactory
 {
 	//constructors for each class type.
-	std::unordered_map<ClassGUID, std::function<CRE_ManagedObject* (const ObjGUID&)>> ClassCreators;
+	Map<ClassGUID, std::function<CRE_ManagedObject* (const ObjGUID&)>> ClassCreators;
 	//Info objects about the layout of the class inheritance.
-	std::unordered_map<ClassGUID, CRE_ClassBase*> ClassInfos;
+	Map<ClassGUID, CRE_ClassBase*> ClassInfos;
 	//Creation index. Not really important right now honestly.
 
 public:
@@ -231,7 +220,7 @@ public:
 		return reinterpret_cast<Class*>(Create(Class::StaticClass()));
 	}
 
-	std::unordered_map<ClassGUID, CRE_ClassBase*>& GetClassInfos() { return ClassInfos; };
+	Map<ClassGUID, CRE_ClassBase*>& GetClassInfos() { return ClassInfos; };
 
 	CRE_ClassBase* GetClass(ClassGUID ClassID)  { return ClassInfos[ClassID]; }
 	template<typename Type>

@@ -1,12 +1,11 @@
 #pragma once
 
-#include <vector>
-#include <unordered_map>
-#include <ThirdParty/func/func.hpp>
 #include <SDL_Keycode.h>
 
+#include "CRE_Utilities.hpp"
+#include "CRE_Math.hpp"
 
-typedef fu2::function<void(bool)> FuncType;
+typedef Func<void(bool)> KeyActivatorFunction;
 
 //Actual function storage
 class KeyActivator
@@ -23,12 +22,12 @@ class KeyActivator
 			Func(bButtonDown);
 		}
 	}
-	FuncType Func;
+	KeyActivatorFunction Func;
 
 	//What state this has been called in last. If you try to set the same state twice, it will ignore the second one.
 	bool bLastActivated = false;
 
-	KeyActivator(FuncType&& InFunc) : Func(InFunc), bLastActivated(false) {}
+	KeyActivator(KeyActivatorFunction&& InFunc) : Func(InFunc), bLastActivated(false) {}
 };
 
 typedef std::shared_ptr<KeyActivator> KeyActivator_sp;
@@ -58,22 +57,22 @@ class CRE_KeySystem
 {
 public:
 	//return weak pointers to the key subscribers. Use Remove() on KeySubscriber to remove the binding.
-	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, FuncType InFunc);
-	KeySubscriber_wp BindToKeys(const std::vector<SDL_Keycode>& Keycodes, FuncType InFunc);
+	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc);
+	KeySubscriber_wp BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc);
 
 	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeyActivator_sp InActivator);
-	KeySubscriber_wp BindToKeys(const std::vector<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator);
+	KeySubscriber_wp BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator);
 
 	//Subscribe to keys using an existing KeySubscriber/function. Use Remove() on KeySubscriber to remove the binding. Returns the new KeySubscriber binding.
 	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeySubscriber_wp InExisting);
-	KeySubscriber_wp BindToKeys(std::vector<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting);
+	KeySubscriber_wp BindToKeys(Array<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting);
 
 	void Process(const union SDL_Event& Event);
 
 private:
 
 	template<bool Input>
-	void InternalProcess(std::vector<KeySubscriber_sp>& KeySubArr)
+	void InternalProcess(Array<KeySubscriber_sp>& KeySubArr)
 	{
 		for (auto& Elem : KeySubArr)
 		{
@@ -102,7 +101,7 @@ private:
 		}
 	}
 
-	void DoRemovals(std::vector<KeySubscriber_sp>& KeySubArr);
+	void DoRemovals(Array<KeySubscriber_sp>& KeySubArr);
 
-	std::unordered_map<SDL_Keycode, std::vector<KeySubscriber_sp>> KeyToKeySubscribers;
+	Map<SDL_Keycode, Array<KeySubscriber_sp>> KeyToKeySubscribers;
 };

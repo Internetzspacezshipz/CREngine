@@ -15,6 +15,10 @@ class CRE_Renderable : public CRE_ManagedObject
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 
 	void SetRenderingEnabled(bool bRenderingEnabled);
+	void AddRenderable();
+
+	Array<CRE_ID> Materials;
+	Array<CRE_ID> Textures;
 
 protected:
 	bool bHasAddedRenderable = false;

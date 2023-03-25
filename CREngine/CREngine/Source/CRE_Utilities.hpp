@@ -3,7 +3,7 @@
 #include "CRE_Types.hpp"
 
 template<typename VecElementType, typename PredicateType>
-__forceinline void RemoveByPredicate(Array<VecElementType>& Vector, const PredicateType& Predicate)
+forceinline void RemoveByPredicate(Array<VecElementType>& Vector, const PredicateType& Predicate)
 {
 	if (Vector.size())
 	{
@@ -12,7 +12,7 @@ __forceinline void RemoveByPredicate(Array<VecElementType>& Vector, const Predic
 }
 
 template<typename KeyType, typename ElementType, typename PredicateType>
-__forceinline void RemoveByPredicate(Map<KeyType, ElementType>& Map, const PredicateType& Predicate)
+forceinline void RemoveByPredicate(Map<KeyType, ElementType>& Map, const PredicateType& Predicate)
 {
 	if (Map.size())
 	{
@@ -21,7 +21,7 @@ __forceinline void RemoveByPredicate(Map<KeyType, ElementType>& Map, const Predi
 }
 
 template<typename KeyType, typename PredicateType>
-__forceinline void RemoveByPredicate(Set<KeyType>& Set, const PredicateType& Predicate)
+forceinline void RemoveByPredicate(Set<KeyType>& Set, const PredicateType& Predicate)
 {
 	if (Set.size())
 	{

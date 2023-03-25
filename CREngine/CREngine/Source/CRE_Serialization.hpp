@@ -6,47 +6,48 @@
 //Boost
 #include <filesystem>
 
-template<typename Type>
-struct Has_Serializer_Function
-{
-	constexpr static bool Value = false;
-};
+//Include types for array.
+#include "CRE_Types.hpp"
+#include "CRE_ID.hpp"
+
+//Json value that will contain the class for objects
+#define CLASS_JSON_VALUE "_CLASS_ID_TYPE_"
 
 //The interface to use when wanting to make something serializable.
 struct CRE_SerializerInterface
 {
-	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) = 0;
+	virtual void Serialize(bool bSerializing, Json& TargetJson) = 0;
 };
 
-//Use type traits to define non-CRE types as serializable.
+//Use type traits to define serializable types.
 template<>
 struct Has_Serializer_Function<CRE_SerializerInterface>
 {
 	constexpr static bool Value = true;
 };
 
-static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const std::string& VarName, CRE_SerializerInterface& Value)
+static void VarSerialize(bool bSerializing, Json& TargetJson, CRE_SerializerInterface& Value)
 {
 	//Simply calls the virtual func, while moving into the variable in the TargetJson.
-	Value.Serialize(bSerializing, TargetJson[VarName]);
+	Value.Serialize(bSerializing, TargetJson);
 }
 
 template<>
-struct Has_Serializer_Function<std::filesystem::path>
+struct Has_Serializer_Function<Path>
 {
 	constexpr static bool Value = true;
 };
 
-static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const std::string& VarName, std::filesystem::path& Value)
+static void VarSerialize(bool bSerializing, Json& TargetJson, Path& Value)
 {
 	if (bSerializing)
 	{
-		TargetJson[VarName] = Value.string();
+		TargetJson = Value.string();
 	}
-	else if (TargetJson.contains(VarName))
+	else
 	{
 		//Must create a new path for this one.
-		std::string ConvertString = TargetJson[VarName];
+		std::string ConvertString = TargetJson;
 		Value.assign(std::filesystem::path(ConvertString));
 	}
 }
@@ -61,7 +62,7 @@ static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const st
 template<typename Type>
 static typename std::enable_if<Has_Serializer_Function<Type>::Value, void>::type JSON_SERIALIZE_VARIABLE_STRNAME(nlohmann::json& TargetJson, bool bSerializing, Type& Variable, const std::string& VarName)
 {
-	VarSerialize(bSerializing, TargetJson, VarName, Variable);
+	VarSerialize(bSerializing, TargetJson[VarName], Variable);
 }
 
 template<typename Type>
@@ -74,6 +75,52 @@ static typename std::enable_if<!Has_Serializer_Function<Type>::Value, void>::typ
 	else if (TargetJson.contains(VarName))
 	{
 		Variable = TargetJson[VarName];
+	}
+}
+
+
+//Templated Array functions to properly select whether or not to use the VarSerialize function that may be defined by the user.
+template<typename Type>
+static typename std::enable_if<Has_Serializer_Function<Type>::Value, void>::type JSON_SERIALIZE_VARIABLE_STRNAME(nlohmann::json& TargetJson, bool bSerializing, Array<Type>& InArray, const std::string& VarName)
+{
+	if (bSerializing)
+	{
+		nlohmann::json NewJsonArray;
+		for (size_t i = 0; i < InArray.size(); i++)
+		{
+			VarSerialize(bSerializing, NewJsonArray[i], InArray[i]);
+		}
+		TargetJson[VarName] = NewJsonArray;
+	}
+	else if (TargetJson.contains(VarName))
+	{
+		for (auto Item : TargetJson[VarName])
+		{
+			Type DeserializedItem;
+			VarSerialize(bSerializing, Item, DeserializedItem);
+			InArray.push_back(DeserializedItem);
+		}
+	}
+}
+
+template<typename Type>
+static typename std::enable_if<!Has_Serializer_Function<Type>::Value, void>::type JSON_SERIALIZE_VARIABLE_STRNAME(nlohmann::json& TargetJson, bool bSerializing, Array<Type>& InArray, const std::string& VarName)
+{
+	if (bSerializing)
+	{
+		nlohmann::json NewJsonArray;
+		for (size_t i = 0; i < InArray.size(); i++)
+		{
+			NewJsonArray[i] = InArray[i];
+		}
+		TargetJson[VarName] = NewJsonArray;
+	}
+	else if (TargetJson.contains(VarName))
+	{
+		for (auto Item : TargetJson[VarName])
+		{
+			InArray.push_back(Item);
+		}
 	}
 }
 
@@ -145,21 +192,25 @@ else if (JsonVariable.contains(""#ArrayName""))										\
 
 //CONST FOLDER LOCATIONS
 //Manifest file locations so we can just load all the data we need immediately.
-const std::filesystem::path ManifestFileName = "Manifest";
-const std::filesystem::path ManifestSubFolder = "Manifest";
+const Path ManifestFileName = "_Manifest_";
+const Path ManifestSubFolder = "Manifest";
 
-const std::string FileExtension = ".json";
+const String FileExtension = ".json";
+
+class CRE_ManagedObject;
+class CRE_AssetList;
 
 //Class that handles serialization of assets.
 class CRE_Serialization
 {
 	//Total path to given folders for simplicity of use.
-	std::filesystem::path ManifestFolderPath;
+	Path ManifestFolderPath;
 
 	CRE_Serialization();
+	Json LoadFileToJson(Path Path) const;
+	bool SaveJsonToFile(Path Path, const Json& Json) const;
+
 public:
-	nlohmann::json LoadFileToJson(std::filesystem::path Path) const;
-	bool SaveJsonToFile(std::filesystem::path Path, const nlohmann::json& Json) const;
 
 	static CRE_Serialization& Get()
 	{
@@ -167,10 +218,9 @@ public:
 		return DL;
 	}
 
-	class CRE_AssetList* LoadManifest() const;
-	bool SaveManifest(CRE_AssetList* InManifest) const;
-	
-protected:
-	nlohmann::json LoadManifest_Internal() const;
-	bool SaveManifest_Internal(nlohmann::json& InJson) const;
+	SP<CRE_ManagedObject> Load(const CRE_ID& ToLoad);
+	void Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad);
+	void Save(SP<CRE_ManagedObject> ToSave);
+
+	SP<CRE_AssetList> LoadManifest();
 };

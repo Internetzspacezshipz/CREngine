@@ -272,6 +272,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CRE_Loadable.cpp" />
+    <ClCompile Include="Source\CRE_ID.cpp" />
     <ClCompile Include="Source\CRE_KeySystem.cpp" />
     <ClCompile Include="Source\CRE_Globals.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp" />
@@ -309,6 +311,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CRE_Loadable.hpp" />
+    <ClInclude Include="Source\CRE_ID.hpp" />
     <ClInclude Include="Source\CRE_KeySystem.hpp" />
     <ClInclude Include="Source\CRE_Utilities.hpp" />
     <ClInclude Include="Source\CRE_Types.hpp" />

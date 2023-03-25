@@ -66,14 +66,13 @@ void CRE_App::LoadInitialGameFiles()
 void CRE_App::SaveGame()
 {
     //for now don't save anything - it will be controlled through the UI.
-#if 0
     CRE_Serialization& Serializer = CRE_Serialization::Get();
 
     //Save root object. Maybe we can make a save game object later on as well as other types of similar uses (settings object, etc).
-    Serializer.SaveManifest(RootObject);
-#endif;
+    Serializer.Save(RootObject);
+
     //Make sure to delete the root object. - maybe later we can wrap this in an SPtr
-    delete RootObject;
+    RootObject.reset();
 }
 
 void CRE_App::LoadGameObjects()

@@ -9,22 +9,28 @@ void CRE_Renderable::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 	//advise to do this for each child class of this one.
 	Super::Serialize(bSerializing, TargetJson);
 
-
+	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, Materials);
+	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, Textures);
 }
 
 void CRE_Renderable::SetRenderingEnabled(bool bRenderingEnabled)
 {
-	if (bRenderingEnabled != bHasAddedRenderable)
+	if (bRenderingEnabled)
+	{
+		RenderableObject->bRenderEnable = true;
+	}
+	else
+	{
+		RenderableObject->bRenderEnable = false;
+	}
+}
+
+void CRE_Renderable::AddRenderable()
+{
+	if (bHasAddedRenderable == false)
 	{
 		VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
-
-		if (bRenderingEnabled)
-		{
-			Engine->_renderables.push_back(RenderableObject);
-		}
-		else
-		{
-
-		}
+		Engine->_renderables.push_back(RenderableObject);
+		bHasAddedRenderable = true;
 	}
 }

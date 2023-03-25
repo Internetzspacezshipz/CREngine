@@ -1,0 +1,7 @@
+{
+  "ID": "CRE_AssetList_0",
+  "Objects": [ "Texture1", "Texture2222" ],
+  "_CLASS_ID_TYPE_": "CRE_AssetList",
+  "bLoadWhenDeserialized": true,
+  "bSaveWhenSerialized": true
+}

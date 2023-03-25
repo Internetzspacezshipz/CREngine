@@ -25,16 +25,16 @@
 
 /*
 template<typename T>
-__forceinline T Min(T A, T B) { return ; }
+forceinline T Min(T A, T B) { return ; }
 
 template<typename T>
-__forceinline T Max(T A, T B) { return std::max({ A, B }); }
+forceinline T Max(T A, T B) { return std::max({ A, B }); }
 
 template<typename T>
-__forceinline T Min(T A, T B, T C) { return std::min({ A, B, C }); }
+forceinline T Min(T A, T B, T C) { return std::min({ A, B, C }); }
 
 template<typename T>
-__forceinline T Max(T A, T B, T C) { return std::max({ A, B, C }); }
+forceinline T Max(T A, T B, T C) { return std::max({ A, B, C }); }
 */
 
 

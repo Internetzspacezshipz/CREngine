@@ -1,89 +1,14 @@
 #pragma once
 
 #include "CRE_Serialization.hpp"
-#include "CRE_SimpleHashes.h"
 
 #include "CRE_Utilities.hpp"
 
-//Individual objects get an id - it's really big too.
-
-typedef uint32_t IDNum_t;
-
-//Json value that will contain the class for objects
-#define CLASS_JSON_VALUE "_CLASS_ID_TYPE_"
-
-class CRE_ObjectIDRegistry
-{
-	friend class CRE_ObjID;
-	friend class CRE_ObjectFactory;
-
-
-	static Map<IDNum_t, std::string>& GetMap();
-	static std::string CreateUniqueString(const std::string& In);
-};
-
-//Todo: finish this class... It probably won't work well right now.
-class CRE_ObjID
-{
-	IDNum_t Number = 0;
-	bool bHasBeenSet = false;
-public:
-	std::string GetString() const;
-	IDNum_t GetNumber() const { return Number; }
-
-	bool IsValidID() const;
-
-	CRE_ObjID& operator = (const CRE_ObjID& CopyFrom);
-	CRE_ObjID& operator = (const std::string& MakeFrom)
-	{
-		return *this = CRE_ObjID(MakeFrom);
-	}
-	bool operator == (const CRE_ObjID& CompareWith) const { return Number == CompareWith.Number; }
-	operator bool() const { return IsValidID(); };
-
-	CRE_ObjID(std::string Name);
-	CRE_ObjID();
-};
-
-//Implement std::hash for the object id so it can be used in maps.
-namespace std
-{
-	template <>
-	struct hash<CRE_ObjID>
-	{
-		std::size_t operator()(const CRE_ObjID& Item) const
-		{
-			auto out = Item.GetNumber();
-			return out;
-		}
-	};
-}
-
-typedef CRE_ObjID ObjGUID;
-
-template<>
-struct Has_Serializer_Function<CRE_ObjID>
-{
-	constexpr static bool Value = true;
-};
-
-//manual serialize code for CRE_ObjID
-static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, const std::string& VarName, CRE_ObjID& Value)
-{
-	if (bSerializing)
-	{
-		TargetJson[VarName] = Value.GetString();
-	}
-	else if (TargetJson.contains(VarName))
-	{
-		Value = CRE_ObjID(TargetJson[VarName]);
-	}
-}
-
+#include "CRE_ID.hpp"
 
 
 //Each class gets an ID as well, which will be used by serialization to make instances of the class.
-typedef CRE_ObjID ClassGUID;
+typedef CRE_ID ClassGUID;
 
 class CRE_ClassBase;
 
@@ -114,7 +39,7 @@ ClassGUID NEW_CLASS_NAME::GetClass() const																							\
 class CRE_ManagedObject : public CRE_SerializerInterface
 {
 protected:
-	CRE_ObjID ID;
+	CRE_ID ID;
 
 	//Default move.
 	CRE_ManagedObject(CRE_ManagedObject&&) = default;
@@ -134,7 +59,8 @@ public:
 	virtual ~CRE_ManagedObject() {}
 
 	ObjGUID GetId() const { return ID; }
-	void Rename(const ObjGUID& In) { ID = In; }
+
+	void Rename(const ObjGUID& In);
 
 	//The "Constructor", which we call in the actual constructor.
 	virtual void Construct() {};
@@ -143,8 +69,12 @@ public:
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 };
 
-typedef std::shared_ptr<CRE_ManagedObject> Object_sp;
-typedef std::weak_ptr<CRE_ManagedObject> Object_wp;
+//Got sick of writing the whole thing every time
+
+typedef SP<CRE_ManagedObject> Object_sp;
+typedef WP<CRE_ManagedObject> Object_wp;
+
+typedef CRE_ManagedObject CRE_Obj;
 
 //Contains info about what classes are derived, and what the parent class is.
 class CRE_ClassBase
@@ -210,7 +140,7 @@ public:
 		}
 
 		std::string UniqueString = CRE_ObjectIDRegistry::CreateUniqueString(ClassInfos[it->first]->GetClassFriendlyName());
-		return (it->second)(CRE_ObjID(UniqueString));
+		return (it->second)(CRE_ID(UniqueString));
 	}
 
 	//Templated create.
@@ -254,7 +184,7 @@ public:
 		return *this;
 	}
 
-	CRE_Class<NativeClass>& SetClassID(const CRE_ObjID& InID)
+	CRE_Class<NativeClass>& SetClassID(const CRE_ID& InID)
 	{
 		//ClassName must be 0 when this is called.
 		assert(ThisGUID.IsValidID() == false);
@@ -275,7 +205,7 @@ class CRE_Registrar
 public:
 	explicit CRE_Registrar(const std::string& FriendlyClassName)
 	{
-		CRE_ObjID NewID = CRE_ObjID(FriendlyClassName);
+		CRE_ID NewID = CRE_ID(FriendlyClassName);
 		CRE_ObjectFactory::Get()
 			.RegisterClass<New>(NewID);
 		//Must register the new class's parent (Base).
@@ -294,7 +224,7 @@ class CRE_Registrar<void, New>
 public:
 	explicit CRE_Registrar(const std::string& FriendlyClassName)
 	{
-		CRE_ObjID NewID = CRE_ObjID(FriendlyClassName);
+		CRE_ID NewID = CRE_ID(FriendlyClassName);
 		CRE_ObjectFactory::Get()
 			.RegisterClass<New>(NewID);
 		CRE_Class<New>::Get()
@@ -315,4 +245,60 @@ To* DCast(CRE_ManagedObject* Object)
 		}
 	}
 	return nullptr;
+}
+
+//Dynamic Casts for smart pointers:
+template<typename To, typename From>
+static SP<To> DCast(SP<From> Object)
+{
+	return SP<To>(DCast<To>(Object.get()));
+}
+
+template<typename To, typename From>
+static WP<To> DCast(WP<From> Object)
+{
+	return WP<To>(DCast<To>(Object.lock()));
+}
+
+
+//Dynamic casts for smart pointers:
+
+//Upcasting
+//Use some new fancy C++20 shit to determine upcasting.
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static SP<To> DCast(const SP<From>& Object)
+{
+	return SP<To>(Object);
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static WP<To> DCast(const WP<From>& Object)
+{
+	return WP<To>(Object.lock());
+}
+
+//Same type - no need to do anything.
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static SP<To> DCast(const SP<From>& Object)
+{
+	return Object;
+}
+
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static WP<To> DCast(const WP<From>& Object)
+{
+	return Object;
+}
+
+//Downcasting.
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static SP<To> DCast(SP<From> Object)
+{
+	return SP<To>(DCast<To>(Object.get()));
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static WP<To> DCast(WP<From> Object)
+{
+	return WP<To>(DCast<To>(Object.lock()));
 }

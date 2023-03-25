@@ -7,7 +7,6 @@
 #include <memory>
 
 class VulkanEngine;
-class CRE_AssetList;
 class CRE_UI_Base;
 
 class CRE_App
@@ -22,7 +21,7 @@ public:
 
 	void SetupGlobalVariables(VulkanEngine* InEnginePointer);
 
-	CRE_AssetList* GetRootAssetList() const { return RootObject; };
+	SP<CRE_AssetList> GetRootAssetList() const { return RootObject; };
 
 	void DrawUIObjects();
 
@@ -33,7 +32,7 @@ private:
 	void LoadGameObjects();
 
 	//The root game object that loads all other game objects we need.
-	CRE_AssetList* RootObject;
+	SP<CRE_AssetList> RootObject;
 
 	//All UI objects we want to draw.
 	std::vector<CRE_UI_Base*> UIObjects;

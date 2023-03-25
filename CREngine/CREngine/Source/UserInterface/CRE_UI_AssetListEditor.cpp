@@ -2,14 +2,10 @@
 #include "CRE_Globals.hpp"
 #include "CRE_App.hpp"
 #include "CRE_AssetList.hpp"
-//
-//#include <SDL.h>
-//
+
 #include "BasicObjects/CRE_Texture.hpp"
-//#include "BasicObjects/CRE_Mesh.hpp"
-//#include "CRE_Utilities.hpp"
-//#include "CRE_Math.hpp"
-//
+#include "BasicObjects/CRE_Mesh.hpp"
+
 REGISTER_CLASS(CRE_UI_AssetListEditor, CRE_UI_Base);
 
 //Remove keybind here.
@@ -106,7 +102,6 @@ static RegEditorUIFunc TextureEdit(CRE_Texture::StaticClass(),
 	ImGui::Unindent(20.f);
 });
 
-#if 0
 static RegEditorUIFunc MeshEdit(CRE_Mesh::StaticClass(),
 [](CRE_ManagedObject* Object)
 {
@@ -120,37 +115,32 @@ static RegEditorUIFunc MeshEdit(CRE_Mesh::StaticClass(),
 	{
 		Casted->File = Str;
 	}
+});
 
-	if (Mesh* Tex = Casted->GetMeshActual())
+/*
+static RegEditorUIFunc MeshEdit(CRE_AssetList::StaticClass(),
+[](CRE_ManagedObject* Object)
+{
+	CRE_AssetList* Casted = DCast<CRE_AssetList>(Object);
+
+	std::string Str(Casted->File.native().begin(), Casted->File.native().end());
+
+	ImGui::Indent(20.f);
+
+	if (ImGui::InputText("Path", &Str))
 	{
-		if (ImGui::CollapsingHeader("Show Mesh", DefaultCollapsingHeaderFlags))
-		{
-
-			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 0.f);//added 1 here to make sure it can never div/zero
-
-			float Scale = 500.f / LargestSide;
-
-			//Shows actual texture size.
-			ImGui::Text("Size: %.0fx%.0f", (float)Tex->image.texWidth, (float)Tex->image.texHeight);
-
-			//The size we want to zoom to.
-			float my_tex_w_zoomed = (float)Tex->image.texWidth * Scale;
-			float my_tex_h_zoomed = (float)Tex->image.texHeight * Scale;
-
-			ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
-			ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
-			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-			ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-
-			ImGui::Image(Tex->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
-		}
+		Casted->File = Str;
 	}
 });
-#endif
+*/
 
 //Returns true to ask for deletion.
 bool ShowObjectInfo(CRE_ManagedObject* Object)
 {
+	if (!Object)
+	{
+		return true;
+	}
 	bool bShouldDelete = false;
 
 	ImGui::PushID(Object);
@@ -285,38 +275,41 @@ void CRE_UI_AssetListEditor::DrawUI()
 		CRE_Serialization& Serialization = CRE_Serialization::Get();
 		CRE_App* App = CRE_Globals::GetAppPointer();
 		CRE_ObjectFactory& OF = CRE_ObjectFactory::Get();
-		if (CurrentAssetList == nullptr)
+
+
+		SP<CRE_AssetList> PinnedAssetList = DCast<CRE_AssetList>(App->GetRootAssetList());
+
+		if (PinnedAssetList == nullptr)
 		{
-			CurrentAssetList = App->GetRootAssetList();
+			return;
 		}
 
-		std::string FileName = CurrentAssetList->AssetListPath.filename().generic_string();
-		std::string FileNameCpy = FileName;
+		
+
+		std::string FileName = PinnedAssetList->AssetListPath.filename().generic_string();
 
 		ImGui::Begin("AssetListEditor", &bIsOpen);
 
 		//Disallow renaming of main asset.
-		if (CurrentAssetList != App->GetRootAssetList())
+		//if (CurrentAssetList != App->GetRootAssetList())
 		{
-			ImGui::InputText("Filename:", &FileName);
-			if (FileName != FileNameCpy)
+			if (ImGui::InputText("Filename:", &FileName, ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				CurrentAssetList->AssetListPath = FileName;
+				PinnedAssetList->AssetListPath = FileName;
 			}
 		}
 
 		if (ImGui::Button("Save", DefaultButtonSize))
 		{
-			nlohmann::json OutJson;
-			CurrentAssetList->Serialize(true, OutJson);
+			Serialization.Save(PinnedAssetList);
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Load", DefaultButtonSize))
 		{
-			nlohmann::json OutJson = Serialization.LoadFileToJson(CurrentAssetList->AssetListPath);
-			CurrentAssetList->Serialize(false, OutJson);
+			auto Shared = DCast<CRE_Obj>(PinnedAssetList);
+			Serialization.Reload(Shared, PinnedAssetList->GetId());
 		}
 
 		ImGui::Checkbox("IMGUI_DEMO", &bOpenDemo);
@@ -329,29 +322,31 @@ void CRE_UI_AssetListEditor::DrawUI()
 
 		if (ImGui::CollapsingHeader("List Asset", DefaultCollapsingHeaderFlags))
 		{
-			CRE_ClassBase* Base = OF.GetClass(CRE_ManagedObject::StaticClass());
+			CRE_ClassBase* Base = OF.GetClass(CRE_Obj::StaticClass());
 			WantsToSpawn = ShowTable_Classes(Base);
 		}
 
 
 		if (WantsToSpawn)
 		{
-			CurrentAssetList->LoadedObjects.emplace_back(OF.Create(WantsToSpawn->GetClassGUID()));
+			PinnedAssetList->Objects.emplace_back(OF.Create(WantsToSpawn->GetClassGUID()));
 		}
 
 
-		FilterExisting.Draw("Filter existing objects");
+		//FilterExisting.Draw("Filter existing objects");
 
-		auto it = CurrentAssetList->LoadedObjects.begin();
-		while (it != CurrentAssetList->LoadedObjects.end())
+		auto it = PinnedAssetList->Objects.begin();
+		while (it != PinnedAssetList->Objects.end())
 		{
-			Object_sp Ob = (*it);
-			
-			if (FilterExisting.PassFilter(Ob->GetId().GetString().c_str()))
+			Object_sp Ob = (*it).Get();
+
+			//if (!Ob) continue;
+
+			//if (FilterExisting.PassFilter(Ob->GetId().GetString().c_str()))
 			{
 				if (ShowObjectInfo(Ob.get()))
 				{
-					it = CurrentAssetList->LoadedObjects.erase(it);
+					it = PinnedAssetList->Objects.erase(it);
 				}
 				else
 				{

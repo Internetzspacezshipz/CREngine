@@ -20,7 +20,7 @@ class CRE_UI_AssetListEditor : public CRE_UI_Base
 	bool bOpenDemo = false;
 
 	KeySubscriber_wp OpenKeyBind;
-	CRE_AssetList* CurrentAssetList;
+	WP<CRE_AssetList> CurrentAssetList;
 
 private:
 	//Text filter for existing objects

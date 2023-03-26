@@ -1,27 +1,51 @@
 #include "CRE_KeySystem.hpp"
 #include <SDL_events.h>
 
-KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc)
+template<bool Input>
+void CRE_KeySystem::InternalProcess(Array<WP<KeySubscriber>>& KeySubArr)
 {
-	return BindToKey(Keycode, std::make_shared<KeyActivator>(KeyActivator(std::move(InFunc))));
+	for (auto Weak : KeySubArr)
+	{
+		auto Elem = Weak.lock();
+
+		//Lovely constexpr if... So nice.
+		//Add 1 if we're pressing down on the key, subtract one if it is being released.
+		if constexpr (Input)
+		{
+			Elem->CurrentNumKeycodes++;
+			//Try to call after incrementing.
+			if (Elem->CurrentNumKeycodes == Elem->RequiredKeycodes)
+			{
+				Elem->Activator->Call<Input>();
+			}
+		}
+		else
+		{
+			//Try to call before decrementing.
+			if (Elem->CurrentNumKeycodes == Elem->RequiredKeycodes)
+			{
+				Elem->Activator->Call<Input>();
+			}
+			Elem->CurrentNumKeycodes--;
+		}
+		//Ensure we never go over the number of required keycodes.
+		Elem->CurrentNumKeycodes = std::min(Elem->CurrentNumKeycodes, Elem->RequiredKeycodes);
+	}
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc)
+//Actual adding implementation
+SP<KeySubscriber> CRE_KeySystem::BindToKey_Internal(SDL_Keycode Keycode, SP<KeyActivator> InActivator)
 {
-	return BindToKeys(Keycodes, std::make_shared<KeyActivator>(KeyActivator(std::move(InFunc))));
-}
-
-KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivator_sp InActivator)
-{
-	KeySubscriber_sp KS = std::make_shared<KeySubscriber>();
+	SP<KeySubscriber> KS = MkSP<KeySubscriber>();
 
 	KS->Activator = InActivator;
 	KS->RequiredKeycodes = 1;
 
 	auto Found = KeyToKeySubscribers.find(Keycode);
+
 	if (Found == KeyToKeySubscribers.end())
 	{
-		std::vector<KeySubscriber_sp> New{ KS };
+		Array<WP<KeySubscriber>> New{ WP<KeySubscriber>(KS) };
 		KeyToKeySubscribers.emplace(Keycode, New);
 	}
 	else
@@ -31,9 +55,9 @@ KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivator_sp I
 	return KS;
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator)
+SP<KeySubscriber> CRE_KeySystem::BindToKeys_Internal(const Array<SDL_Keycode>& Keycodes, SP<KeyActivator> InActivator)
 {
-	KeySubscriber_sp KS = std::make_shared<KeySubscriber>();
+	SP<KeySubscriber> KS = MkSP<KeySubscriber>();
 
 	KS->Activator = InActivator;
 	KS->RequiredKeycodes = Keycodes.size();
@@ -43,7 +67,7 @@ KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, K
 		auto Found = KeyToKeySubscribers.find(Keycode);
 		if (Found == KeyToKeySubscribers.end())
 		{
-			std::vector<KeySubscriber_sp> New{ KS };
+			Array<WP<KeySubscriber>> New{ WP<KeySubscriber>(KS) };
 			KeyToKeySubscribers.emplace(Keycode, New);
 		}
 		else
@@ -54,15 +78,32 @@ KeySubscriber_wp CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, K
 	return KS;
 }
 
-
-KeySubscriber_wp CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeySubscriber_wp InExisting)
+void CRE_KeySystem::DoRemovals(Array<WP<KeySubscriber>>& KeySubArr)
 {
-	return BindToKey(Keycode, InExisting.lock()->Activator);
+	RemoveByPredicate(KeySubArr, [](WP<KeySubscriber> Item) { return Item.expired(); });
 }
 
-KeySubscriber_wp CRE_KeySystem::BindToKeys(Array<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting)
+
+
+SP<KeySubscriber> CRE_KeySystem::BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc)
 {
-	return BindToKeys(Keycodes, InExisting.lock()->Activator);
+	return BindToKey_Internal(Keycode, MkSP<KeyActivator>(KeyActivator(std::move(InFunc))));
+}
+
+SP<KeySubscriber> CRE_KeySystem::BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc)
+{
+	return BindToKeys_Internal(Keycodes, MkSP<KeyActivator>(KeyActivator(std::move(InFunc))));
+}
+
+
+SP<KeySubscriber> CRE_KeySystem::BindToKey(SDL_Keycode Keycode, const SP<KeySubscriber>& InExisting)
+{
+	return BindToKey_Internal(Keycode, InExisting->Activator);
+}
+
+SP<KeySubscriber> CRE_KeySystem::BindToKeys(Array<SDL_Keycode> Keycodes, const SP<KeySubscriber>& InExisting)
+{
+	return BindToKeys_Internal(Keycodes, InExisting->Activator);
 }
 
 
@@ -78,6 +119,8 @@ void CRE_KeySystem::Process(const SDL_Event& Event)
 			return;
 		}
 
+		DoRemovals(V->second);
+
 		if (Event.type == SDL_KEYDOWN)
 		{
 			InternalProcess<true>(V->second);
@@ -86,17 +129,5 @@ void CRE_KeySystem::Process(const SDL_Event& Event)
 		{
 			InternalProcess<false>(V->second);
 		}
-
-		DoRemovals(V->second);
 	}
-}
-
-void CRE_KeySystem::DoRemovals(Array<KeySubscriber_sp>& KeySubArr)
-{
-	RemoveByPredicate(KeySubArr, [](KeySubscriber_sp Item) { return Item->bWantsRemoval; });
-}
-
-void KeySubscriber::Remove()
-{
-	bWantsRemoval = true;
 }

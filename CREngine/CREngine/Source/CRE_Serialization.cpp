@@ -45,13 +45,27 @@ CRE_Serialization::CRE_Serialization() :
 	std::filesystem::create_directories(ManifestFolderPath);
 }
 
-
-
 SP<CRE_ManagedObject> CRE_Serialization::Load(const CRE_ID& ToLoad)
 {
 	SP<CRE_ManagedObject> Object;
 	Reload(Object, ToLoad);
 	return Object;
+}
+
+void CRE_Serialization::Delete(const CRE_ID& ToDelete)
+{
+	Path InPath = ToDelete.GetString();
+	InPath += FileExtension;
+	InPath = ManifestSubFolder / InPath;
+	std::filesystem::remove(InPath);
+}
+
+bool CRE_Serialization::Exists(const CRE_ID& Item)
+{
+	Path InPath = Item.GetString();
+	InPath += FileExtension;
+	InPath = ManifestSubFolder / InPath;
+	return std::filesystem::exists(InPath);
 }
 
 void CRE_Serialization::Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad)
@@ -63,9 +77,10 @@ void CRE_Serialization::Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLo
 	}
 	if (!Target)
 	{
-		if (CRE_ID ClassID = LoadedJson[CLASS_JSON_VALUE])
+		CRE_ID ClassID = LoadedJson[CLASS_JSON_VALUE];
+		if (ClassID.IsValidID())
 		{
-			auto Object = SP<CRE_ManagedObject>(CRE_ObjectFactory::Get().Create(ClassID));
+			auto Object = CRE_ObjectFactory::Get().Create(ClassID);
 			Target.swap(Object);
 		}
 	}
@@ -86,7 +101,7 @@ void CRE_Serialization::Save(SP<CRE_ManagedObject> ToSave)
 	Json OutputJson;
 	ToSave->Serialize(true, OutputJson);
 
-	SaveJsonToFile(ToSave->GetId().GetString(), OutputJson);
+	SaveJsonToFile(ToSave->GetID().GetString(), OutputJson);
 }
 
 SP<CRE_AssetList> CRE_Serialization::LoadManifest()
@@ -98,6 +113,7 @@ SP<CRE_AssetList> CRE_Serialization::LoadManifest()
 		return Loaded;
 	}
 
+	
 	//return empty asset list if no manifest.
-	return SP<CRE_AssetList>(CRE_ObjectFactory::Get().Create<CRE_AssetList>());
+	return CRE_ObjectFactory::Get().Create<CRE_AssetList>();
 }

@@ -14,11 +14,9 @@ class CRE_AssetList : public CRE_ManagedObject
 
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 
-	std::filesystem::path AssetListPath = "DEFAULT_FILE";
-
 	bool bSaveWhenSerialized = true;
 	bool bLoadWhenDeserialized = true;
 
-	Array<CRE_Loadable> Objects;
+	Array<CRE_LoadableBase> Objects;
 };
 

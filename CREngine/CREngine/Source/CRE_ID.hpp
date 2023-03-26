@@ -10,29 +10,29 @@ class CRE_ObjectIDRegistry
 	friend class CRE_ObjectFactory;
 
 
-	static Map<IDNum_t, std::string>& GetMap();
-	static std::string CreateUniqueString(const std::string& In);
+	static Map<IDNum_t, String>& GetMap();
+	static String CreateUniqueString(const String& In);
 };
 
+//Avoid implicit typecasting in this class.
 class CRE_ID
 {
 	IDNum_t Number = 0;
 	bool bHasBeenSet = false;
 public:
-	std::string GetString() const;
+	String GetString() const;
 	IDNum_t GetNumber() const { return Number; }
 
 	bool IsValidID() const;
 
 	CRE_ID& operator = (const CRE_ID& CopyFrom);
-	CRE_ID& operator = (const std::string& MakeFrom)
+	CRE_ID& operator = (const String& MakeFrom)
 	{
 		return *this = CRE_ID(MakeFrom);
 	}
 	bool operator == (const CRE_ID& CompareWith) const { return Number == CompareWith.Number; }
-	operator bool() const { return IsValidID(); };
 
-	CRE_ID(std::string Name);
+	CRE_ID(String Name);
 	CRE_ID();
 };
 

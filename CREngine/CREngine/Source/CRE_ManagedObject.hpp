@@ -41,15 +41,16 @@ class CRE_ManagedObject : public CRE_SerializerInterface
 protected:
 	CRE_ID ID;
 
-	//Default move.
-	CRE_ManagedObject(CRE_ManagedObject&&) = default;
-	CRE_ManagedObject& operator=(CRE_ManagedObject&&) = default;
+public:
 
-	//Delete copy.
+	//delete copy.
 	CRE_ManagedObject(const CRE_ManagedObject&) = delete;
 	CRE_ManagedObject& operator=(const CRE_ManagedObject&) = delete;
 
-public:
+	//Default move.
+	CRE_ManagedObject(CRE_ManagedObject&&) = delete;
+	CRE_ManagedObject& operator=(CRE_ManagedObject&&) = delete;
+
 	//Implementation of StaticClass(), GetClass() and GetClassObj() for the class system to work properly.
 	static ClassGUID StaticClass();
 	virtual ClassGUID GetClass() const;
@@ -58,7 +59,7 @@ public:
 	CRE_ManagedObject(const ObjGUID& InObjGUID) : ID(InObjGUID) {}
 	virtual ~CRE_ManagedObject() {}
 
-	ObjGUID GetId() const { return ID; }
+	ObjGUID GetID() const { return ID; }
 
 	void Rename(const ObjGUID& In);
 
@@ -111,27 +112,23 @@ public:
 class CRE_ObjectFactory
 {
 	//constructors for each class type.
-	Map<ClassGUID, std::function<CRE_ManagedObject* (const ObjGUID&)>> ClassCreators;
+	Map<ClassGUID, std::function<SP<CRE_ManagedObject>(const ObjGUID&)>> ClassCreators;
 	//Info objects about the layout of the class inheritance.
 	Map<ClassGUID, CRE_ClassBase*> ClassInfos;
 	//Creation index. Not really important right now honestly.
 
 public:
 
-	static CRE_ObjectFactory& Get()
-	{
-		static CRE_ObjectFactory ObjFactory;
-		return ObjFactory;
-	}
+	static CRE_ObjectFactory& Get();
 
 	template<class T>
 	void RegisterClass(ClassGUID ClassID)
 	{
-		ClassCreators.insert({ ClassID, [](const ObjGUID& Index)->CRE_ManagedObject* { return new T(Index); } });
+		ClassCreators.insert({ ClassID, [](const ObjGUID& Name)->SP<CRE_ManagedObject> { return DCast<CRE_ManagedObject>(std::make_shared<T>(Name)); } });
 		ClassInfos.insert({ ClassID, &CRE_Class<T>::Get() });
 	}
 
-	CRE_ManagedObject* Create(ClassGUID ClassID)
+	SP<CRE_ManagedObject> Create(ClassGUID ClassID)
 	{
 		const auto it = ClassCreators.find(ClassID);
 		if (it == ClassCreators.end())
@@ -145,9 +142,11 @@ public:
 
 	//Templated create.
 	template<typename Class>
-	Class* Create()
+	SP<Class> Create()
 	{
-		return reinterpret_cast<Class*>(Create(Class::StaticClass()));
+		SP<Class> NewItem = DCast<Class>(Create(Class::StaticClass()));
+		assert(NewItem);
+		return NewItem;
 	}
 
 	Map<ClassGUID, CRE_ClassBase*>& GetClassInfos() { return ClassInfos; };
@@ -192,7 +191,7 @@ public:
 		return *this;
 	}
 
-	NativeClass* Create()
+	SP<NativeClass> Create()
 	{
 		return CRE_ObjectFactory::Get().Create<NativeClass>();
 	}
@@ -238,8 +237,9 @@ To* DCast(CRE_ManagedObject* Object)
 {
 	if (Object != nullptr)
 	{
-		CRE_ClassBase* Class = CRE_ObjectFactory::Get().GetClass(Object->GetClass());
-		if (Class->IsChildOf(To::StaticClass()))
+		CRE_ClassBase* FromClass = CRE_ObjectFactory::Get().GetClass(Object->GetClass());
+		CRE_ClassBase* ToClass = CRE_ObjectFactory::Get().GetClass(To::StaticClass());
+		if (ToClass->IsChildOf(FromClass->GetClassGUID()))
 		{
 			return reinterpret_cast<To*>(Object);
 		}
@@ -247,18 +247,22 @@ To* DCast(CRE_ManagedObject* Object)
 	return nullptr;
 }
 
-//Dynamic Casts for smart pointers:
-template<typename To, typename From>
-static SP<To> DCast(SP<From> Object)
-{
-	return SP<To>(DCast<To>(Object.get()));
-}
+//PROBL:EM WITH DYNAMIC CASTS = PLS FIX
 
-template<typename To, typename From>
-static WP<To> DCast(WP<From> Object)
-{
-	return WP<To>(DCast<To>(Object.lock()));
-}
+
+
+//Dynamic Casts for smart pointers:
+//template<typename To, typename From>
+//static SP<To> DCast(SP<From> Object)
+//{
+//	return SP<To>(DCast<To>(Object.get()));
+//}
+//
+//template<typename To, typename From>
+//static WP<To> DCast(WP<From> Object)
+//{
+//	return WP<To>(DCast<To>(Object.lock()));
+//}
 
 
 //Dynamic casts for smart pointers:
@@ -266,39 +270,157 @@ static WP<To> DCast(WP<From> Object)
 //Upcasting
 //Use some new fancy C++20 shit to determine upcasting.
 template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
-static SP<To> DCast(const SP<From>& Object)
+static SP<To> DCast(SP<From>&& Object)
 {
-	return SP<To>(Object);
+	return SP<To>(std::move(Object), Object.get());
 }
 
 template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
-static WP<To> DCast(const WP<From>& Object)
+static WP<To> DCast(WP<From>&& Object)
 {
-	return WP<To>(Object.lock());
+	return WP<To>(std::move(Object), Object.lock());
 }
 
 //Same type - no need to do anything.
 template<typename To, typename From> requires (std::is_same_v<To, From>)
-static SP<To> DCast(const SP<From>& Object)
+static SP<To> DCast(SP<From>&& Object)
 {
 	return Object;
 }
 
 template<typename To, typename From> requires (std::is_same_v<To, From>)
-static WP<To> DCast(const WP<From>& Object)
+static WP<To> DCast(WP<From>&& Object)
 {
 	return Object;
 }
 
 //Downcasting.
 template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
-static SP<To> DCast(SP<From> Object)
+static SP<To> DCast(SP<From>&& Object)
 {
-	return SP<To>(DCast<To>(Object.get()));
+	To* Item = DCast<To>(Object.get());
+	if (Item)
+	{
+		return SP<To>(std::move(Object), Item);
+	}
+	return SP<To>();
 }
 
 template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
-static WP<To> DCast(WP<From> Object)
+static WP<To> DCast(WP<From>&& Object)
 {
-	return WP<To>(DCast<To>(Object.lock()));
+	To* Item = DCast<To>(Object.lock());
+	if (Item)
+	{
+		return WP<To>(std::move(Object), Item);
+	}
+	return WP<To>();
 }
+
+
+
+#if 1
+
+//Upcasting
+//Use some new fancy C++20 shit to determine upcasting.
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	return SP<To>(Object, Object.get());
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	return WP<To>(Object, Object.lock());
+}
+
+//Same type - no need to do anything.
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	return Object;
+}
+
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	return Object;
+}
+
+//Downcasting.
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	To* Item = DCast<To>(Object.get());
+	if (Item)
+	{
+		return SP<To>(Object, Item);
+	}
+	return SP<To>();
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	To* Item = DCast<To>(Object.lock());
+	if (Item)
+	{
+		return WP<To>(Object, Item);
+	}
+	return WP<To>();
+}
+
+//using move
+#else
+
+//Upcasting
+//Use some new fancy C++20 shit to determine upcasting.
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	return SP<To>(std::move(Object), Object.get());
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	return WP<To>(std::move(Object), Object.lock());
+}
+
+//Same type - no need to do anything.
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	return Object;
+}
+
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	return Object;
+}
+
+//Downcasting.
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static SP<To> DCast(SP<From>& Object)
+{
+	To* Item = DCast<To>(Object.get());
+	if (Item)
+	{
+		return SP<To>(std::move(Object), Item);
+	}
+	return SP<To>();
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static WP<To> DCast(WP<From>& Object)
+{
+	To* Item = DCast<To>(Object.lock());
+	if (Item)
+	{
+		return WP<To>(std::move(Object), Item);
+	}
+	return WP<To>();
+}
+#endif

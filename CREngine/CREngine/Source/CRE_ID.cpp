@@ -1,17 +1,17 @@
 #include "CRE_ID.hpp"
 #include "CRE_SimpleHashes.h"
 
-Map<IDNum_t, std::string>& CRE_ObjectIDRegistry::GetMap()
+Map<IDNum_t, String>& CRE_ObjectIDRegistry::GetMap()
 {
-	static Map<IDNum_t, std::string> Map;
+	static Map<IDNum_t, String> Map;
 	return Map;
 }
 
-std::string CRE_ObjectIDRegistry::CreateUniqueString(const std::string& In)
+String CRE_ObjectIDRegistry::CreateUniqueString(const String& In)
 {
-	Map<IDNum_t, std::string>& Map = GetMap();
+	Map<IDNum_t, String>& Map = GetMap();
 	int Index = 0;
-	std::string UniqueString = In;
+	String UniqueString = In;
 	do
 	{
 		UniqueString = In + std::format("_{}", Index++);
@@ -19,9 +19,9 @@ std::string CRE_ObjectIDRegistry::CreateUniqueString(const std::string& In)
 	return UniqueString;
 }
 
-std::string CRE_ID::GetString() const
+String CRE_ID::GetString() const
 {
-	std::string Out = "";
+	String Out = "";
 	auto Map = CRE_ObjectIDRegistry::GetMap();
 	auto Itr = Map.find(Number);
 	if (Map.end() != Itr)
@@ -44,13 +44,13 @@ CRE_ID& CRE_ID::operator=(const CRE_ID& CopyFrom)
 	return *this;
 }
 
-CRE_ID::CRE_ID(std::string Name)
+CRE_ID::CRE_ID(String Name)
 	: bHasBeenSet(true)
 {
 	Number = crc32(Name.c_str(), Name.length());
 
 	//Check if we have this number yet...
-	Map<IDNum_t, std::string>& Map = CRE_ObjectIDRegistry::GetMap();
+	Map<IDNum_t, String>& Map = CRE_ObjectIDRegistry::GetMap();
 	if (!Map.contains(Number))
 	{
 		Map.emplace(Number, Name);

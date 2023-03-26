@@ -19,7 +19,7 @@ class CRE_UI_AssetListEditor : public CRE_UI_Base
 	bool bIsOpen = false;
 	bool bOpenDemo = false;
 
-	KeySubscriber_wp OpenKeyBind;
+	SP<KeySubscriber> OpenKeyBind;
 	WP<CRE_AssetList> CurrentAssetList;
 
 private:

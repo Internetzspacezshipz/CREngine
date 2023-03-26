@@ -4,6 +4,12 @@
 
 REGISTER_CLASS(CRE_ManagedObject, void);
 
+CRE_ObjectFactory& CRE_ObjectFactory::Get()
+{
+	static CRE_ObjectFactory ObjFactory;
+	return ObjFactory;
+}
+
 CRE_ClassBase* CRE_ManagedObject::GetClassObj() const
 {
 	return CRE_ObjectFactory::Get().GetClass(GetClass());

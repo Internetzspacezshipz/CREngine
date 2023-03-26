@@ -35,5 +35,5 @@ private:
 	SP<CRE_AssetList> RootObject;
 
 	//All UI objects we want to draw.
-	std::vector<CRE_UI_Base*> UIObjects;
+	Array<SP<CRE_UI_Base>> UIObjects;
 };

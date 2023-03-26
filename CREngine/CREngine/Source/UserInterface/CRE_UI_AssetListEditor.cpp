@@ -8,19 +8,19 @@
 
 REGISTER_CLASS(CRE_UI_AssetListEditor, CRE_UI_Base);
 
-//Remove keybind here.
 CRE_UI_AssetListEditor::~CRE_UI_AssetListEditor()
 {
-	OpenKeyBind.lock()->Remove();
 }
 
-static ImVec2 DefaultButtonSize{50.f, 20.f};
+constexpr static ImVec2 DefaultButtonSize{70.f, 20.f};
+constexpr static ImVec2 LargeButtonSize{130.f, 20.f};
+constexpr static ImVec2 LargerButtonSize{180.f, 20.f};
+
 static ImGuiTreeNodeFlags DefaultCollapsingHeaderFlags = ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnArrow;
 
 struct CRE_EditorUIManager
 {
-	typedef fu2::function<void(CRE_ManagedObject*)> UIFunc;
-	typedef fu2::function<void(CRE_ManagedObject*)>* UIFunc_p;
+	typedef Func<void(CRE_LoadableBase&)> UIFunc;
 
 	static CRE_EditorUIManager& Get()
 	{
@@ -30,7 +30,7 @@ struct CRE_EditorUIManager
 
 	std::unordered_map<ClassGUID, UIFunc> AssetToUIFunc;
 
-	void CallEditUI(CRE_ManagedObject* Object)
+	void CallEditUI(CRE_LoadableBase& Object)
 	{
 		auto Found = AssetToUIFunc.find(Object->GetClass());
 		if (Found == AssetToUIFunc.end())
@@ -40,7 +40,7 @@ struct CRE_EditorUIManager
 		Found->second(Object);
 	}
 
-	bool HasEditUI(CRE_ManagedObject* Object)
+	bool HasEditUI(CRE_LoadableBase& Object)
 	{
 		auto Found = AssetToUIFunc.find(Object->GetClass());
 		if (Found == AssetToUIFunc.end())
@@ -60,9 +60,9 @@ struct RegEditorUIFunc
 };
 
 static RegEditorUIFunc TextureEdit(CRE_Texture::StaticClass(),
-[](CRE_ManagedObject* Object)
+[](CRE_LoadableBase& Object)
 {
-	CRE_Texture* Casted = DCast<CRE_Texture>(Object);
+	auto Casted = DCast<CRE_Texture>(Object.Get<true>());
 //TODO: Make macros for these pragmas.
 #pragma warning(push)
 #pragma warning(disable:4244)
@@ -103,9 +103,9 @@ static RegEditorUIFunc TextureEdit(CRE_Texture::StaticClass(),
 });
 
 static RegEditorUIFunc MeshEdit(CRE_Mesh::StaticClass(),
-[](CRE_ManagedObject* Object)
+[](CRE_LoadableBase& Object)
 {
-	CRE_Mesh* Casted = DCast<CRE_Mesh>(Object);
+	auto Casted = DCast<CRE_Mesh>(Object.Get<true>());
 
 	std::string Str(Casted->File.native().begin(), Casted->File.native().end());
 
@@ -135,43 +135,146 @@ static RegEditorUIFunc MeshEdit(CRE_AssetList::StaticClass(),
 */
 
 //Returns true to ask for deletion.
-bool ShowObjectInfo(CRE_ManagedObject* Object)
+bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 {
-	if (!Object)
-	{
-		return true;
-	}
 	bool bShouldDelete = false;
-
-	ImGui::PushID(Object);
+	auto ID = Object.GetID();
+	ImGui::PushID(ID.GetNumber());
 	ImGui::Separator();
 
-	std::string StringName = Object->GetId().GetString();
-	if (ImGui::InputText("Object Instance", &StringName, ImGuiInputTextFlags_::ImGuiInputTextFlags_EnterReturnsTrue))
+	if (!Object.IsLoadedOrLoadable())
 	{
-		Object->Rename(StringName);
-	}
-
-	ImGui::Value("ClassID", Object->GetClass());
-	auto* CO = Object->GetClassObj();
-
-	ImGui::Text(CO->GetClassFriendlyName().c_str());
-	ImGui::SameLine();
-
-	if (ImGui::Button("Delete Object", DefaultButtonSize))
-	{
+		//Remove object if not loadable
 		bShouldDelete = true;
 	}
 
-	CRE_EditorUIManager& EditUIMan = CRE_EditorUIManager::Get();
-
-	if (EditUIMan.HasEditUI(Object))
+	//Check again if object is loaded, since it might have been unloaded in the earlier IsLoaded scope.
+	if (Object.IsLoaded() && !bShouldDelete)
 	{
-		if (ImGui::CollapsingHeader("Edit Object", DefaultCollapsingHeaderFlags))
+		String StringName = ID.GetString();
+		if (ImGui::InputText("Object Instance", &StringName, ImGuiInputTextFlags_::ImGuiInputTextFlags_EnterReturnsTrue))
 		{
-			ImGui::PushID(Object->GetClass());
-			EditUIMan.CallEditUI(Object);
-			ImGui::PopID();
+			Object->Rename(StringName);
+		}
+
+		ImGui::Text("Class: %s", Object->GetClass().GetString().c_str());
+
+		CRE_EditorUIManager& EditUIMan = CRE_EditorUIManager::Get();
+
+		if (EditUIMan.HasEditUI(Object))
+		{
+			if (ImGui::CollapsingHeader("Edit Object", DefaultCollapsingHeaderFlags))
+			{
+				ImGui::PushID(Object->GetClass().GetNumber());
+				EditUIMan.CallEditUI(Object);
+				ImGui::PopID();
+			}
+		}
+	}
+
+	if (Object.IsLoadable() && !Object.IsLoaded())
+	{
+		ImGui::Text("Object Name: %s", ID.GetString().c_str());
+		if (ImGui::Button("Load object", LargeButtonSize))
+		{
+			Object.Load();
+		}
+	}
+	else if (Object.IsLoaded())
+	{
+		if (ImGui::Button("Unload object", LargeButtonSize))
+		{
+			ImGui::OpenPopup("Save before unloading?");
+		}
+
+		if (ImGui::BeginPopupModal("Save before unloading?"))
+		{
+			//Save first, then unload.
+			if (ImGui::Button("Save then unload", LargeButtonSize))
+			{
+				//Save first and then unload.
+				Object.Save();
+				Object.Unload();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Unload", DefaultButtonSize))
+			{
+				//Just unload
+				Object.Unload();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel", DefaultButtonSize))
+			{
+				//Cancel doing anything
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Delete Object", LargeButtonSize))
+		{
+			ImGui::OpenPopup("Are you sure?");
+		}
+
+		if (ImGui::BeginPopupModal("Are you sure?"))
+		{
+			if (ImGui::Button("Delete", DefaultButtonSize))
+			{
+				//Unload obj (remove shared ptr... Maybe we should do some extra checking to see if object is still alive? idk)
+				Object.Unload();
+				CRE_Serialization::Get().Delete(Object.GetID());
+				bShouldDelete = true;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			
+			if (ImGui::Button("Cancel", DefaultButtonSize))
+			{
+				//exit
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Save", LargeButtonSize))
+		{
+			if (Object.IsLoadable())
+			{
+				ImGui::OpenPopup("Overwrite?");
+			}
+			else
+			{
+				Object.Save();
+			}
+		}
+
+		if (ImGui::BeginPopupModal("Overwrite?"))
+		{
+			if (ImGui::Button("Overwrite", LargeButtonSize))
+			{
+				//Unload obj (remove shared ptr... Maybe we should do some extra checking to see if object is still alive? idk)
+				Object.Save();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel", DefaultButtonSize))
+			{
+				//exit
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
 		}
 	}
 
@@ -184,7 +287,7 @@ bool ShowObjectInfo(CRE_ManagedObject* Object)
 void RecurseClass(CRE_ClassBase* Class)
 {
 	ImGui::PushID(Class);
-	ImGui::Value("ClassID", Class->GetClassGUID());
+	ImGui::Value("ClassID", Class->GetClassGUID().GetNumber());
 
 	//ImGui::SameLine();
 	ImGui::Text(Class->GetClassFriendlyName().c_str());
@@ -210,7 +313,7 @@ void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 	ImGui::TableNextColumn();
 
 	//Clicking the class name spawns the object.
-	if (ImGui::Button(Class->GetClassFriendlyName().c_str(), {90.f, ImGui::GetTextLineHeightWithSpacing()}))
+	if (ImGui::Button(Class->GetClassFriendlyName().c_str(), {150.f, ImGui::GetTextLineHeightWithSpacing()}))
 	{
 		WantsToSpawn = Class;
 		//Do copy to clipboard - maybe this could be another button.
@@ -285,19 +388,7 @@ void CRE_UI_AssetListEditor::DrawUI()
 		}
 
 		
-
-		std::string FileName = PinnedAssetList->AssetListPath.filename().generic_string();
-
 		ImGui::Begin("AssetListEditor", &bIsOpen);
-
-		//Disallow renaming of main asset.
-		//if (CurrentAssetList != App->GetRootAssetList())
-		{
-			if (ImGui::InputText("Filename:", &FileName, ImGuiInputTextFlags_EnterReturnsTrue))
-			{
-				PinnedAssetList->AssetListPath = FileName;
-			}
-		}
 
 		if (ImGui::Button("Save", DefaultButtonSize))
 		{
@@ -309,7 +400,7 @@ void CRE_UI_AssetListEditor::DrawUI()
 		if (ImGui::Button("Load", DefaultButtonSize))
 		{
 			auto Shared = DCast<CRE_Obj>(PinnedAssetList);
-			Serialization.Reload(Shared, PinnedAssetList->GetId());
+			Serialization.Reload(Shared, PinnedAssetList->GetID());
 		}
 
 		ImGui::Checkbox("IMGUI_DEMO", &bOpenDemo);
@@ -333,18 +424,16 @@ void CRE_UI_AssetListEditor::DrawUI()
 		}
 
 
-		//FilterExisting.Draw("Filter existing objects");
+		FilterExisting.Draw("Filter objects by name");
 
 		auto it = PinnedAssetList->Objects.begin();
 		while (it != PinnedAssetList->Objects.end())
 		{
-			Object_sp Ob = (*it).Get();
+			CRE_LoadableBase& Ob = (*it);
 
-			//if (!Ob) continue;
-
-			//if (FilterExisting.PassFilter(Ob->GetId().GetString().c_str()))
+			if (Ob.HasValidID() && FilterExisting.PassFilter(Ob.GetID().GetString().c_str()))
 			{
-				if (ShowObjectInfo(Ob.get()))
+				if (ShowObjectInfo(Ob))
 				{
 					it = PinnedAssetList->Objects.erase(it);
 				}

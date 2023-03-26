@@ -39,6 +39,8 @@ struct Has_Serializer_Function
 //hide shared_ptr and such.
 #define SP std::shared_ptr
 #define WP std::weak_ptr
+#define UP std::unique_ptr
 
 //make shared helper
 #define MkSP std::make_shared
+#define MkUP std::make_unique

@@ -45,7 +45,7 @@ void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 
 void CRE_App::DrawUIObjects()
 {
-    for (CRE_UI_Base* Element : UIObjects)
+    for (SP<CRE_UI_Base> Element : UIObjects)
     {
         Element->DrawUI();
     }
@@ -59,8 +59,14 @@ void CRE_App::LoadInitialGameFiles()
     //Load the root object and initialize a new asset list object with it to load all other relevant data.
     RootObject = Serializer.LoadManifest();
 
-    CRE_UI_AssetListEditor* BaseAssetListEditor = CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>();
-    UIObjects.push_back(BaseAssetListEditor);
+   // SP<CRE_UI_AssetListEditor> BaseAssetListEditor = CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>();
+
+    auto id = CRE_UI_AssetListEditor::StaticClass();
+    SP<CRE_Obj> BaseAssetListEditor = CRE_ObjectFactory::Get().Create(id);
+
+    auto casted = DCast<CRE_UI_AssetListEditor>(BaseAssetListEditor);
+
+    UIObjects.push_back(casted);
 }
 
 void CRE_App::SaveGame()

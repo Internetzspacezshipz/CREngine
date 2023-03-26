@@ -272,7 +272,6 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\CRE_Loadable.cpp" />
     <ClCompile Include="Source\CRE_ID.cpp" />
     <ClCompile Include="Source\CRE_KeySystem.cpp" />
     <ClCompile Include="Source\CRE_Globals.cpp" />

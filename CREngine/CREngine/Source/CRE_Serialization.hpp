@@ -219,6 +219,10 @@ public:
 	}
 
 	SP<CRE_ManagedObject> Load(const CRE_ID& ToLoad);
+	//Deletes a given object serialized file.
+	void Delete(const CRE_ID& ToDelete);
+	bool Exists(const CRE_ID& Item);
+
 	void Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad);
 	void Save(SP<CRE_ManagedObject> ToSave);
 

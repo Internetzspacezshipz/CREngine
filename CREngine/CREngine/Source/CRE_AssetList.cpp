@@ -27,6 +27,6 @@ void CRE_AssetList::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 
 	if (bSaveWhenSerialized && bSerializing)
 	{
-		SaveArray(Objects);
+		SaveArraySafe(Objects);
 	}
 }

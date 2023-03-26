@@ -167,8 +167,9 @@ public:
 
 	CRE_KeySystem _KeySystem;
 
-	KeySubscriber_wp FullscreenKeybind_RAlt;
-	KeySubscriber_wp FullscreenKeybind_LAlt;
+	//Shared pointers to keybinds.
+	SP<KeySubscriber> FullscreenKeybind_RAlt;
+	SP<KeySubscriber> FullscreenKeybind_LAlt;
 
 	uint64_t _frameNumber {0};
 	int _selectedShader{ 0 };

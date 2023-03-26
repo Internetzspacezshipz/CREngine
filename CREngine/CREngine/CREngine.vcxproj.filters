@@ -99,9 +99,6 @@
     <ClCompile Include="Source\CRE_ID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CRE_Loadable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">

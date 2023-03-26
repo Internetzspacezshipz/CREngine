@@ -30,78 +30,39 @@ class KeyActivator
 	KeyActivator(KeyActivatorFunction&& InFunc) : Func(InFunc), bLastActivated(false) {}
 };
 
-typedef std::shared_ptr<KeyActivator> KeyActivator_sp;
-typedef std::weak_ptr<KeyActivator> KeyActivator_wp;
-
 class KeySubscriber
 {
 	friend class CRE_KeySystem;
-
-	bool bWantsRemoval = false;
 	uint32_t RequiredKeycodes = 0;
 	uint32_t CurrentNumKeycodes = 0;
 
-	KeyActivator_sp Activator;
-
-public:
-
-	void Remove();
+	SP<KeyActivator> Activator;
 };
 
-
-typedef std::shared_ptr<KeySubscriber> KeySubscriber_sp;
-typedef std::weak_ptr<KeySubscriber> KeySubscriber_wp;
 
 //Untested - maybe bugs here.
 class CRE_KeySystem
 {
-public:
-	//return weak pointers to the key subscribers. Use Remove() on KeySubscriber to remove the binding.
-	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc);
-	KeySubscriber_wp BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc);
+	template<bool Input>
+	void InternalProcess(Array<WP<KeySubscriber>>& KeySubArr);
 
-	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeyActivator_sp InActivator);
-	KeySubscriber_wp BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivator_sp InActivator);
+	SP<KeySubscriber> BindToKey_Internal(SDL_Keycode Keycode, SP<KeyActivator> InActivator);
+	SP<KeySubscriber> BindToKeys_Internal(const Array<SDL_Keycode>& Keycodes, SP<KeyActivator> InActivator);
+
+	void DoRemovals(Array<WP<KeySubscriber>>& KeySubArr);
+
+	Map<SDL_Keycode, Array<WP<KeySubscriber>>> KeyToKeySubscribers;
+
+public:
+	//return shared pointers to the key subscribers.
+	//When they are destroyed, our weak pointers will be removed.
+	//When all the KeySubscribers that own a KeyActivator are destroyed, the key activator will be destroyed as well.
+	SP<KeySubscriber> BindToKey(SDL_Keycode Keycode, KeyActivatorFunction InFunc);
+	SP<KeySubscriber> BindToKeys(const Array<SDL_Keycode>& Keycodes, KeyActivatorFunction InFunc);
 
 	//Subscribe to keys using an existing KeySubscriber/function. Use Remove() on KeySubscriber to remove the binding. Returns the new KeySubscriber binding.
-	KeySubscriber_wp BindToKey(SDL_Keycode Keycode, KeySubscriber_wp InExisting);
-	KeySubscriber_wp BindToKeys(Array<SDL_Keycode> Keycodes, KeySubscriber_wp InExisting);
+	SP<KeySubscriber> BindToKey(SDL_Keycode Keycode, const SP<KeySubscriber>& InExisting);
+	SP<KeySubscriber> BindToKeys(Array<SDL_Keycode> Keycodes, const SP<KeySubscriber>& InExisting);
 
 	void Process(const union SDL_Event& Event);
-
-private:
-
-	template<bool Input>
-	void InternalProcess(Array<KeySubscriber_sp>& KeySubArr)
-	{
-		for (auto& Elem : KeySubArr)
-		{
-			//Lovely constexpr if... So nice.
-			//Add 1 if we're pressing down on the key, subtract one if it is being released.
-			if constexpr (Input)
-			{
-				Elem->CurrentNumKeycodes++;
-				//Try to call after incrementing.
-				if (Elem->CurrentNumKeycodes == Elem->RequiredKeycodes)
-				{
-					Elem->Activator->Call<Input>();
-				}
-			}
-			else
-			{
-				//Try to call before decrementing.
-				if (Elem->CurrentNumKeycodes == Elem->RequiredKeycodes)
-				{
-					Elem->Activator->Call<Input>();
-				}
-				Elem->CurrentNumKeycodes--;
-			}
-			//Ensure we never go over the number of required keycodes.
-			Elem->CurrentNumKeycodes = std::min(Elem->CurrentNumKeycodes, Elem->RequiredKeycodes);
-		}
-	}
-
-	void DoRemovals(Array<KeySubscriber_sp>& KeySubArr);
-
-	Map<SDL_Keycode, Array<KeySubscriber_sp>> KeyToKeySubscribers;
 };

@@ -17,8 +17,10 @@
 #include <glm/gtc/constants.hpp>
 
 #include "CRE_Math.hpp"
-#include "UserInterface/CRE_UI_AssetListEditor.hpp"
 #include "vk_engine.h"
+
+//UI
+#include "UserInterface/CRE_UI_MenuBar.hpp"
 
 CRE_App::CRE_App()
 {
@@ -35,7 +37,7 @@ void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
     CRE_Globals::GetEnginePointer() = InEnginePointer;
     CRE_Globals::GetKeySystemPointer() = &InEnginePointer->_KeySystem;
     CRE_Globals::GetAppPointer() = this;
-    
+
     InEnginePointer->UIDrawFunction =
     [this]()
     {
@@ -45,10 +47,14 @@ void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 
 void CRE_App::DrawUIObjects()
 {
-    for (SP<CRE_UI_Base> Element : UIObjects)
+    //Loop through a copy of the array, since some might ask for deletion
+    for (auto Element : UIObjects)
     {
-        Element->DrawUI();
+        Element.second->DrawUI();
     }
+
+    //Remove all null items that might have been deleted during the loop.
+    RemoveByPredicate(UIObjects, [](const Pair<const CRE_ID, SP<CRE_UI_Base>>& Item)->bool { return Item.second.get() == nullptr; });
 }
 
 void CRE_App::LoadInitialGameFiles()
@@ -59,14 +65,8 @@ void CRE_App::LoadInitialGameFiles()
     //Load the root object and initialize a new asset list object with it to load all other relevant data.
     RootObject = Serializer.LoadManifest();
 
-   // SP<CRE_UI_AssetListEditor> BaseAssetListEditor = CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>();
-
-    auto id = CRE_UI_AssetListEditor::StaticClass();
-    SP<CRE_Obj> BaseAssetListEditor = CRE_ObjectFactory::Get().Create(id);
-
-    auto casted = DCast<CRE_UI_AssetListEditor>(BaseAssetListEditor);
-
-    UIObjects.push_back(casted);
+    //Add default menu bar
+    AddUI(CRE_ID::Constant<"MenuBar">(), CRE_ObjectFactory::Get().Create<CRE_UI_MenuBar>());
 }
 
 void CRE_App::SaveGame()
@@ -79,6 +79,24 @@ void CRE_App::SaveGame()
 
     //Make sure to delete the root object. - maybe later we can wrap this in an SPtr
     RootObject.reset();
+}
+
+void CRE_App::AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI)
+{
+    if (!UIObjects.contains(Name))
+    {
+        UIObjects.emplace(Name, NewUI);
+    }
+}
+
+void CRE_App::RemoveUI(CRE_ID Name)
+{
+    auto Found = UIObjects.find(Name);
+    if (Found != UIObjects.end())
+    {
+        //Remove by reseting - we want to keep the entry in the array until we're done looping the array.
+        Found->second.reset();
+    }
 }
 
 void CRE_App::LoadGameObjects()

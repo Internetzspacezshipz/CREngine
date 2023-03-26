@@ -24,11 +24,10 @@ typedef BASE_CLASS_NAME Super;
 
 //Register class should be done inside the CPP file of each class.
 #define REGISTER_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME)																				\
-static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME>s_##NEW_CLASS_NAME##Creator{""#NEW_CLASS_NAME""};								\
+static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME, ""#NEW_CLASS_NAME"">s_##NEW_CLASS_NAME##Creator{};							\
 ClassGUID NEW_CLASS_NAME::StaticClass()																								\
 { 																																	\
-	static ClassGUID ConcreteClassGUID = ClassGUID(""#NEW_CLASS_NAME"");															\
-	return ConcreteClassGUID; 																										\
+	return CRE_ID::Constant<""#NEW_CLASS_NAME"">(); 																				\
 }																																	\
 ClassGUID NEW_CLASS_NAME::GetClass() const																							\
 { 																																	\
@@ -198,13 +197,13 @@ public:
 };
 
 //Creates the class itself.
-template<class Base, class New>
+template<class Base, class New, StringLiteral LiteralString>
 class CRE_Registrar
 {
 public:
-	explicit CRE_Registrar(const std::string& FriendlyClassName)
+	explicit CRE_Registrar()
 	{
-		CRE_ID NewID = CRE_ID(FriendlyClassName);
+		CRE_ID NewID = CRE_ID::Constant<LiteralString>();
 		CRE_ObjectFactory::Get()
 			.RegisterClass<New>(NewID);
 		//Must register the new class's parent (Base).
@@ -217,13 +216,14 @@ public:
 };
 
 //For registering the absolute base class.
-template<class New>
-class CRE_Registrar<void, New>
+template<class New, StringLiteral LiteralString>
+class CRE_Registrar<void, New, LiteralString>
 {
 public:
-	explicit CRE_Registrar(const std::string& FriendlyClassName)
+
+	explicit CRE_Registrar()
 	{
-		CRE_ID NewID = CRE_ID(FriendlyClassName);
+		CRE_ID NewID = CRE_ID::Constant<LiteralString>();
 		CRE_ObjectFactory::Get()
 			.RegisterClass<New>(NewID);
 		CRE_Class<New>::Get()
@@ -239,6 +239,7 @@ To* DCast(CRE_ManagedObject* Object)
 	{
 		CRE_ClassBase* FromClass = CRE_ObjectFactory::Get().GetClass(Object->GetClass());
 		CRE_ClassBase* ToClass = CRE_ObjectFactory::Get().GetClass(To::StaticClass());
+
 		if (ToClass->IsChildOf(FromClass->GetClassGUID()))
 		{
 			return reinterpret_cast<To*>(Object);
@@ -246,24 +247,6 @@ To* DCast(CRE_ManagedObject* Object)
 	}
 	return nullptr;
 }
-
-//PROBL:EM WITH DYNAMIC CASTS = PLS FIX
-
-
-
-//Dynamic Casts for smart pointers:
-//template<typename To, typename From>
-//static SP<To> DCast(SP<From> Object)
-//{
-//	return SP<To>(DCast<To>(Object.get()));
-//}
-//
-//template<typename To, typename From>
-//static WP<To> DCast(WP<From> Object)
-//{
-//	return WP<To>(DCast<To>(Object.lock()));
-//}
-
 
 //Dynamic casts for smart pointers:
 
@@ -317,10 +300,6 @@ static WP<To> DCast(WP<From>&& Object)
 	return WP<To>();
 }
 
-
-
-#if 1
-
 //Upcasting
 //Use some new fancy C++20 shit to determine upcasting.
 template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
@@ -370,57 +349,3 @@ static WP<To> DCast(WP<From>& Object)
 	}
 	return WP<To>();
 }
-
-//using move
-#else
-
-//Upcasting
-//Use some new fancy C++20 shit to determine upcasting.
-template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
-static SP<To> DCast(SP<From>& Object)
-{
-	return SP<To>(std::move(Object), Object.get());
-}
-
-template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
-static WP<To> DCast(WP<From>& Object)
-{
-	return WP<To>(std::move(Object), Object.lock());
-}
-
-//Same type - no need to do anything.
-template<typename To, typename From> requires (std::is_same_v<To, From>)
-static SP<To> DCast(SP<From>& Object)
-{
-	return Object;
-}
-
-template<typename To, typename From> requires (std::is_same_v<To, From>)
-static WP<To> DCast(WP<From>& Object)
-{
-	return Object;
-}
-
-//Downcasting.
-template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
-static SP<To> DCast(SP<From>& Object)
-{
-	To* Item = DCast<To>(Object.get());
-	if (Item)
-	{
-		return SP<To>(std::move(Object), Item);
-	}
-	return SP<To>();
-}
-
-template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
-static WP<To> DCast(WP<From>& Object)
-{
-	To* Item = DCast<To>(Object.lock());
-	if (Item)
-	{
-		return WP<To>(std::move(Object), Item);
-	}
-	return WP<To>();
-}
-#endif

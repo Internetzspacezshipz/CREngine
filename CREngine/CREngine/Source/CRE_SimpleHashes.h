@@ -71,12 +71,9 @@ namespace detail
     }
 } //namespace detail
 
-//for consteval of string length
-template <std::size_t S>
-consteval std::size_t strlen_consteval(char const (&)[S]) { return S - 1; }
-
 //C++ 20 - Consteval will ALWAYS be done at compile time - uses constexpr functions inside detail to do the actual work.
-consteval uint32_t crc32_CONSTEVAL(const char* str, size_t len)
+template <std::size_t len>
+consteval uint32_t crc32_CONSTEVAL(const char* str)
 {
     return detail::crc32(str, len) ^ 0xFFFFFFFF;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CRE_Types.hpp"
+#include "CRE_SimpleHashes.h"
+#include "CRE_Utilities.hpp"
 
 typedef uint32_t IDNum_t;
 
@@ -9,8 +11,11 @@ class CRE_ObjectIDRegistry
 	friend class CRE_ID;
 	friend class CRE_ObjectFactory;
 
+	//Used for adding inital values to the map when making const IDs.
+	static consteval void AddInitValue();
 
 	static Map<IDNum_t, String>& GetMap();
+
 	static String CreateUniqueString(const String& In);
 };
 
@@ -19,6 +24,7 @@ class CRE_ID
 {
 	IDNum_t Number = 0;
 	bool bHasBeenSet = false;
+
 public:
 	String GetString() const;
 	IDNum_t GetNumber() const { return Number; }
@@ -34,6 +40,21 @@ public:
 
 	CRE_ID(String Name);
 	CRE_ID();
+
+	//Helper for creating CRE_ID at compile time without ever having to do the crc
+	template<StringLiteral LitString>
+	static CRE_ID Constant()
+	{
+		constexpr auto Output = crc32_CONSTEVAL<LitString.Size>(LitString.Value);
+		constexpr auto Str = LitString.Value;
+		//Compiler only makes the ID once.
+		static CRE_ID V = CRE_ID(Output, Str);
+		return V;
+	}
+
+private:
+	//Hidden constructor for statically created IDs using Constant
+	CRE_ID(const IDNum_t& InNum, const String& InString);
 };
 
 //Implement std::hash for the object id so it can be used in maps.
@@ -70,4 +91,3 @@ static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, CRE_ID& 
 		Value = CRE_ID(TargetJson);
 	}
 }
-

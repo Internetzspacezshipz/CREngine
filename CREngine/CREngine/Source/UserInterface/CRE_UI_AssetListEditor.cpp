@@ -3,20 +3,14 @@
 #include "CRE_App.hpp"
 #include "CRE_AssetList.hpp"
 
+//Basic objects we can edit.
 #include "BasicObjects/CRE_Texture.hpp"
 #include "BasicObjects/CRE_Mesh.hpp"
 
+//Matching UI style helpers
+#include "CRE_UIStyles.hpp"
+
 REGISTER_CLASS(CRE_UI_AssetListEditor, CRE_UI_Base);
-
-CRE_UI_AssetListEditor::~CRE_UI_AssetListEditor()
-{
-}
-
-constexpr static ImVec2 DefaultButtonSize{70.f, 20.f};
-constexpr static ImVec2 LargeButtonSize{130.f, 20.f};
-constexpr static ImVec2 LargerButtonSize{180.f, 20.f};
-
-static ImGuiTreeNodeFlags DefaultCollapsingHeaderFlags = ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_OpenOnArrow;
 
 struct CRE_EditorUIManager
 {
@@ -373,12 +367,12 @@ CRE_ClassBase* CRE_UI_AssetListEditor::ShowTable_Classes(CRE_ClassBase* Class)
 
 void CRE_UI_AssetListEditor::DrawUI()
 {
+	CRE_App* App = CRE_Globals::GetAppPointer();
+
 	if (bIsOpen)
 	{
 		CRE_Serialization& Serialization = CRE_Serialization::Get();
-		CRE_App* App = CRE_Globals::GetAppPointer();
 		CRE_ObjectFactory& OF = CRE_ObjectFactory::Get();
-
 
 		SP<CRE_AssetList> PinnedAssetList = DCast<CRE_AssetList>(App->GetRootAssetList());
 
@@ -387,7 +381,28 @@ void CRE_UI_AssetListEditor::DrawUI()
 			return;
 		}
 
-		
+		//Overall menu bar for whole window.
+		//We can add more menu bar stuff from here if we want!
+		/*if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Edit"))
+			{
+				if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+				if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+				ImGui::Separator();
+				if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+				if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+				if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}*/
+
+
 		ImGui::Begin("AssetListEditor", &bIsOpen);
 
 		if (ImGui::Button("Save", DefaultButtonSize))
@@ -403,11 +418,6 @@ void CRE_UI_AssetListEditor::DrawUI()
 			Serialization.Reload(Shared, PinnedAssetList->GetID());
 		}
 
-		ImGui::Checkbox("IMGUI_DEMO", &bOpenDemo);
-		if (bOpenDemo)
-		{
-			ImGui::ShowDemoWindow(&bOpenDemo);
-		}
 
 		CRE_ClassBase* WantsToSpawn = nullptr;
 
@@ -417,12 +427,10 @@ void CRE_UI_AssetListEditor::DrawUI()
 			WantsToSpawn = ShowTable_Classes(Base);
 		}
 
-
 		if (WantsToSpawn)
 		{
 			PinnedAssetList->Objects.emplace_back(OF.Create(WantsToSpawn->GetClassGUID()));
 		}
-
 
 		FilterExisting.Draw("Filter objects by name");
 
@@ -446,19 +454,8 @@ void CRE_UI_AssetListEditor::DrawUI()
 
 		ImGui::End();
 	}
-}
-
-//Add keybind to open menu here.
-void CRE_UI_AssetListEditor::Construct()
-{
-	CRE_KeySystem* KeySystem = CRE_Globals::GetKeySystemPointer();
-
-	OpenKeyBind = KeySystem->BindToKey(SDLK_BACKQUOTE,
-	[this](bool bButtonDown)
+	else
 	{
-		if (bButtonDown)
-		{
-			bIsOpen = !bIsOpen;
-		}
-	});
+		App->RemoveUI(CRE_UI_AssetListEditor::StaticClass());
+	}
 }

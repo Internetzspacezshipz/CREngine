@@ -28,6 +28,9 @@ public:
 	void LoadInitialGameFiles();
 	void SaveGame();
 
+	void AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI);
+	void RemoveUI(CRE_ID Name);
+
 private:
 	void LoadGameObjects();
 
@@ -35,5 +38,5 @@ private:
 	SP<CRE_AssetList> RootObject;
 
 	//All UI objects we want to draw.
-	Array<SP<CRE_UI_Base>> UIObjects;
+	Map<CRE_ID, SP<CRE_UI_Base>> UIObjects;
 };

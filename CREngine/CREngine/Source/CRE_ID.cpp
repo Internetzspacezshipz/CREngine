@@ -1,9 +1,14 @@
 #include "CRE_ID.hpp"
 #include "CRE_SimpleHashes.h"
 
+consteval void CRE_ObjectIDRegistry::AddInitValue()
+{
+
+}
+
 Map<IDNum_t, String>& CRE_ObjectIDRegistry::GetMap()
 {
-	static Map<IDNum_t, String> Map;
+	static Map<IDNum_t, String> Map { };
 	return Map;
 }
 
@@ -58,3 +63,13 @@ CRE_ID::CRE_ID(String Name)
 }
 
 CRE_ID::CRE_ID() : Number(0), bHasBeenSet(false) { }
+
+CRE_ID::CRE_ID(const IDNum_t& InNum, const String& InString) :
+	Number(InNum),
+	bHasBeenSet(true)
+{
+	Map<IDNum_t, String>& Reg = CRE_ObjectIDRegistry::GetMap();
+	//If this is hit, that means somehow this constructor was hit twice for the same key, which should NOT happen.
+	assert(!Reg.contains(Number));
+	Reg.emplace(Number, InString);
+}

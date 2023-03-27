@@ -16,12 +16,13 @@ class CRE_ObjectIDRegistry
 
 	static Map<IDNum_t, String>& GetMap();
 
-	static String CreateUniqueString(const String& In);
+	static CRE_ID CreateUniqueID(const String& In);
 };
 
 //Avoid implicit typecasting in this class.
 class CRE_ID
 {
+	friend CRE_ObjectIDRegistry;
 	IDNum_t Number = 0;
 	bool bHasBeenSet = false;
 

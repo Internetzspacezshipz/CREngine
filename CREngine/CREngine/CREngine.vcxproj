@@ -272,13 +272,16 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\UserInterface\CRE_UI_ClassList.cpp" />
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.cpp" />
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.cpp" />
     <ClCompile Include="Source\UserInterface\CRE_UI_MenuBar.cpp" />
     <ClCompile Include="Source\CRE_ID.cpp" />
     <ClCompile Include="Source\CRE_KeySystem.cpp" />
     <ClCompile Include="Source\CRE_Globals.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp" />
-    <ClCompile Include="Source\UserInterface\CRE_UI_AssetListEditor.cpp" />
-    <ClCompile Include="Source\BasicObjects\CRE_UI_Base.cpp" />
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_AssetListEditor.cpp" />
+    <ClCompile Include="Source\UserInterface\CRE_UI_Base.cpp" />
     <ClCompile Include="Source\BasicObjects\CRE_Mesh.cpp" />
     <ClCompile Include="Source\BasicObjects\CRE_Texture.cpp" />
     <ClCompile Include="Source\CRE_AssetList.cpp" />
@@ -309,9 +312,13 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <CustomBuild Include="Shaders\Simple_VertShader.vert">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="Source\UserInterface\AssetEditors\CRE_FieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\CRE_UIStyles.hpp" />
+    <ClInclude Include="Source\UserInterface\CRE_UI_ClassList.h" />
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.h" />
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.h" />
+    <ClInclude Include="Source\UserInterface\CRE_UIStyles.h" />
     <ClInclude Include="Source\UserInterface\CRE_UI_MenuBar.hpp" />
     <ClInclude Include="Source\CRE_Loadable.hpp" />
     <ClInclude Include="Source\CRE_ID.hpp" />
@@ -320,13 +327,13 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\CRE_Types.hpp" />
     <ClInclude Include="Source\ThirdParty\func\func.hpp" />
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h" />
-    <ClInclude Include="Source\UserInterface\CRE_UI_AssetListEditor.hpp" />
-    <ClInclude Include="Source\BasicObjects\CRE_UI_Base.hpp" />
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_AssetListEditor.h" />
+    <ClInclude Include="Source\UserInterface\CRE_UI_Base.h" />
     <ClInclude Include="Source\BasicObjects\CRE_Mesh.hpp" />
     <ClInclude Include="Source\BasicObjects\CRE_Texture.hpp" />
     <ClInclude Include="Source\CRE_AssetList.hpp" />
     <ClInclude Include="Source\CRE_App.hpp" />
-    <ClInclude Include="Source\CRE_Globals.hpp" />
+    <ClInclude Include="Source\CRE_Globals.h" />
     <ClInclude Include="Source\CRE_ManagedObject.hpp" />
     <ClInclude Include="Source\CRE_Math.hpp" />
     <ClInclude Include="Source\CRE_Paths.hpp" />

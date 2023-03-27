@@ -9,6 +9,7 @@
 class VulkanEngine;
 class CRE_UI_Base;
 
+//Mainly handles user interface and initial game setup.
 class CRE_App
 {
 public:
@@ -21,21 +22,28 @@ public:
 
 	void SetupGlobalVariables(VulkanEngine* InEnginePointer);
 
-	SP<CRE_AssetList> GetRootAssetList() const { return RootObject; };
-
 	void DrawUIObjects();
 
 	void LoadInitialGameFiles();
 	void SaveGame();
 
-	void AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI);
+	//Makes a UI with a default name from a class ID and
+	//passes it back to whoever called this function after adding it to the active UI list under the instance ID.
+	SP<CRE_UI_Base> MakeUI(CRE_ID Class);
+
+	template<typename Type>
+	SP<Type> MakeUI() { return DCast<Type>(MakeUI(Type::StaticClass())); }
+
+	//Removes UI with an ID.
 	void RemoveUI(CRE_ID Name);
+	//Removes UI by the pointer (can do by doing RemoveUI(this)). Really just uses the ID under the hood.
+	void RemoveUI(CRE_UI_Base* ActualUI);
 
 private:
 	void LoadGameObjects();
 
-	//The root game object that loads all other game objects we need.
-	SP<CRE_AssetList> RootObject;
+	//Adds UI with a specified name - recommend using MakeUI instead if you can.
+	void AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI);
 
 	//All UI objects we want to draw.
 	Map<CRE_ID, SP<CRE_UI_Base>> UIObjects;

@@ -17,6 +17,6 @@ class CRE_AssetList : public CRE_ManagedObject
 	bool bSaveWhenSerialized = true;
 	bool bLoadWhenDeserialized = true;
 
-	Array<CRE_LoadableBase> Objects;
+	Array<CRE_Loadable<CRE_ManagedObject>> Objects;
 };
 

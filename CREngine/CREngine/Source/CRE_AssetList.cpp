@@ -1,7 +1,7 @@
 #include "CRE_AssetList.hpp"
 #include <iostream>
 
-REGISTER_CLASS(CRE_AssetList, CRE_ManagedObject);
+REGISTER_CLASS(CRE_AssetList);
 
 CRE_AssetList::~CRE_AssetList()
 {

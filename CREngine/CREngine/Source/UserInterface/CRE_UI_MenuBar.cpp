@@ -1,9 +1,9 @@
 #include "CRE_UI_MenuBar.hpp"
 #include "CRE_App.hpp"
-#include "CRE_Globals.hpp"
-#include "CRE_UI_AssetListEditor.hpp"
+#include "CRE_Globals.h"
+#include "CRE_UI_ClassList.h"
 
-REGISTER_CLASS(CRE_UI_MenuBar, CRE_UI_Base);
+REGISTER_CLASS(CRE_UI_MenuBar);
 
 void CRE_UI_MenuBar::DrawUI()
 {
@@ -16,7 +16,7 @@ void CRE_UI_MenuBar::DrawUI()
 				if (ImGui::MenuItem("Asset Selector Window"))
 				{
 					CRE_App* App = CRE_Globals::GetAppPointer();
-					App->AddUI(CRE_UI_AssetListEditor::StaticClass(), CRE_ObjectFactory::Get().Create<CRE_UI_AssetListEditor>());
+					auto Item = App->MakeUI<CRE_UI_ClassList>();
 				}
 
 				if (ImGui::MenuItem("ImGui demo window"))

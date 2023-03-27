@@ -192,7 +192,6 @@ else if (JsonVariable.contains(""#ArrayName""))										\
 
 //CONST FOLDER LOCATIONS
 //Manifest file locations so we can just load all the data we need immediately.
-const Path ManifestFileName = "_Manifest_";
 const Path ManifestSubFolder = "Manifest";
 
 const String FileExtension = ".json";
@@ -210,6 +209,10 @@ class CRE_Serialization
 	Json LoadFileToJson(Path Path) const;
 	bool SaveJsonToFile(Path Path, const Json& Json) const;
 
+	Map<CRE_ID, WP<CRE_ManagedObject>> NonInstancedObjects;
+
+	Path IDToPath(const CRE_ID& In);
+
 public:
 
 	static CRE_Serialization& Get()
@@ -222,9 +225,8 @@ public:
 	//Deletes a given object serialized file.
 	void Delete(const CRE_ID& ToDelete);
 	bool Exists(const CRE_ID& Item);
+	bool Move(const CRE_ID& From, const CRE_ID& To);
 
 	void Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad);
 	void Save(SP<CRE_ManagedObject> ToSave);
-
-	SP<CRE_AssetList> LoadManifest();
 };

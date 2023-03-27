@@ -22,9 +22,10 @@ NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
 }																																	\
 typedef BASE_CLASS_NAME Super;
 
-//Register class should be done inside the CPP file of each class.
-#define REGISTER_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME)																				\
-static CRE_Registrar<BASE_CLASS_NAME, NEW_CLASS_NAME, ""#NEW_CLASS_NAME"">s_##NEW_CLASS_NAME##Creator{};							\
+
+//Version of RegisterClass that also takes in flags.
+#define REGISTER_CLASS_FLAGS(NEW_CLASS_NAME, FLAGS)																								\
+static CRE_Registrar<NEW_CLASS_NAME::Super, NEW_CLASS_NAME, ""#NEW_CLASS_NAME"">s_##NEW_CLASS_NAME##Creator{FLAGS};					\
 ClassGUID NEW_CLASS_NAME::StaticClass()																								\
 { 																																	\
 	return CRE_ID::Constant<""#NEW_CLASS_NAME"">(); 																				\
@@ -34,13 +35,24 @@ ClassGUID NEW_CLASS_NAME::GetClass() const																							\
 	return NEW_CLASS_NAME::StaticClass(); 																							\
 }
 
-//Virtual base class for all gameplay related classes to inherit from.
+
+//Register class should be done inside the CPP file of each class.
+#define REGISTER_CLASS(NEW_CLASS_NAME) REGISTER_CLASS_FLAGS(NEW_CLASS_NAME, CRE_ClassFlags_None)
+
+
+//Virtual base class for all classes to inherit from.
+//Must be set up by:
+//1. inheriting from an object that inherits from CRE_ManagedObject or is CRE_ManagedObject itself.
+//2. use DEF_CLASS macro in the body of the new class (preferrably at the top).
+//3. use the REGISTER_CLASS macro in the cpp implementation file.
 class CRE_ManagedObject : public CRE_SerializerInterface
 {
 protected:
 	CRE_ID ID;
 
 public:
+	//typedef super as void to make sure it follows the normal pattern for managed objects.
+	typedef void Super;
 
 	//delete copy.
 	CRE_ManagedObject(const CRE_ManagedObject&) = delete;
@@ -69,12 +81,14 @@ public:
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 };
 
-//Got sick of writing the whole thing every time
-
-typedef SP<CRE_ManagedObject> Object_sp;
-typedef WP<CRE_ManagedObject> Object_wp;
-
-typedef CRE_ManagedObject CRE_Obj;
+//Class flags that adjust how this class can be used.
+enum CRE_ClassFlags : uint32_t
+{
+	CRE_ClassFlags_None = 0,
+	CRE_ClassFlags_HAS_BEEN_SET = 1 << 0, //The flags have already been set for this class - do not allow them to be set again or crash.
+	CRE_ClassFlags_Unique = 1 << 1, //When loading this object, we do not want to make more than one instance ever.
+	CRE_ClassFlags_UNUSED = 1 << 2, //NOT USED YET.
+};
 
 //Contains info about what classes are derived, and what the parent class is.
 class CRE_ClassBase
@@ -83,6 +97,7 @@ protected:
 	CRE_ClassBase* Parent = nullptr;
 	Set<CRE_ClassBase*> Children;
 	ClassGUID ThisGUID;
+	CRE_ClassFlags ClassFlags = CRE_ClassFlags_None;
 public:
 	bool IsChildOf(ClassGUID ClassID) const
 	{
@@ -103,6 +118,11 @@ public:
 		return ThisGUID == ClassID;
 	}
 
+	bool HasFlag(CRE_ClassFlags Flag) const
+	{
+		return ClassFlags & Flag;
+	}
+
 	ClassGUID GetClassGUID() const { return ThisGUID; }
 	Set<CRE_ClassBase*> GetChildren() const { return Children; }
 	std::string GetClassFriendlyName() const { return ThisGUID.GetString(); }
@@ -121,29 +141,31 @@ public:
 	static CRE_ObjectFactory& Get();
 
 	template<class T>
-	void RegisterClass(ClassGUID ClassID)
+	void RegisterClass(const ClassGUID& ClassID)
 	{
 		ClassCreators.insert({ ClassID, [](const ObjGUID& Name)->SP<CRE_ManagedObject> { return DCast<CRE_ManagedObject>(std::make_shared<T>(Name)); } });
 		ClassInfos.insert({ ClassID, &CRE_Class<T>::Get() });
 	}
 
-	SP<CRE_ManagedObject> Create(ClassGUID ClassID)
+	SP<CRE_ManagedObject> Create(const ClassGUID& ClassID, CRE_ID Name = CRE_ID())
 	{
 		const auto it = ClassCreators.find(ClassID);
 		if (it == ClassCreators.end())
 		{
 			return nullptr; // not a derived class
 		}
-
-		std::string UniqueString = CRE_ObjectIDRegistry::CreateUniqueString(ClassInfos[it->first]->GetClassFriendlyName());
-		return (it->second)(CRE_ID(UniqueString));
+		if (!Name.IsValidID())
+		{
+			Name = CRE_ObjectIDRegistry::CreateUniqueID(ClassInfos[it->first]->GetClassFriendlyName());
+		}
+		return (it->second)(Name);
 	}
 
 	//Templated create.
 	template<typename Class>
-	SP<Class> Create()
+	SP<Class> Create(CRE_ID Name = CRE_ID())
 	{
-		SP<Class> NewItem = DCast<Class>(Create(Class::StaticClass()));
+		SP<Class> NewItem = DCast<Class>(Create(Class::StaticClass(), Name));
 		assert(NewItem);
 		return NewItem;
 	}
@@ -175,18 +197,26 @@ public:
 		return *this;
 	}
 
-	template<class T>
-	CRE_Class<NativeClass>& RegisterChild()
-	{
-		Children.emplace(&CRE_Class<T>::Get());
-		return *this;
-	}
-
 	CRE_Class<NativeClass>& SetClassID(const CRE_ID& InID)
 	{
 		//ClassName must be 0 when this is called.
 		assert(ThisGUID.IsValidID() == false);
 		ThisGUID = InID;
+		return *this;
+	}
+
+	CRE_Class<NativeClass>& SetClassFlags(const CRE_ClassFlags& InFlags)
+	{
+		//Must not allow setting of class flags more than once.
+		assert(HasFlag(CRE_ClassFlags_HAS_BEEN_SET) == false);
+		ClassFlags = (CRE_ClassFlags)(InFlags | CRE_ClassFlags_HAS_BEEN_SET);
+		return *this;
+	}
+
+	template<class T>
+	CRE_Class<NativeClass>& RegisterChild()
+	{
+		Children.emplace(&CRE_Class<T>::Get());
 		return *this;
 	}
 
@@ -201,7 +231,7 @@ template<class Base, class New, StringLiteral LiteralString>
 class CRE_Registrar
 {
 public:
-	explicit CRE_Registrar()
+	explicit CRE_Registrar(CRE_ClassFlags Flags = CRE_ClassFlags_None)
 	{
 		CRE_ID NewID = CRE_ID::Constant<LiteralString>();
 		CRE_ObjectFactory::Get()
@@ -209,9 +239,11 @@ public:
 		//Must register the new class's parent (Base).
 		CRE_Class<Base>::Get()
 			.RegisterChild<New>();
+		//Set up our new class.
 		CRE_Class<New>::Get()
 			.RegisterParent<Base>()
-			.SetClassID(NewID);
+			.SetClassID(NewID)
+			.SetClassFlags(Flags);
 	}
 };
 
@@ -220,14 +252,14 @@ template<class New, StringLiteral LiteralString>
 class CRE_Registrar<void, New, LiteralString>
 {
 public:
-
-	explicit CRE_Registrar()
+	explicit CRE_Registrar(CRE_ClassFlags Flags = CRE_ClassFlags_None)
 	{
 		CRE_ID NewID = CRE_ID::Constant<LiteralString>();
 		CRE_ObjectFactory::Get()
 			.RegisterClass<New>(NewID);
 		CRE_Class<New>::Get()
-			.SetClassID(NewID);
+			.SetClassID(NewID)
+			.SetClassFlags(Flags);
 	}
 };
 
@@ -240,7 +272,7 @@ To* DCast(CRE_ManagedObject* Object)
 		CRE_ClassBase* FromClass = CRE_ObjectFactory::Get().GetClass(Object->GetClass());
 		CRE_ClassBase* ToClass = CRE_ObjectFactory::Get().GetClass(To::StaticClass());
 
-		if (ToClass->IsChildOf(FromClass->GetClassGUID()))
+		if (FromClass->IsChildOf(ToClass->GetClassGUID()))
 		{
 			return reinterpret_cast<To*>(Object);
 		}

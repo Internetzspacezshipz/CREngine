@@ -8,8 +8,7 @@ class CRE_Texture : public CRE_ManagedObject
 {
 	DEF_CLASS(CRE_Texture, CRE_ManagedObject);
 
-	virtual ~CRE_Texture()
-	{}
+	virtual ~CRE_Texture();
 
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 

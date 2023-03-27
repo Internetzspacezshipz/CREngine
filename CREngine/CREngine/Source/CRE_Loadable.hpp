@@ -7,8 +7,8 @@
 template<typename Type>
 class CRE_Loadable : public CRE_SerializerInterface
 {
-	mutable SP<Type> LoadedObject;
 	mutable CRE_ID Reference;
+	mutable SP<Type> LoadedObject;
 
 	void RefSync() const
 	{
@@ -19,11 +19,33 @@ class CRE_Loadable : public CRE_SerializerInterface
 	}
 
 public:
+
 	void Load() const
 	{
 		//Nothing should be loaded at this point.
 		assert(!LoadedObject && Reference.IsValidID());
 		LoadedObject = DCast<Type>(CRE_Serialization::Get().Load(Reference));
+	}
+
+	//Safer version of above for general use.
+	void SafeLoad() const
+	{
+		//Nothing should be loaded at this point.
+		if (!IsLoaded() && IsLoadable())
+		{
+			Load();
+		}
+	}
+
+	//Loads the item if it is valid, or creates an empty one if no reference.
+	void LoadOrCreate()
+	{
+		SafeLoad();
+		if (!IsLoaded())
+		{
+			LoadedObject = CRE_ObjectFactory::Get().Create<Type>(Reference);
+			Save();
+		}
 	}
 
 	void Reload() const
@@ -88,11 +110,19 @@ public:
 		Reference = InObject->GetID();
 	}
 
+	//Set a new reference
 	void Set(CRE_ID InRef)
 	{
 		//reset loaded object since it will no longer sync up.
 		LoadedObject = nullptr;
 		Reference = InRef;
+	}
+
+	//Change the name of the asset. Remember to resave it!
+	void Rename(CRE_ID InRef)
+	{
+		LoadedObject->Rename(InRef);
+		RefSync();
 	}
 
 
@@ -113,8 +143,6 @@ public:
 
 	Type* operator ->() const { return LoadedObject.get(); }
 };
-
-using CRE_LoadableBase = CRE_Loadable<CRE_ManagedObject>;
 
 //Declare this type has a serializer.
 template<typename Type>

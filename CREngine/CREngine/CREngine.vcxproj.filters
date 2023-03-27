@@ -81,10 +81,10 @@
     <ClCompile Include="Source\ThirdParty\imgui\imgui_tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\BasicObjects\CRE_UI_Base.cpp">
+    <ClCompile Include="Source\UserInterface\CRE_UI_Base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\UserInterface\CRE_UI_AssetListEditor.cpp">
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_AssetListEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp">
@@ -102,10 +102,22 @@
     <ClCompile Include="Source\UserInterface\CRE_UI_MenuBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\CRE_UI_ClassList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\UserInterface\AssetEditors\CRE_FieldEditor.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +169,7 @@
     <ClInclude Include="Source\BasicObjects\CRE_Texture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CRE_Globals.hpp">
+    <ClInclude Include="Source\CRE_Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CRE_Mesh.hpp">
@@ -187,10 +199,10 @@
     <ClInclude Include="Source\ThirdParty\imgui\imgui_impl_sdl2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BasicObjects\CRE_UI_Base.hpp">
+    <ClInclude Include="Source\UserInterface\CRE_UI_Base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\UserInterface\CRE_UI_AssetListEditor.hpp">
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_AssetListEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h">
@@ -217,7 +229,16 @@
     <ClInclude Include="Source\UserInterface\CRE_UI_MenuBar.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CRE_UIStyles.hpp">
+    <ClInclude Include="Source\UserInterface\CRE_UIStyles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\CRE_UI_ClassList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

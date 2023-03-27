@@ -1,7 +1,7 @@
 #include "CRE_App.hpp"
 #include "CRE_Serialization.hpp"
 #include "CRE_AssetList.hpp"
-#include "CRE_Globals.hpp"
+#include "CRE_Globals.h"
 
 
 #include "BasicObjects/CRE_Renderable.hpp"
@@ -47,10 +47,14 @@ void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 
 void CRE_App::DrawUIObjects()
 {
+    uint32_t Index = 0;
     //Loop through a copy of the array, since some might ask for deletion
     for (auto Element : UIObjects)
     {
+        Index++;
+        ImGui::PushID(Index);
         Element.second->DrawUI();
+        ImGui::PopID();
     }
 
     //Remove all null items that might have been deleted during the loop.
@@ -59,34 +63,27 @@ void CRE_App::DrawUIObjects()
 
 void CRE_App::LoadInitialGameFiles()
 {
-    //Load main files;
-    CRE_Serialization& Serializer = CRE_Serialization::Get();
-
-    //Load the root object and initialize a new asset list object with it to load all other relevant data.
-    RootObject = Serializer.LoadManifest();
-
     //Add default menu bar
-    AddUI(CRE_ID::Constant<"MenuBar">(), CRE_ObjectFactory::Get().Create<CRE_UI_MenuBar>());
+    MakeUI(CRE_UI_MenuBar::StaticClass());
 }
 
 void CRE_App::SaveGame()
 {
-    //for now don't save anything - it will be controlled through the UI.
-    CRE_Serialization& Serializer = CRE_Serialization::Get();
-
-    //Save root object. Maybe we can make a save game object later on as well as other types of similar uses (settings object, etc).
-    Serializer.Save(RootObject);
-
-    //Make sure to delete the root object. - maybe later we can wrap this in an SPtr
-    RootObject.reset();
+    //TODO: Add save file somewhere.
 }
 
-void CRE_App::AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI)
+SP<CRE_UI_Base> CRE_App::MakeUI(CRE_ID Class)
 {
-    if (!UIObjects.contains(Name))
+    if (Class.IsValidID())
     {
-        UIObjects.emplace(Name, NewUI);
+        CRE_ObjectFactory& ObjectFactory = CRE_ObjectFactory::Get();
+        if (SP<CRE_UI_Base> NewUI = DCast<CRE_UI_Base>(ObjectFactory.Create(Class)))
+        {
+            AddUI(NewUI->GetID(), NewUI);
+            return NewUI;
+        }
     }
+    return SP<CRE_UI_Base>(nullptr);
 }
 
 void CRE_App::RemoveUI(CRE_ID Name)
@@ -97,6 +94,11 @@ void CRE_App::RemoveUI(CRE_ID Name)
         //Remove by reseting - we want to keep the entry in the array until we're done looping the array.
         Found->second.reset();
     }
+}
+
+void CRE_App::RemoveUI(CRE_UI_Base* ActualUI)
+{
+    RemoveUI(ActualUI->GetID());
 }
 
 void CRE_App::LoadGameObjects()
@@ -146,5 +148,13 @@ void CRE_App::LoadGameObjects()
         //BoxGameObject->MeshObject = BoxPtr;
 
         //GameObjects.push_back(BoxGameObject);
+    }
+}
+
+void CRE_App::AddUI(CRE_ID Name, SP<CRE_UI_Base> NewUI)
+{
+    if (!UIObjects.contains(Name))
+    {
+        UIObjects.emplace(Name, NewUI);
     }
 }

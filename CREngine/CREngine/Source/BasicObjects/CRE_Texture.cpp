@@ -1,8 +1,13 @@
 #include "CRE_Texture.hpp"
 #include "vk_engine.h"
-#include "CRE_Globals.hpp"
+#include "CRE_Globals.h"
 
-REGISTER_CLASS(CRE_Texture, CRE_ManagedObject);
+REGISTER_CLASS_FLAGS(CRE_Texture, CRE_ClassFlags_Unique);
+
+CRE_Texture::~CRE_Texture()
+{
+
+}
 
 void CRE_Texture::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {

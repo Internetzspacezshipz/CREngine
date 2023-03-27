@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-REGISTER_CLASS(CRE_ManagedObject, void);
+REGISTER_CLASS(CRE_ManagedObject);
 
 CRE_ObjectFactory& CRE_ObjectFactory::Get()
 {
@@ -17,7 +17,10 @@ CRE_ClassBase* CRE_ManagedObject::GetClassObj() const
 
 void CRE_ManagedObject::Rename(const ObjGUID& In)
 {
-	ID = In;
+	if (In.IsValidID())
+	{
+		ID = In;
+	}
 }
 
 void CRE_ManagedObject::Serialize(bool bSerializing, nlohmann::json& TargetJson)

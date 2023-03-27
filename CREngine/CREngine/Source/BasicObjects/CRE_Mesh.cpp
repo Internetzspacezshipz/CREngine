@@ -1,8 +1,8 @@
 #include "CRE_Mesh.hpp"
 #include "vk_engine.h"
-#include "CRE_Globals.hpp"
+#include "CRE_Globals.h"
 
-REGISTER_CLASS(CRE_Mesh, CRE_ManagedObject);
+REGISTER_CLASS(CRE_Mesh);
 
 void CRE_Mesh::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {

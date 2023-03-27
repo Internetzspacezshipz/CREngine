@@ -1,8 +1,8 @@
 #include "CRE_Renderable.hpp"
-#include "CRE_Globals.hpp"
+#include "CRE_Globals.h"
 #include "vk_Engine.h"
 
-REGISTER_CLASS(CRE_Renderable, CRE_ManagedObject);
+REGISTER_CLASS(CRE_Renderable);
 
 void CRE_Renderable::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {

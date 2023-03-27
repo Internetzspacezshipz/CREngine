@@ -12,16 +12,24 @@ Map<IDNum_t, String>& CRE_ObjectIDRegistry::GetMap()
 	return Map;
 }
 
-String CRE_ObjectIDRegistry::CreateUniqueString(const String& In)
+CRE_ID CRE_ObjectIDRegistry::CreateUniqueID(const String& In)
 {
 	Map<IDNum_t, String>& Map = GetMap();
 	int Index = 0;
 	String UniqueString = In;
+	IDNum_t UniqueValue = 0;
 	do
 	{
 		UniqueString = In + std::format("_{}", Index++);
-	} while (Map.find(crc32(UniqueString)) != Map.end());
-	return UniqueString;
+		UniqueValue = crc32(UniqueString);
+	} while (Map.find(UniqueValue) != Map.end());
+
+	Map.emplace(UniqueValue, UniqueString);
+
+	CRE_ID Out;
+	Out.bHasBeenSet = true;
+	Out.Number = UniqueValue;
+	return Out;
 }
 
 String CRE_ID::GetString() const

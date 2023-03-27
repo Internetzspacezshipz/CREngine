@@ -39,6 +39,18 @@ bool CRE_Serialization::SaveJsonToFile(Path InPath, const Json& InJson) const
 	return !File.fail();
 }
 
+Path CRE_Serialization::IDToPath(const CRE_ID& In)
+{
+	if (!In.IsValidID())
+	{
+		return Path();
+	}
+	Path InPath = In.GetString();
+	InPath += FileExtension;
+	InPath = ManifestSubFolder / InPath;
+	return InPath;
+}
+
 CRE_Serialization::CRE_Serialization() :
 	ManifestFolderPath(std::filesystem::current_path() / ManifestSubFolder)
 {
@@ -54,34 +66,74 @@ SP<CRE_ManagedObject> CRE_Serialization::Load(const CRE_ID& ToLoad)
 
 void CRE_Serialization::Delete(const CRE_ID& ToDelete)
 {
-	Path InPath = ToDelete.GetString();
-	InPath += FileExtension;
-	InPath = ManifestSubFolder / InPath;
-	std::filesystem::remove(InPath);
+	Path Target = IDToPath(ToDelete);
+	std::filesystem::remove(Target);
 }
 
 bool CRE_Serialization::Exists(const CRE_ID& Item)
 {
-	Path InPath = Item.GetString();
-	InPath += FileExtension;
-	InPath = ManifestSubFolder / InPath;
-	return std::filesystem::exists(InPath);
+	Path Target = IDToPath(Item);
+	return std::filesystem::exists(Target);
+}
+
+bool CRE_Serialization::Move(const CRE_ID& From, const CRE_ID& To)
+{
+	if (Exists(To))
+	{
+		return false;
+	}
+	if (Exists(From))
+	{
+		Path FromP = IDToPath(From);
+		Path ToP = IDToPath(To);
+		std::filesystem::rename(FromP, ToP);
+	}
+	return false;
 }
 
 void CRE_Serialization::Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad)
 {
+	//If we're looking for something that can never be instanced, find it here instead of loading/creating it
+	auto Found = NonInstancedObjects.find(ToLoad);
+	if (Found != NonInstancedObjects.end())
+	{
+		if (!Found->second.expired())
+		{
+			Target = Found->second.lock();
+			return;
+		}
+		else
+		{
+			//If there is an expired WP to the non-instanced object, remove it and reload it in the normal manner.
+			NonInstancedObjects.erase(ToLoad);
+		}
+	}
+
 	Json LoadedJson = LoadFileToJson(ToLoad.GetString());
+
 	if (LoadedJson.size() == 0)
 	{
 		return;
 	}
+
 	if (!Target)
 	{
 		CRE_ID ClassID = LoadedJson[CLASS_JSON_VALUE];
 		if (ClassID.IsValidID())
 		{
-			auto Object = CRE_ObjectFactory::Get().Create(ClassID);
-			Target.swap(Object);
+			CRE_ObjectFactory& Factory = CRE_ObjectFactory::Get();
+			//Find our actual class object ot check its class flags to see if we should add it to the non-instanced map.
+			if (CRE_ClassBase* Class = Factory.GetClass(ClassID))
+			{
+				auto Object = Factory.Create(ClassID, ToLoad);
+
+				if (Class->HasFlag(CRE_ClassFlags_Unique))
+				{
+					NonInstancedObjects.emplace(ToLoad, Object);
+				}
+
+				Target.swap(Object);
+			}
 		}
 	}
 
@@ -102,18 +154,4 @@ void CRE_Serialization::Save(SP<CRE_ManagedObject> ToSave)
 	ToSave->Serialize(true, OutputJson);
 
 	SaveJsonToFile(ToSave->GetID().GetString(), OutputJson);
-}
-
-SP<CRE_AssetList> CRE_Serialization::LoadManifest()
-{
-	SP<CRE_AssetList> Loaded = DCast<CRE_AssetList>(Load(CRE_ID(ManifestFileName.string())));
-
-	if (Loaded)
-	{
-		return Loaded;
-	}
-
-	
-	//return empty asset list if no manifest.
-	return CRE_ObjectFactory::Get().Create<CRE_AssetList>();
 }

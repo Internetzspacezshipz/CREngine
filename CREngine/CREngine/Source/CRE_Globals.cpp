@@ -1,4 +1,4 @@
-#include "CRE_Globals.hpp"
+#include "CRE_Globals.h"
 //forward declares to make sure they're not declared as a part of CRE_Globals.
 
 VulkanEngine*& CRE_Globals::GetEnginePointer()

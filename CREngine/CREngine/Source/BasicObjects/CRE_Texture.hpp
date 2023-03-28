@@ -12,7 +12,12 @@ class CRE_Texture : public CRE_ManagedObject
 
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 
+	bool LoadTexture();
 	Texture* GetTextureActual();
+
+	//Editor funcs
+	virtual void OnRename() override;
+	// end editor funcs
 
 	std::filesystem::path File;
 	AssetHandle Handle;

@@ -17,9 +17,10 @@ CRE_ClassBase* CRE_ManagedObject::GetClassObj() const
 
 void CRE_ManagedObject::Rename(const ObjGUID& In)
 {
-	if (In.IsValidID())
+	if (In.IsValidID() && In != ID)
 	{
 		ID = In;
+		OnRename();
 	}
 }
 

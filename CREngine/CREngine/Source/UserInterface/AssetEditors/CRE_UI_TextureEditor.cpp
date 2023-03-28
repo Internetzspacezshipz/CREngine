@@ -6,17 +6,17 @@
 //Styles
 #include "UserInterface/CRE_UIStyles.h"
 
+#include "CRE_EditorUIManager.h"
+
 REGISTER_CLASS(CRE_UI_TextureEditor);
 
 ADD_UI_EDITOR(CRE_Texture, CRE_UI_TextureEditor);
 
 void CRE_UI_TextureEditor::DrawUI()
 {
-	bool bOpen = true;
-	
-	ImGui::Begin(GetID().GetString().c_str(), &bOpen);
-
 	Super::DrawUI();
+	
+	ImGui::Begin(WindowTitle.c_str(), &bOpen, GetWindowFlags());
 
 	auto Casted = GetEditedAsset<CRE_Texture>();
 	
@@ -34,12 +34,13 @@ void CRE_UI_TextureEditor::DrawUI()
 	if (ImGui::InputText("Path", &Str))
 	{
 		Casted->File = Str;
+		Casted->Handle = 0;
 		MarkAssetNeedsSave();
 	}
 
 	if (Texture* Tex = Casted->GetTextureActual())
 	{
-		if (ImGui::CollapsingHeader("ShowImage", DefaultCollapsingHeaderFlags))
+		if (ImGui::CollapsingHeader("Show Image", DefaultCollapsingHeaderFlags))
 		{
 			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 1.f);//added 1 here to make sure it can never div/zero
 
@@ -60,11 +61,25 @@ void CRE_UI_TextureEditor::DrawUI()
 			ImGui::Image(Tex->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
 		}
 	}
+	else
+	{
+		if (ImGui::Button("Load"))
+		{
+			if (!Casted->LoadTexture())
+			{
+				ImGui::OpenPopup("Failed to load texture");
+			}
+		}
+	}
+
+	if (ImGui::BeginPopupModal("Failed to load texture"))
+	{
+		if (ImGui::Button("Okay..."))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}			
 
 	ImGui::End();
-
-	if (!bOpen)
-	{
-		RemoveUIWithPrompt();
-	}
 }

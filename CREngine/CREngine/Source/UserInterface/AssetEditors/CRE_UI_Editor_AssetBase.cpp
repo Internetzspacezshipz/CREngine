@@ -16,50 +16,53 @@ REGISTER_CLASS(CRE_UI_Editor_AssetBase);
 
 void CRE_UI_Editor_AssetBase::Construct()
 {
+	Super::Construct();
 	CRE_KeySystem* KeySys = CRE_Globals::GetKeySystemPointer();
 	KeySys->BindToKeys({SDLK_LCTRL, SDLK_s},
 		[this](bool bPressed)
 		{
 			if (bPressed)
 			{
-				SaveAsset();
+				SaveAssetWithPrompts();
 			}
 		});
-
-	ActiveEditFilename = CurrentEditedAsset.GetID().GetString();
 }
 
 void CRE_UI_Editor_AssetBase::DrawUI()
 {
-	CRE_Serialization& Serial = CRE_Serialization::Get();
+	ImGui::Begin(WindowTitle.c_str(), &bOpen, GetWindowFlags());
+	ImGui::SetWindowSize(DefaultEditorWindowSize, ImGuiCond_Once);
+	ImGui::SetWindowPos({ 200.f, 50.f }, ImGuiCond_Once);
 
-	CRE_ID EditedID = CurrentEditedAsset.GetID();
-
-	//Moves things
-	String CurRefString = EditedID.GetString();
+	if (ActiveEditFilename.size() == 0)
+	{
+		ActiveEditFilename = CurrentEditedAsset.GetID().GetString();
+	}
 
 	//Edit filename. Popup opens in PopupUI() func
-	if (ImGui::InputText("Filename", &ActiveEditFilename, ImGuiInputTextFlags_EnterReturnsTrue))
+	if (ImGui::Button("Save Asset"))
 	{
-		if (Serial.Exists(ActiveEditFilename))
-		{
-			ImGui::OpenPopup("Overwrite?");
-		}
-		else
-		{
-			Serial.Move(EditedID, ActiveEditFilename);
-			CurrentEditedAsset.Rename(ActiveEditFilename);
-			CurrentEditedAsset.Save();
-		}
+		SaveAssetWithPrompts();
+	}
+
+	ImGui::SameLine();
+
+	ImGui::InputText("Filename", &ActiveEditFilename);
+
+	if (ActiveEditFilename != CurrentEditedAsset.GetID().GetString())
+	{
+		MarkAssetNeedsSave();
+	}
+
+	if (!bOpen)
+	{
+		bOpen = true;
+		RemoveUIWithPrompt();
 	}
 
 	PopupUI();
 
-	//Only use EditField for things we don't really care about changing that much
-	//if (EditField(CurrentEditedAsset) == CRE_FieldEditorReturn_WasEdited)
-	//{
-	//	MarkAssetNeedsSave();
-	//}
+	ImGui::End();
 }
 
 void CRE_UI_Editor_AssetBase::RemoveUI(bool bPromptAllowed)
@@ -72,10 +75,27 @@ void CRE_UI_Editor_AssetBase::RemoveUI(bool bPromptAllowed)
 	Super::RemoveUI();
 }
 
-void CRE_UI_Editor_AssetBase::SaveAsset()
+void CRE_UI_Editor_AssetBase::SaveAssetWithPrompts()
 {
-	CurrentEditedAsset.Save();
-	bWantsSave = false;
+	CRE_Serialization& Serial = CRE_Serialization::Get();
+
+	if (Serial.Exists(ActiveEditFilename))
+	{
+		ImGui::OpenPopup("Overwrite?");
+	}
+	else
+	{
+		Serial.Move(CurrentEditedAsset.GetID(), ActiveEditFilename);
+		CurrentEditedAsset.Rename(ActiveEditFilename);
+		//Resaves the asset if needed.
+		CurrentEditedAsset.Save();
+		bWantsSave = false;
+	}
+}
+
+ImGuiWindowFlags CRE_UI_Editor_AssetBase::GetWindowFlags()
+{
+	return bWantsSave ? ImGuiWindowFlags_UnsavedDocument : 0;
 }
 
 void CRE_UI_Editor_AssetBase::SetEditedAsset(CRE_Loadable<CRE_ManagedObject> NewAsset)
@@ -84,6 +104,7 @@ void CRE_UI_Editor_AssetBase::SetEditedAsset(CRE_Loadable<CRE_ManagedObject> New
 	CurrentEditedAsset = NewAsset;
 }
 
+//TODO - move this to be after all other UI code.
 void CRE_UI_Editor_AssetBase::PopupUI()
 {
 	CRE_Serialization& Serial = CRE_Serialization::Get();
@@ -93,8 +114,7 @@ void CRE_UI_Editor_AssetBase::PopupUI()
 		//Save first, then unload.
 		if (ImGui::Button("Save"))
 		{
-			SaveAsset();
-			RemoveUI();
+			SaveAssetWithPrompts();
 			//Save first and then unload.
 			ImGui::CloseCurrentPopup();
 		}
@@ -128,6 +148,7 @@ void CRE_UI_Editor_AssetBase::PopupUI()
 			Serial.Move(CurrentEditedAsset.GetID().GetString(), ActiveEditFilename);
 			CurrentEditedAsset.Rename(ActiveEditFilename);
 			CurrentEditedAsset.Save();
+			bWantsSave = false;
 
 			//Save first and then unload.
 			ImGui::CloseCurrentPopup();
@@ -144,45 +165,5 @@ void CRE_UI_Editor_AssetBase::PopupUI()
 
 		ImGui::EndPopup();
 	}
-
 }
 
-CRE_EditorUIManager& CRE_EditorUIManager::Get()
-{
-	static CRE_EditorUIManager Manager;
-	return Manager;
-}
-
-bool CRE_EditorUIManager::MakeEditUI(CRE_Loadable<CRE_ManagedObject> Object)
-{
-	if (Object.IsLoadedOrLoadable())
-	{
-		ClassGUID EditUIClass = FindUIClass(Object.Get<true>()->GetClass());
-		if (EditUIClass.IsValidID())
-		{
-			auto NewUI = DCast<CRE_UI_Editor_AssetBase>(CRE_Globals::GetAppPointer()->MakeUI(EditUIClass));
-
-			assert(NewUI);
-
-			//Add the edited object to the UI.
-			NewUI->SetEditedAsset(Object);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool CRE_EditorUIManager::HasEditUI(ClassGUID Class)
-{
-	return FindUIClass(Class).IsValidID();
-}
-
-ClassGUID CRE_EditorUIManager::FindUIClass(ClassGUID Class)
-{
-	auto Found = AssetToUIClass.find(Class);
-	if (Found == AssetToUIClass.end())
-	{
-		return ClassGUID();
-	}
-	return Found->second;
-}

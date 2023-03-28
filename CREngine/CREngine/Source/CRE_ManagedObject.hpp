@@ -73,6 +73,7 @@ public:
 	ObjGUID GetID() const { return ID; }
 
 	void Rename(const ObjGUID& In);
+	virtual void OnRename() {};
 
 	//The "Constructor", which we call in the actual constructor.
 	virtual void Construct() {};

@@ -5,8 +5,36 @@
 #include "CRE_App.hpp"
 
 #include "AssetEditors/CRE_UI_Editor_AssetBase.h"
+#include "AssetEditors/CRE_EditorUIManager.h"
 
 REGISTER_CLASS(CRE_UI_ClassList);
+
+void CRE_UI_ClassList::DrawUI()
+{
+	ImGui::Begin(WindowTitle.c_str(), &bOpen);
+	CRE_ObjectFactory& OF = CRE_ObjectFactory::Get();
+
+	CRE_ClassBase* WantsToSpawn = nullptr;
+
+	CRE_ClassBase* Base = OF.GetClass(CRE_ManagedObject::StaticClass());
+	WantsToSpawn = ShowTable_Classes(Base);
+
+	if (WantsToSpawn)
+	{
+		CRE_EditorUIManager& UIMan = CRE_EditorUIManager::Get();
+		auto NewInstanceClass = WantsToSpawn->GetClassGUID();
+		auto Out = OF.Create(NewInstanceClass);
+		UIMan.MakeEditUI(Out);
+	}
+
+	if (!bOpen)
+	{
+		RemoveUIWithPrompt();
+	}
+
+	ImGui::End();
+}
+
 
 void RecurseClass(CRE_ClassBase* Class)
 {
@@ -28,11 +56,6 @@ void RecurseClass(CRE_ClassBase* Class)
 	ImGui::PopID();
 }
 
-//Do copy to clipboard - maybe this could be another button.
-//ImGui::LogToClipboard();
-//ImGui::LogText(GUIDStr.c_str());
-//ImGui::LogFinish();
-
 void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 {
 	ImGui::PushID(Class);
@@ -41,15 +64,19 @@ void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 
+	ImGui::Text(Class->GetClassFriendlyName().c_str());
+
+	ImGui::TableNextColumn();
+
+	CRE_Styles::ButtonStyleStart();
+
 	//Clicking the class name spawns the object.
-	if (ImGui::Button(Class->GetClassFriendlyName().c_str(), { 150.f, ImGui::GetTextLineHeightWithSpacing() }))
+	if (ImGui::Button(Class->GetClassFriendlyName().c_str()))
 	{
 		WantsToSpawn = Class;
 	}
 
-	ImGui::TableNextColumn();
-
-	ImGui::Text(Class->GetClassFriendlyName().c_str());
+	CRE_Styles::ButtonStyleEnd();
 
 	ImGui::Indent(20.f);
 
@@ -63,58 +90,26 @@ void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 	ImGui::PopID();
 }
 
-void CRE_UI_ClassList::DrawUI()
-{
-	bool bStayOpen = true;
-
-	ImGui::Begin("Class List", &bStayOpen);
-
-	CRE_ObjectFactory& OF = CRE_ObjectFactory::Get();
-
-	CRE_ClassBase* WantsToSpawn = nullptr;
-
-	CRE_ClassBase* Base = OF.GetClass(CRE_ManagedObject::StaticClass());
-	WantsToSpawn = ShowTable_Classes(Base);
-
-	if (WantsToSpawn)
-	{
-		CRE_EditorUIManager& UIMan = CRE_EditorUIManager::Get();
-		auto NewInstanceClass = WantsToSpawn->GetClassGUID();
-		if (UIMan.HasEditUI(NewInstanceClass))
-		{
-			auto Out = OF.Create(NewInstanceClass);
-			UIMan.MakeEditUI(Out);
-		}
-	}
-
-	ImGui::End();
-
-	if (!bStayOpen)
-	{
-		CRE_Globals::GetAppPointer()->RemoveUI(this);
-	}
-}
-
 CRE_ClassBase* CRE_UI_ClassList::ShowTable_Classes(CRE_ClassBase* Class)
 {
-	const int column_count = 2;
-	const char* column_names[column_count] = { "Class ID", "Class Name" };
-	static ImGuiTableColumnFlags column_flags[column_count] = { ImGuiTableColumnFlags_DefaultSort, ImGuiTableColumnFlags_None };
+	const int ColumnCount = 2;
+	const char* ColumnNames[ColumnCount] = { "Class Name", "Create" };
+	static ImGuiTableColumnFlags ColumnFlags[ColumnCount] = { ImGuiTableColumnFlags_DefaultSort, ImGuiTableColumnFlags_None };
 
-	const ImGuiTableFlags flags
+	const ImGuiTableFlags TableFlags
 		= ImGuiTableFlags_ScrollY
 		| ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
 		| ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable | ImGuiTableFlags_ContextMenuInBody;
 
-	ImVec2 outer_size = ImVec2(0.0f, 0.f/*ImGui::GetTextLineHeightWithSpacing() * 30*/);
+	ImVec2 TableSize = ImVec2(0.0f, 0.f/*ImGui::GetTextLineHeightWithSpacing() * 30*/);
 
 	CRE_ClassBase* WantsToSpawn = nullptr;
 
-	if (ImGui::BeginTable("table_columns_flags", column_count, flags, outer_size))
+	if (ImGui::BeginTable("table_columns_flags", ColumnCount, TableFlags, TableSize))
 	{
-		for (int column = 0; column < column_count; column++)
+		for (int Column = 0; Column < ColumnCount; Column++)
 		{
-			ImGui::TableSetupColumn(column_names[column], column_flags[column]);
+			ImGui::TableSetupColumn(ColumnNames[Column], ColumnFlags[Column]);
 		}
 		ImGui::TableHeadersRow();
 

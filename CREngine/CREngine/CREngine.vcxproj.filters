@@ -111,6 +111,12 @@
     <ClCompile Include="Source\UserInterface\CRE_UI_ClassList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_EditorUIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\CRE_UI_AssetList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -239,6 +245,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\UserInterface\CRE_UI_ClassList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_EditorUIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\CRE_UI_AssetList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

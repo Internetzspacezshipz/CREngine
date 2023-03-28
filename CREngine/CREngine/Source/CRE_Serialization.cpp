@@ -155,3 +155,8 @@ void CRE_Serialization::Save(SP<CRE_ManagedObject> ToSave)
 
 	SaveJsonToFile(ToSave->GetID().GetString(), OutputJson);
 }
+
+Path CRE_Serialization::GetBaseAssetPath()
+{
+	return std::filesystem::current_path() / ManifestSubFolder;
+}

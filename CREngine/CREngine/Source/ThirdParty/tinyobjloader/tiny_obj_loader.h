@@ -503,7 +503,7 @@ class ObjReader {
   ~ObjReader() {}
 
   ///
-  /// Load .obj and .mtl from a file.
+  /// LoadTexture .obj and .mtl from a file.
   ///
   /// @param[in] filename wavefront .obj filename
   /// @param[in] config Reader configuration

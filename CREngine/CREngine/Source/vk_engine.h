@@ -262,6 +262,15 @@ public:
 	std::unordered_map<AssetHandle, Mesh>			_meshes;
 	std::unordered_map<AssetHandle, Texture>		_loadedTextures;
 
+
+	//This class should not own textures, meshes, or materials itself.
+	//TODO: Finish this implementation.
+	//Set<WP<class CRE_Texture>> Textures;
+	//Set<WP<class CRE_Mesh>> Meshes;
+	//Set<WP<class CRE_Material>> Materials;
+	//Set<WP<class CRE_Drawable>> Materials;
+
+
 	//annoying thing.
 	DeletionQueue _mainDeletionQueue;
 

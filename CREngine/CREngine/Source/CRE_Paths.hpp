@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-//TODO: Load from JSON.
+//TODO: LoadTexture from JSON.
 static std::filesystem::path ShaderPath { "Shaders/Compiled" };
 static std::filesystem::path AssetPath { "Assets" };
 

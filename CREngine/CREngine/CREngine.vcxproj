@@ -272,6 +272,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\UserInterface\CRE_UI_AssetList.cpp" />
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_EditorUIManager.cpp" />
     <ClCompile Include="Source\UserInterface\CRE_UI_ClassList.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.cpp" />
@@ -315,6 +317,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CRE_FieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\UserInterface\CRE_UI_AssetList.h" />
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_EditorUIManager.h" />
     <ClInclude Include="Source\UserInterface\CRE_UI_ClassList.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_TextureEditor.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_Editor_AssetBase.h" />

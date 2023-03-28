@@ -47,14 +47,9 @@ void CRE_App::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 
 void CRE_App::DrawUIObjects()
 {
-    uint32_t Index = 0;
-    //Loop through a copy of the array, since some might ask for deletion
     for (auto Element : UIObjects)
     {
-        Index++;
-        ImGui::PushID(Index);
         Element.second->DrawUI();
-        ImGui::PopID();
     }
 
     //Remove all null items that might have been deleted during the loop.

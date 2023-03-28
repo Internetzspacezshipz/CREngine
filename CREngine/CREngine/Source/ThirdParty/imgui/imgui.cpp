@@ -246,7 +246,7 @@ CODE
      ImGuiIO& io = ImGui::GetIO();
      // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
      // TODO: Fill optional fields of the io structure later.
-     // TODO: Load TTF/OTF fonts if you don't want to use the default font.
+     // TODO: LoadTexture TTF/OTF fonts if you don't want to use the default font.
 
      // Initialize helper Platform and Renderer backends (here we are using imgui_impl_win32.cpp and imgui_impl_dx11.cpp)
      ImGui_ImplWin32_Init(hwnd);
@@ -281,7 +281,7 @@ CODE
      ImGuiIO& io = ImGui::GetIO();
      // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
      // TODO: Fill optional fields of the io structure later.
-     // TODO: Load TTF/OTF fonts if you don't want to use the default font.
+     // TODO: LoadTexture TTF/OTF fonts if you don't want to use the default font.
 
      // Build and load the texture atlas into a texture
      // (In the examples/ app this is usually done within the ImGui_ImplXXX_Init() function from one of the demo Renderer)
@@ -1966,7 +1966,7 @@ ImU64   ImFileRead(void* data, ImU64 sz, ImU64 count, ImFileHandle f)           
 ImU64   ImFileWrite(const void* data, ImU64 sz, ImU64 count, ImFileHandle f)    { return fwrite(data, (size_t)sz, (size_t)count, f); }
 #endif // #ifndef IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS
 
-// Helper: Load file content into memory
+// Helper: LoadTexture file content into memory
 // Memory allocated with IM_ALLOC(), must be freed by user using IM_FREE() == ImGui::MemFree()
 // This can't really be used with "rt" because fseek size won't match read size.
 void*   ImFileLoadToMemory(const char* filename, const char* mode, size_t* out_file_size, int padding_bytes)
@@ -4387,7 +4387,7 @@ void ImGui::NewFrame()
     // Check and assert for various common IO and Configuration mistakes
     ErrorCheckNewFrameSanityChecks();
 
-    // Load settings on first frame, save settings when modified (after a delay)
+    // LoadTexture settings on first frame, save settings when modified (after a delay)
     UpdateSettings();
 
     g.Time += g.IO.DeltaTime;
@@ -12579,7 +12579,7 @@ void ImGui::LogButtons()
 // Called by NewFrame()
 void ImGui::UpdateSettings()
 {
-    // Load settings on first frame (if not explicitly loaded manually before)
+    // LoadTexture settings on first frame (if not explicitly loaded manually before)
     ImGuiContext& g = *GImGui;
     if (!g.SettingsLoaded)
     {

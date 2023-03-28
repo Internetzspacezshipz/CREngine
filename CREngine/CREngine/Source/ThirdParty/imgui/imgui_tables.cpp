@@ -547,7 +547,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     if (old_columns_raw_data)
         IM_FREE(old_columns_raw_data);
 
-    // Load settings
+    // LoadTexture settings
     if (table->IsSettingsRequestLoad)
         TableLoadSettings(table);
 
@@ -3195,7 +3195,7 @@ void ImGui::TableDrawContextMenu(ImGuiTable* table)
 // - TableSettingsHandler_WriteAll() [Internal]
 // - TableSettingsInstallHandler() [Internal]
 //-------------------------------------------------------------------------
-// [Init] 1: TableSettingsHandler_ReadXXXX()   Load and parse .ini file into TableSettings.
+// [Init] 1: TableSettingsHandler_ReadXXXX()   LoadTexture and parse .ini file into TableSettings.
 // [Main] 2: TableLoadSettings()               When table is created, bind Table to TableSettings, serialize TableSettings data into Table.
 // [Main] 3: TableSaveSettings()               When table properties are modified, serialize Table data into bound or new TableSettings, mark .ini as dirty.
 // [Main] 4: TableSettingsHandler_WriteAll()   When .ini file is dirty (which can come from other source), save TableSettings into .ini file.

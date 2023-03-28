@@ -8,6 +8,7 @@ class CRE_UI_MenuBar : public CRE_UI_Base
 	DEF_CLASS(CRE_UI_MenuBar, CRE_UI_Base);
 
 	virtual void DrawUI() override;
+
 	virtual void Construct() override;
 
 	bool bIsOpen = false;

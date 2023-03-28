@@ -10,6 +10,8 @@
 //Matching UI style helpers
 #include "UserInterface/CRE_UIStyles.h"
 
+#include "CRE_EditorUIManager.h"
+
 REGISTER_CLASS(CRE_UI_AssetListEditor);
 
 ADD_UI_EDITOR(CRE_AssetList, CRE_UI_AssetListEditor);
@@ -41,26 +43,23 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 		CRE_EditorUIManager& EditUIMan = CRE_EditorUIManager::Get();
 
-		if (EditUIMan.HasEditUI(Object->GetClass()))
+		if (ImGui::Button("Open Editor"))
 		{
-			if (ImGui::Button("Open Editor", DefaultButtonSize))
-			{
-				EditUIMan.MakeEditUI(Object);
-			}
+			EditUIMan.MakeEditUI(Object);
 		}
 	}
 
 	if (Object.IsLoadable() && !Object.IsLoaded())
 	{
 		ImGui::Text("Object Name: %s", ID.GetString().c_str());
-		if (ImGui::Button("Load object", LargeButtonSize))
+		if (ImGui::Button("Load object"))
 		{
 			Object.Load();
 		}
 	}
 	else if (Object.IsLoaded())
 	{
-		if (ImGui::Button("Unload object", LargeButtonSize))
+		if (ImGui::Button("Unload object"))
 		{
 			ImGui::OpenPopup("Save before unloading?");
 		}
@@ -68,7 +67,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 		if (ImGui::BeginPopupModal("Save before unloading?"))
 		{
 			//Save first, then unload.
-			if (ImGui::Button("Save then unload", LargeButtonSize))
+			if (ImGui::Button("Save then unload"))
 			{
 				//Save first and then unload.
 				Object.Save();
@@ -78,7 +77,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Unload", DefaultButtonSize))
+			if (ImGui::Button("Unload"))
 			{
 				//Just unload
 				Object.Unload();
@@ -87,7 +86,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Cancel", DefaultButtonSize))
+			if (ImGui::Button("Cancel"))
 			{
 				//Cancel doing anything
 				ImGui::CloseCurrentPopup();
@@ -98,14 +97,14 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 		ImGui::SameLine();
 
-		if (ImGui::Button("Delete Object", LargeButtonSize))
+		if (ImGui::Button("Delete Object"))
 		{
 			ImGui::OpenPopup("Are you sure?");
 		}
 
 		if (ImGui::BeginPopupModal("Are you sure?"))
 		{
-			if (ImGui::Button("Delete", DefaultButtonSize))
+			if (ImGui::Button("Delete"))
 			{
 				//Unload obj (remove shared ptr... Maybe we should do some extra checking to see if object is still alive? idk)
 				Object.Unload();
@@ -115,7 +114,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 			}
 			ImGui::SameLine();
 			
-			if (ImGui::Button("Cancel", DefaultButtonSize))
+			if (ImGui::Button("Cancel"))
 			{
 				//exit
 				ImGui::CloseCurrentPopup();
@@ -125,7 +124,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 		ImGui::SameLine();
 
-		if (ImGui::Button("Save", LargeButtonSize))
+		if (ImGui::Button("Save"))
 		{
 			if (Object.IsLoadable())
 			{
@@ -139,7 +138,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 		if (ImGui::BeginPopupModal("Overwrite?"))
 		{
-			if (ImGui::Button("Overwrite", LargeButtonSize))
+			if (ImGui::Button("Overwrite"))
 			{
 				//Unload obj (remove shared ptr... Maybe we should do some extra checking to see if object is still alive? idk)
 				Object.Save();
@@ -147,7 +146,7 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 			}
 			ImGui::SameLine();
 
-			if (ImGui::Button("Cancel", DefaultButtonSize))
+			if (ImGui::Button("Cancel"))
 			{
 				//exit
 				ImGui::CloseCurrentPopup();
@@ -165,52 +164,60 @@ bool ShowObjectInfo(CRE_Loadable<CRE_ManagedObject>& Object)
 
 void CRE_UI_AssetListEditor::DrawUI()
 {
-	bool bIsOpen = true;
-	ImGui::Begin("AssetListEditor", &bIsOpen);
 	Super::DrawUI();
-	if (bIsOpen)
+	ImGui::Begin(WindowTitle.c_str(), &bOpen);
+
+	auto AssetList = GetEditedAsset<CRE_AssetList>();
+
+	//if (ImGui::Button("LoadTexture", DefaultButtonSize))
+	//{
+	//	auto Shared = DCast<CRE_ManagedObject>(PinnedAssetList);
+	//	Serialization.Reload(Shared, PinnedAssetList->GetID());
+	//}
+
+	String NewAssetName;
+	if (ImGui::InputText("NewAssetName", &NewAssetName))
 	{
-		auto AssetList = GetEditedAsset<CRE_AssetList>();
-		
-		
-		if (ImGui::Button("Save", DefaultButtonSize))
+		//Check if the asset already exists in the list.
+		bool bExists = false;
+		for (auto& Elem : AssetList->Objects)
 		{
-			//TODO: overwrite warning.
-			SaveAsset();
-		}
-
-		ImGui::SameLine();
-
-		//if (ImGui::Button("Load", DefaultButtonSize))
-		//{
-		//	auto Shared = DCast<CRE_ManagedObject>(PinnedAssetList);
-		//	Serialization.Reload(Shared, PinnedAssetList->GetID());
-		//}
-
-
-		FilterExisting.Draw("Filter objects by name");
-
-		auto it = AssetList->Objects.begin();
-		while (it != AssetList->Objects.end())
-		{
-			CRE_Loadable<CRE_ManagedObject>& Ob = (*it);
-
-			if (Ob.HasValidID() && FilterExisting.PassFilter(Ob.GetID().GetString().c_str()))
+			if (Elem.GetID().GetString() == NewAssetName)
 			{
-				if (ShowObjectInfo(Ob))
-				{
-					it = AssetList->Objects.erase(it);
-				}
-				else
-				{
-					it++;
-				}
+				bExists = true;
+				break;
+			}
+		}
+		if (!bExists)
+		{
+			ImGui::SameLine();
+			if (ImGui::Button("Add Reference"))
+			{
+				CRE_Loadable<CRE_ManagedObject> New;
+				New.Set(NewAssetName);
+				AssetList->Objects.push_back(New);
 			}
 		}
 	}
-	else
+
+	FilterExisting.Draw("Filter objects by name");
+
+	auto it = AssetList->Objects.begin();
+	while (it != AssetList->Objects.end())
 	{
-		RemoveUIWithPrompt();
+		CRE_Loadable<CRE_ManagedObject>& Ob = (*it);
+
+		if (Ob.HasValidID() && FilterExisting.PassFilter(Ob.GetID().GetString().c_str()))
+		{
+			if (ShowObjectInfo(Ob))
+			{
+				it = AssetList->Objects.erase(it);
+			}
+			else
+			{
+				it++;
+			}
+		}
 	}
 
 	ImGui::End();

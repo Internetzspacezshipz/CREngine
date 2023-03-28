@@ -229,4 +229,6 @@ public:
 
 	void Reload(SP<CRE_ManagedObject>& Target, const CRE_ID& ToLoad);
 	void Save(SP<CRE_ManagedObject> ToSave);
+
+	Path GetBaseAssetPath();
 };

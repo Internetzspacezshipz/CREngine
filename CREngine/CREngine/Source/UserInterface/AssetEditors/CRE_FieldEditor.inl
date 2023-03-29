@@ -27,22 +27,20 @@ static CRE_FieldEditorReturn EditField(EditedType& Field)
 }
 
 //Specialize templates and implement the Call function to allow editing of that field type.
-template<>
-struct CRE_FieldEditor<CRE_Loadable<CRE_ManagedObject>>
+template<typename Type>
+struct CRE_FieldEditor<CRE_Loadable<Type>>
 {
-	static CRE_FieldEditorReturn Call(CRE_Loadable<CRE_ManagedObject>& Item)
+	static CRE_FieldEditorReturn Call(CRE_Loadable<Type>& Item)
 	{
-		//Gonna fix this later.
-		return CRE_FieldEditorReturn_Error;
-		//String CurRefString = Item.GetID().GetString();
-		//if (ImGui::InputText("Edit Loadable", &CurRefString), ImGuiInputTextFlags_EnterReturnsTrue)
-		//{
-		//	if (Item.Rename(CurRefString))
-		//	{
-		//		return CRE_FieldEditorReturn_WasEdited;
-		//	}
-		//	return CRE_FieldEditorReturn_Error;
-		//}
-		//return CRE_FieldEditorReturn_Unchanged;
+		String CurRefString = Item.GetID().GetString();
+		if (ImGui::InputText("Edit Loadable", &CurRefString), ImGuiInputTextFlags_EnterReturnsTrue)
+		{
+			if (Item.Rename(CurRefString))
+			{
+				return CRE_FieldEditorReturn_WasEdited;
+			}
+			return CRE_FieldEditorReturn_Error;
+		}
+		return CRE_FieldEditorReturn_Unchanged;
 	}
 };

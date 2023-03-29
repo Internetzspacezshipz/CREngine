@@ -8,7 +8,7 @@
 Json CRE_Serialization::LoadFileToJson(Path InPath) const
 {
 	InPath += FileExtension;
-	InPath = ManifestSubFolder / InPath;
+	InPath = DataPath / InPath;
 	std::ifstream File;
 	File.open(InPath, std::ios_base::in);
 	if (!File.is_open() || File.fail())
@@ -27,7 +27,7 @@ Json CRE_Serialization::LoadFileToJson(Path InPath) const
 
 bool CRE_Serialization::SaveJsonToFile(Path InPath, const Json& InJson) const
 {
-	InPath = ManifestSubFolder / InPath;
+	InPath = DataPath / InPath;
 
 	std::ofstream File(InPath += FileExtension, std::ios_base::out);
 	if (!File.is_open() || File.fail())
@@ -47,12 +47,12 @@ Path CRE_Serialization::IDToPath(const CRE_ID& In)
 	}
 	Path InPath = In.GetString();
 	InPath += FileExtension;
-	InPath = ManifestSubFolder / InPath;
+	InPath = DataPath / InPath;
 	return InPath;
 }
 
 CRE_Serialization::CRE_Serialization() :
-	ManifestFolderPath(std::filesystem::current_path() / ManifestSubFolder)
+	ManifestFolderPath(std::filesystem::current_path() / DataPath)
 {
 	std::filesystem::create_directories(ManifestFolderPath);
 }
@@ -158,5 +158,5 @@ void CRE_Serialization::Save(SP<CRE_ManagedObject> ToSave)
 
 Path CRE_Serialization::GetBaseAssetPath()
 {
-	return std::filesystem::current_path() / ManifestSubFolder;
+	return std::filesystem::current_path() / DataPath;
 }

@@ -8,17 +8,19 @@ class CRE_Mesh : public CRE_ManagedObject
 {
 	DEF_CLASS(CRE_Mesh, CRE_ManagedObject);
 
-	virtual ~CRE_Mesh()
-	{}
+	virtual ~CRE_Mesh();
 
 	virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 
-	Mesh* GetMeshActual();
+	bool UploadMesh();
+	void UnloadMesh();
 
-	void ChangeMeshDrawn();
+	Mesh* GetData() { return &MeshData; }
 
-	std::filesystem::path File;
-	AssetHandle Handle;
+	Path File;
+private:
+	bool bMeshLoaded = false;
+	Mesh MeshData;
 };
 
 

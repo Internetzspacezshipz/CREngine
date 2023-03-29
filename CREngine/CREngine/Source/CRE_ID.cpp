@@ -27,9 +27,19 @@ CRE_ID CRE_ObjectIDRegistry::CreateUniqueID(const String& In)
 	Map.emplace(UniqueValue, UniqueString);
 
 	CRE_ID Out;
-	Out.bHasBeenSet = true;
+	Out.FlagValue = true;
 	Out.Number = UniqueValue;
 	return Out;
+}
+
+void CRE_ID::SetFlags(const uint32_t& Value)
+{
+	FlagValue = Value << NUMBER_OFFSET;
+}
+
+uint32_t CRE_ID::GetFlags() const
+{
+	return FlagValue >> NUMBER_OFFSET;
 }
 
 String CRE_ID::GetString() const
@@ -46,19 +56,19 @@ String CRE_ID::GetString() const
 
 bool CRE_ID::IsValidID() const
 {
-	return bHasBeenSet && CRE_ObjectIDRegistry::GetMap().contains(Number);
+	return (FlagValue & HasBeenSet) && CRE_ObjectIDRegistry::GetMap().contains(Number);
 }
 
 CRE_ID& CRE_ID::operator=(const CRE_ID& CopyFrom)
 {
-	assert(CopyFrom.bHasBeenSet);
+	assert(CopyFrom.FlagValue);
 	Number = CopyFrom.Number;
-	bHasBeenSet = CopyFrom.bHasBeenSet;
+	FlagValue = CopyFrom.FlagValue;
 	return *this;
 }
 
 CRE_ID::CRE_ID(String Name)
-	: bHasBeenSet(true)
+	: FlagValue(HasBeenSet)
 {
 	Number = crc32(Name.c_str(), Name.length());
 
@@ -70,11 +80,11 @@ CRE_ID::CRE_ID(String Name)
 	}
 }
 
-CRE_ID::CRE_ID() : Number(0), bHasBeenSet(false) { }
+CRE_ID::CRE_ID() : Number(0), FlagValue(0) { }
 
 CRE_ID::CRE_ID(const IDNum_t& InNum, const String& InString) :
 	Number(InNum),
-	bHasBeenSet(true)
+	FlagValue(HasBeenSet)
 {
 	Map<IDNum_t, String>& Reg = CRE_ObjectIDRegistry::GetMap();
 	//If this is hit, that means somehow this constructor was hit twice for the same key, which should NOT happen.

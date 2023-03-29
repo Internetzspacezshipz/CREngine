@@ -11,7 +11,7 @@
 
 
 
-bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage & outImage)
+bool vkutil::load_image_from_file(VulkanEngine* engine, const char* file, AllocatedImage & outImage)
 {
 	stbi_uc* pixels = stbi_load((getAssetsPath() / file).string().c_str(), &outImage.texWidth, &outImage.texHeight, &outImage.texChannelsActual, STBI_rgb_alpha);
 
@@ -28,14 +28,14 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 
 	VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
-	AllocatedBuffer stagingBuffer = engine.create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+	AllocatedBuffer stagingBuffer = engine->create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 
 	void* data;
-	vmaMapMemory(engine._allocator, stagingBuffer._allocation, &data);
+	vmaMapMemory(engine->_allocator, stagingBuffer._allocation, &data);
 
 	memcpy(data, pixel_ptr, static_cast<size_t>(imageSize));
 
-	vmaUnmapMemory(engine._allocator, stagingBuffer._allocation);
+	vmaUnmapMemory(engine->_allocator, stagingBuffer._allocation);
 
 	stbi_image_free(pixels);
 
@@ -50,10 +50,10 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 	dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	//allocate and create the image
-	vmaCreateImage(engine._allocator, &dimg_info, &dimg_allocinfo, &outImage._image, &outImage._allocation, nullptr);
+	vmaCreateImage(engine->_allocator, &dimg_info, &dimg_allocinfo, &outImage._image, &outImage._allocation, nullptr);
 	
 	//transition image to transfer-receiver	
-	engine.immediate_submit([&](VkCommandBuffer cmd) {
+	engine->immediate_submit([&](VkCommandBuffer cmd) {
 		VkImageSubresourceRange range;
 		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		range.baseMipLevel = 0;
@@ -101,7 +101,7 @@ bool vkutil::load_image_from_file(VulkanEngine& engine, const char* file, Alloca
 		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier_toReadable);
 	});
 
-	vmaDestroyBuffer(engine._allocator, stagingBuffer._buffer, stagingBuffer._allocation);
+	vmaDestroyBuffer(engine->_allocator, stagingBuffer._buffer, stagingBuffer._allocation);
 
 	std::cout << "Texture loaded succesfully " << file << std::endl;
 

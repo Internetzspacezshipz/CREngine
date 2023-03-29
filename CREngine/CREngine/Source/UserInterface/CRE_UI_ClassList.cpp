@@ -64,7 +64,21 @@ void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 
-	ImGui::Text(Class->GetClassFriendlyName().c_str());
+	bool bOpen = true;
+
+	if (Class->GetChildren().size())
+	{
+		bOpen = ImGui::CollapsingHeader(Class->GetClassFriendlyName().c_str(),
+			ImGuiTreeNodeFlags_DefaultOpen |
+			ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_OpenOnDoubleClick |
+			ImGuiTreeNodeFlags_AllowItemOverlap);
+	}
+	else
+	{
+		ImGui::Text(Class->GetClassFriendlyName().c_str());
+	}
+
 
 	ImGui::TableNextColumn();
 
@@ -80,9 +94,12 @@ void RecurseClass_Table(CRE_ClassBase* Class, CRE_ClassBase*& WantsToSpawn)
 
 	ImGui::Indent(20.f);
 
-	for (CRE_ClassBase* Child : Class->GetChildren())
+	if (bOpen)
 	{
-		RecurseClass_Table(Child, WantsToSpawn);
+		for (CRE_ClassBase* Child : Class->GetChildren())
+		{
+			RecurseClass_Table(Child, WantsToSpawn);
+		}
 	}
 
 	ImGui::Unindent(20.f);

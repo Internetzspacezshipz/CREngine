@@ -117,6 +117,27 @@
     <ClCompile Include="Source\UserInterface\CRE_UI_AssetList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\BasicObjects\CRE_Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\BasicObjects\CRE_Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_MeshEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_MaterialEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_ShaderEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CRE_UI_RenderableEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -136,7 +157,7 @@
     <ClInclude Include="Source\CRE_Math.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BasicObjects\CRE_Renderable.hpp">
+    <ClInclude Include="Source\BasicObjects\CRE_Renderable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Serialization.hpp">
@@ -172,13 +193,13 @@
     <ClInclude Include="Source\CRE_AssetList.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BasicObjects\CRE_Texture.hpp">
+    <ClInclude Include="Source\BasicObjects\CRE_Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CRE_Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BasicObjects\CRE_Mesh.hpp">
+    <ClInclude Include="Source\BasicObjects\CRE_Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h">
@@ -251,6 +272,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\UserInterface\CRE_UI_AssetList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BasicObjects\CRE_Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BasicObjects\CRE_Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_MeshEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_MaterialEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_ShaderEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CRE_UI_RenderableEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

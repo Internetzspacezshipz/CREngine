@@ -1,7 +1,7 @@
 #include "CRE_UI_TextureEditor.h"
 
 //Edited type
-#include "BasicObjects/CRE_Texture.hpp"
+#include "BasicObjects/CRE_Texture.h"
 
 //Styles
 #include "UserInterface/CRE_UIStyles.h"
@@ -34,12 +34,12 @@ void CRE_UI_TextureEditor::DrawUI()
 	if (ImGui::InputText("Path", &Str))
 	{
 		Casted->File = Str;
-		Casted->Handle = 0;
 		MarkAssetNeedsSave();
 	}
 
-	if (Texture* Tex = Casted->GetTextureActual())
+	if (Casted->ValidData())
 	{
+		Texture* Tex = Casted->GetData();
 		if (ImGui::CollapsingHeader("Show Image", DefaultCollapsingHeaderFlags))
 		{
 			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 1.f);//added 1 here to make sure it can never div/zero
@@ -65,7 +65,7 @@ void CRE_UI_TextureEditor::DrawUI()
 	{
 		if (ImGui::Button("Load"))
 		{
-			if (!Casted->LoadTexture())
+			if (!Casted->UploadTexture())
 			{
 				ImGui::OpenPopup("Failed to load texture");
 			}

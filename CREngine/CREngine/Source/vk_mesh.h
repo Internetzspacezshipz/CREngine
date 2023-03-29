@@ -22,6 +22,13 @@ struct Vertex
 	static VertexInputDescription get_vertex_description();
 }; 
 
+enum Shape : uint16_t
+{
+	ShapeNone = 0,
+	ShapeTriangle = 1 << 0,
+	ShapeQuad = 1 << 1,
+};
+
 struct Mesh
 {
 	std::vector<Vertex> _vertices;
@@ -29,4 +36,7 @@ struct Mesh
 	AllocatedBuffer _vertexBuffer;
 
 	bool load_from_obj(const char* filename);
+
+	//Simple hardcoded shapes that will conform to having a maximum extent of a unit vector.
+	void MakeFromShape(Shape InShape);
 };

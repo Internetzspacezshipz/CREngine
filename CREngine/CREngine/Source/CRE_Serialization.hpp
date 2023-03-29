@@ -10,6 +10,9 @@
 #include "CRE_Types.hpp"
 #include "CRE_ID.hpp"
 
+//Global paths.
+#include "CRE_Paths.hpp"
+
 //Json value that will contain the class for objects
 #define CLASS_JSON_VALUE "_CLASS_ID_TYPE_"
 
@@ -192,7 +195,6 @@ else if (JsonVariable.contains(""#ArrayName""))										\
 
 //CONST FOLDER LOCATIONS
 //Manifest file locations so we can just load all the data we need immediately.
-const Path ManifestSubFolder = "Manifest";
 
 const String FileExtension = ".json";
 

@@ -36,7 +36,7 @@ VertexInputDescription Vertex::get_vertex_description()
 	colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
 	colorAttribute.offset = offsetof(Vertex, color);
 
-	//UV will be stored at Location 2
+	//UV will be stored at Location 3
 	VkVertexInputAttributeDescription uvAttribute = {};
 	uvAttribute.binding = 0;
 	uvAttribute.location = 3;
@@ -132,4 +132,17 @@ bool Mesh::load_from_obj(const char* filename)
 	}
 
 	return true;
+}
+
+void Mesh::MakeFromShape(Shape InShape)
+{
+	switch (InShape)
+	{
+	case ShapeNone:
+		return;
+	case ShapeTriangle:
+		return;
+	case ShapeQuad:
+		return;
+	}
 }

@@ -1,8 +1,13 @@
-#include "CRE_Mesh.hpp"
+#include "CRE_Mesh.h"
 #include "vk_engine.h"
 #include "CRE_Globals.h"
 
 REGISTER_CLASS(CRE_Mesh);
+
+CRE_Mesh::~CRE_Mesh()
+{
+	UnloadMesh();
+}
 
 void CRE_Mesh::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 {
@@ -13,23 +18,40 @@ void CRE_Mesh::Serialize(bool bSerializing, nlohmann::json& TargetJson)
 	VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
 	if (!bSerializing)
 	{
-		if (File.string().size())
+		//empty is such a dumb name for a function that checks if it is empty...
+		if (File.empty() == false)
 		{
-			Handle = Engine->LoadMesh(File.string());
+			UploadMesh();
 		}
 	}
 }
 
-Mesh* CRE_Mesh::GetMeshActual()
+bool CRE_Mesh::UploadMesh()
 {
-	VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
-	return Engine->get_mesh(Handle);
+	if (bMeshLoaded)
+	{
+		return true;
+	}
+
+	if (File.empty() == false)
+	{
+		if (MeshData.load_from_obj(File.generic_string().c_str()))
+		{
+			VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
+			Engine->UploadMesh(&MeshData);
+			bMeshLoaded = true;
+			return true;
+		}
+	}
+	return false;
 }
 
-void CRE_Mesh::ChangeMeshDrawn()
+void CRE_Mesh::UnloadMesh()
 {
-	if (Mesh* ActualMesh = GetMeshActual())
+	if (bMeshLoaded == true)
 	{
-		auto Engine = CRE_Globals::GetEnginePointer();
+		VulkanEngine* Engine = CRE_Globals::GetEnginePointer();
+		Engine->UnloadMesh(&MeshData);
+		bMeshLoaded = false;
 	}
 }

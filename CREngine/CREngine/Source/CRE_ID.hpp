@@ -24,9 +24,20 @@ class CRE_ID
 {
 	friend CRE_ObjectIDRegistry;
 	IDNum_t Number = 0;
-	bool bHasBeenSet = false;
-
+	uint32_t FlagValue = 0;
 public:
+	enum Flags : uint32_t
+	{
+		None = 0,
+		HasBeenSet = 1 << 0,
+
+		NUMBER_OFFSET = 1,
+		Numbers = 0xFFFFFFFF << NUMBER_OFFSET,
+	};
+	//Sets the 31 bit aux number
+	void SetFlags(const uint32_t& Value);
+	uint32_t GetFlags() const;
+
 	String GetString() const;
 	IDNum_t GetNumber() const { return Number; }
 
@@ -92,3 +103,5 @@ static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, CRE_ID& 
 		Value = CRE_ID(TargetJson);
 	}
 }
+
+

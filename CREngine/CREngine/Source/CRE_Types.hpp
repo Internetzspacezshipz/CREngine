@@ -6,6 +6,7 @@
 #include <ThirdParty/func/func.hpp>
 #include <filesystem>
 #include <json.hpp>
+#include <glm/glm.hpp>
 
 
 template<typename ... args>
@@ -149,6 +150,7 @@ namespace std
 
 //hide shared_ptr and such.
 #define SP std::shared_ptr
+#define SharedFromThis std::enable_shared_from_this
 #define WP std::weak_ptr
 #define HWP HashableWeakPointer
 #define UP std::unique_ptr
@@ -158,3 +160,6 @@ namespace std
 //make shared helper
 #define MkSP std::make_shared
 #define MkUP std::make_unique
+
+typedef glm::mat4 Matrix4;
+typedef glm::vec4 Vector4;

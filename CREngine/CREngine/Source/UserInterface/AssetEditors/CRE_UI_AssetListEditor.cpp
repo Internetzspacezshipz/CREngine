@@ -4,8 +4,8 @@
 #include "CRE_AssetList.hpp"
 
 //Basic objects we can edit.
-#include "BasicObjects/CRE_Texture.hpp"
-#include "BasicObjects/CRE_Mesh.hpp"
+#include "BasicObjects/CRE_Texture.h"
+#include "BasicObjects/CRE_Mesh.h"
 
 //Matching UI style helpers
 #include "UserInterface/CRE_UIStyles.h"

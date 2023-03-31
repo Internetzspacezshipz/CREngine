@@ -42,7 +42,7 @@ void RecurseClass(CrClass* Class)
 	ImGui::Value("ClassID", Class->GetClassGUID().GetNumber());
 
 	//ImGui::SameLine();
-	ImGui::Text(Class->GetClassFriendlyName().data());
+	ImGui::Text(Class->GetClassName().data());
 
 	ImGui::Indent(20.f);
 
@@ -68,7 +68,7 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 
 	if (Class->GetChildren().size())
 	{
-		bOpen = ImGui::CollapsingHeader(Class->GetClassFriendlyName().data(),
+		bOpen = ImGui::CollapsingHeader(Class->GetClassName().data(),
 			ImGuiTreeNodeFlags_DefaultOpen |
 			ImGuiTreeNodeFlags_OpenOnArrow |
 			ImGuiTreeNodeFlags_OpenOnDoubleClick |
@@ -76,7 +76,7 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 	}
 	else
 	{
-		ImGui::Text(Class->GetClassFriendlyName().data());
+		ImGui::Text(Class->GetClassName().data());
 	}
 
 
@@ -85,7 +85,7 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 	CrStyles::ButtonStyleStart();
 
 	//Clicking the class name spawns the object.
-	if (ImGui::Button(Class->GetClassFriendlyName().data()))
+	if (ImGui::Button(Class->GetClassName().data()))
 	{
 		WantsToSpawn = Class;
 	}

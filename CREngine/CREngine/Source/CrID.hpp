@@ -13,10 +13,6 @@ class CrObjectIDRegistry
 	friend class CrID;
 	friend class CrObjectFactory;
 
-	//Used for adding inital values to the map when making const IDs.
-	//TODO: implement this.
-	static consteval void AddInitValue();
-
 	static Map<IDNum_t, uint32_t>& GetMap();
 
 	//We keep the strings separated from the map since we need stable string locations for making std::string_views into them.
@@ -35,7 +31,6 @@ class CrObjectIDRegistry
 		{
 			if constexpr (bPretty)
 			{
-				
 				//Shorten string view
 				StringV View = StringV(GetStringArr()[Itr->second]);
 				return View.substr(0, View.find_last_of('_'));

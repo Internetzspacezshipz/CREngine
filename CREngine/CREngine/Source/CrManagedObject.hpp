@@ -136,7 +136,8 @@ public:
 
 	ClassGUID GetClassGUID() const { return ThisGUID; }
 	Set<CrClass*> GetChildren() const { return Children; }
-	StringV GetClassFriendlyName() const { return ThisGUID.GetString(); }
+	StringV GetClassName() const { return ThisGUID.GetString(); }
+	StringV GetClassPrettyName() const { return ThisGUID.GetStringPretty(); }
 };
 
 class CrObjectFactory
@@ -166,7 +167,7 @@ public:
 		}
 		if (!Name.IsValidID())
 		{
-			Name = CrObjectIDRegistry::CreateUniqueID(String(ClassInfos[it->first]->GetClassFriendlyName()));
+			Name = CrObjectIDRegistry::CreateUniqueID(String(ClassInfos[it->first]->GetClassName()));
 		}
 
 		SP<CrManagedObject> NewOb = (it->second)(Name);

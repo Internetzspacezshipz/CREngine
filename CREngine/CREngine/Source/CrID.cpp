@@ -3,11 +3,6 @@
 #include "CrSerialization.hpp"
 
 
-consteval void CrObjectIDRegistry::AddInitValue()
-{
-
-}
-
 Map<IDNum_t, uint32_t>& CrObjectIDRegistry::GetMap()
 {
 	static Map<IDNum_t, uint32_t> Map { };

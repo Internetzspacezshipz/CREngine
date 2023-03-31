@@ -55,6 +55,12 @@ CrID CrSerialization::GetClassForExtension(const String& InExt) const
 	{
 		return CrID();
 	}
+
+	if (InExt == GenericItemExt)
+	{
+		return CrManagedObject::StaticClass();
+	}
+
 	auto Found = ExtensionToClass.find(InExt);
 	if (Found != ExtensionToClass.end())
 	{
@@ -238,7 +244,8 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 	if (!Target)
 	{
 		CrID ClassID = GetClassForExtension(TargetPath.extension().generic_string());
-		if (ClassID.IsValidID() == false)
+		if (ClassID == CrManagedObject::StaticClass() ||
+			ClassID.IsValidID() == false)
 		{
 			LoadedFile <=> ClassID;
 		}
@@ -280,8 +287,10 @@ void CrSerialization::Save(SP<CrManagedObject> ToSave)
 		return;
 	}
 
-	const String StrPath = (BasePath() / ToSave->GetID().GetString()).generic_string();
+	const String StrPath = (BasePath() / ToSave->GetID().GetString()).generic_string() + GetExtensionForClass(ToSave->GetClass());
 	CrArchive OutArch { StrPath, true };
+	CrID ClassID = ToSave->GetClass();
+	OutArch <=> ClassID;
 	OutArch <=> ToSave->ID;
 	ToSave->BinSerialize(OutArch);
 }

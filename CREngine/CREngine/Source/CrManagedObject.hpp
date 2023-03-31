@@ -136,7 +136,7 @@ public:
 
 	ClassGUID GetClassGUID() const { return ThisGUID; }
 	Set<CrClass*> GetChildren() const { return Children; }
-	std::string GetClassFriendlyName() const { return ThisGUID.GetString(); }
+	StringV GetClassFriendlyName() const { return ThisGUID.GetString(); }
 };
 
 class CrObjectFactory
@@ -145,7 +145,6 @@ class CrObjectFactory
 	Map<ClassGUID, std::function<SP<CrManagedObject>(const ObjGUID&)>> ClassCreators;
 	//Info objects about the layout of the class inheritance.
 	Map<ClassGUID, CrClass*> ClassInfos;
-	//Creation index. Not really important right now honestly.
 
 public:
 
@@ -167,9 +166,12 @@ public:
 		}
 		if (!Name.IsValidID())
 		{
-			Name = CrObjectIDRegistry::CreateUniqueID(ClassInfos[it->first]->GetClassFriendlyName());
+			Name = CrObjectIDRegistry::CreateUniqueID(String(ClassInfos[it->first]->GetClassFriendlyName()));
 		}
-		return (it->second)(Name);
+
+		SP<CrManagedObject> NewOb = (it->second)(Name);
+		//If we want to save a list of all objects in the future, this is the spot to do it.
+		return NewOb;
 	}
 
 	//Templated create.

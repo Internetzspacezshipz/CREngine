@@ -26,17 +26,5 @@ void CrUI_MeshEditor::DrawUI()
 		return;
 	}
 
-	//TODO: Make macros for these pragmas.
-#pragma warning(push)
-#pragma warning(disable:4244)
-	String Str(Casted->File.native().begin(), Casted->File.native().end());
-#pragma warning(pop)
-
-	if (ImGui::InputText("Path", &Str))
-	{
-		Casted->File = Str;
-		MarkAssetNeedsSave();
-	}
-
 	ImGui::End();
 }

@@ -74,14 +74,14 @@ struct MeshPushConstants
 	glm::mat4 render_matrix;
 };
 
-struct Material 
+struct MaterialData 
 {
 	VkDescriptorSet textureSet{VK_NULL_HANDLE};
 	VkPipeline pipeline = nullptr;
 	VkPipelineLayout pipelineLayout = nullptr;
 };
 
-struct Texture 
+struct TextureData 
 {
 	AllocatedImage image;
 	VkImageView imageView;
@@ -93,7 +93,7 @@ struct Texture
 struct RenderObject 
 {
 	virtual Mesh* GetMesh() = 0;
-	virtual Material* GetMaterial() = 0;
+	virtual MaterialData* GetMaterial() = 0;
 	Matrix4 transformMatrix;
 };
 
@@ -286,8 +286,8 @@ public:
 
 	//New CRE funcs
 
-	void UploadTexture(Texture* NewTexture);
-	void UnloadTexture(Texture* DeleteTex);
+	void UploadTexture(TextureData* NewTexture);
+	void UnloadTexture(TextureData* DeleteTex);
 
 	//Upload mesh to GPU
 	void UploadMesh(Mesh* NewMesh);
@@ -297,8 +297,8 @@ public:
 	bool LoadShaderModule(const char* FilePath, VkShaderModule& OutShaderModule);
 	void UnloadShaderModule(VkShaderModule& DeleteShader);
 
-	void MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, Material& MaterialDataOut);
-	void DestroyMaterial(Material& MaterialDataOut);
+	void MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, MaterialData& MaterialDataOut);
+	void DestroyMaterial(MaterialData& MaterialDataOut);
 
 	void SubmitRenderable(WP<RenderObject> RenderItem);
 

@@ -72,12 +72,6 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 
-// Clang warnings with -Weverything
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"  // warning: implicit conversion from 'xxx' to 'float' may lose precision
-#endif
-
 // SDL
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -394,7 +388,7 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer)
     io.ClipboardUserData = nullptr;
     io.SetPlatformImeDataFn = ImGui_ImplSDL2_SetPlatformImeData;
 
-    // Load mouse cursors
+    // LoadTexture mouse cursors
     bd->MouseCursors[ImGuiMouseCursor_Arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     bd->MouseCursors[ImGuiMouseCursor_TextInput] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
     bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
@@ -638,7 +632,3 @@ void ImGui_ImplSDL2_NewFrame()
     // Update game controllers (if enabled and available)
     ImGui_ImplSDL2_UpdateGamepads();
 }
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif

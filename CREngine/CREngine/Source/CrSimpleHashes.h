@@ -81,6 +81,10 @@ consteval uint32_t crc32_CONSTEVAL(const char* str)
 //Constexpr function CAN be done at compile time...
 constexpr uint32_t crc32(const char* str, size_t len)
 {
+#if _DEBUG
+    assert(len < 500);
+#endif
+
     return detail::crc32(str, len) ^ 0xFFFFFFFF;
 }
 

@@ -38,7 +38,7 @@ void CrMaterial::BinSerialize(CrArchive& Arch)
 bool CrMaterial::LoadMaterial()
 {
 	//Already loaded.
-	if (MaterialData.pipeline)
+	if (MatData.pipeline)
 	{
 		return true;
 	}
@@ -55,7 +55,7 @@ bool CrMaterial::LoadMaterial()
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 
-			Engine->MakeDefaultPipeline(VShader, FShader, MaterialData);
+			Engine->MakeDefaultPipeline(VShader, FShader, MatData);
 
 			//Unload shaders since we won't need them anymore. Maybe one day we will reuse them for other materials, but for now don't bother.
 			VertexShader->UnloadShader();
@@ -68,9 +68,9 @@ bool CrMaterial::LoadMaterial()
 
 void CrMaterial::UnloadMaterial()
 {
-	if (MaterialData.pipeline)
+	if (MatData.pipeline)
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-		Engine->DestroyMaterial(MaterialData);
+		Engine->DestroyMaterial(MatData);
 	}
 }

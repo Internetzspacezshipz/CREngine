@@ -72,6 +72,7 @@ void CrUI_Editor_AssetBase::RemoveUI(bool bPromptAllowed)
 		ImGui::OpenPopup("Unsaved assets");
 		return;
 	}
+	CurrentEditedAsset.Unload();
 	Super::RemoveUI();
 }
 

@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -44,6 +45,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -276,6 +278,14 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClCompile Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.cpp" />
     <ClCompile Include="Source\BasicObjects\CrMaterial.cpp" />
     <ClCompile Include="Source\BasicObjects\CrShader.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_demo.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_draw.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_impl_sdl2.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_stdlib.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_tables.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui_master\imgui_widgets.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_MaterialEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_MeshEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_RenderableEditor.cpp" />
@@ -330,6 +340,15 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.h" />
     <ClInclude Include="Source\BasicObjects\CrMaterial.h" />
     <ClInclude Include="Source\BasicObjects\CrShader.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imconfig.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imgui.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imgui_impl_sdl2.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imgui_impl_vulkan.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imgui_internal.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imgui_stdlib.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imstb_rectpack.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imstb_textedit.h" />
+    <ClInclude Include="Source\ThirdParty\imgui_master\imstb_truetype.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_MaterialEditor.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_MeshEditor.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_RenderableEditor.h" />

@@ -33,13 +33,13 @@ bool ShowObjectInfo(CrLoadable<CrManagedObject>& Object)
 	//Check again if object is loaded, since it might have been unloaded in the earlier IsLoaded scope.
 	if (Object.IsLoaded() && !bShouldDelete)
 	{
-		String StringName = ID.GetString();
+		String StringName = String(ID.GetString());
 		if (ImGui::InputText("Object Instance", &StringName, ImGuiInputTextFlags_::ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			Object->Rename(StringName);
 		}
 
-		ImGui::Text("Class: %s", Object->GetClass().GetString().c_str());
+		ImGui::Text("Class: %s", Object->GetClass().GetString().data());
 
 		CrEditorUIManager& EditUIMan = CrEditorUIManager::Get();
 
@@ -51,7 +51,7 @@ bool ShowObjectInfo(CrLoadable<CrManagedObject>& Object)
 
 	if (Object.IsLoadable() && !Object.IsLoaded())
 	{
-		ImGui::Text("Object Name: %s", ID.GetString().c_str());
+		ImGui::Text("Object Name: %s", ID.GetString().data());
 		if (ImGui::Button("Load object"))
 		{
 			Object.Load();
@@ -207,7 +207,7 @@ void CrUI_AssetListEditor::DrawUI()
 	{
 		CrLoadable<CrManagedObject>& Ob = (*it);
 
-		if (Ob.HasValidID() && FilterExisting.PassFilter(Ob.GetID().GetString().c_str()))
+		if (Ob.HasValidID() && FilterExisting.PassFilter(Ob.GetID().GetString().data()))
 		{
 			if (ShowObjectInfo(Ob))
 			{

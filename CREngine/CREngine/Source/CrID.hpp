@@ -14,11 +14,39 @@ class CrObjectIDRegistry
 	friend class CrObjectFactory;
 
 	//Used for adding inital values to the map when making const IDs.
+	//TODO: implement this.
 	static consteval void AddInitValue();
 
-	static Map<IDNum_t, String>& GetMap();
+	static Map<IDNum_t, uint32_t>& GetMap();
+
+	//We keep the strings separated from the map since we need stable string locations for making std::string_views into them.
+	static Array<String>& GetStringArr();
+
+	static void Emplace(IDNum_t Number, String&& InString);
 
 	static CrID CreateUniqueID(const String& In);
+
+	template<bool bPretty = false>
+	forceinline static StringV GetStringImpl(const IDNum_t& Number)
+	{
+		auto Map = CrObjectIDRegistry::GetMap();
+		auto Itr = Map.find(Number);
+		if (Map.end() != Itr)
+		{
+			if constexpr (bPretty)
+			{
+				
+				//Shorten string view
+				StringV View = StringV(GetStringArr()[Itr->second]);
+				return View.substr(0, View.find_last_of('_'));
+			}
+			else
+			{
+				return StringV(GetStringArr()[Itr->second]);
+			}
+		}
+		return StringV("");
+	}
 };
 
 //Avoid implicit typecasting in this class.
@@ -40,7 +68,8 @@ public:
 	void SetFlags(const FlagSize& Value);
 	FlagSize GetFlags() const;
 
-	String GetString() const;
+	StringV GetString() const;
+	StringV GetStringPretty() const;
 	IDNum_t GetNumber() const { return Number; }
 
 	bool IsValidID() const;
@@ -145,10 +174,16 @@ struct CrAssetReference
 		return AssetID.IsValidID() && ClassID.IsValidID();
 	}
 
-	operator bool() const
+	bool operator == (const CrAssetReference& Other) const
 	{
-		return IsValidID();
+		return AssetID == Other.AssetID && ClassID == Other.ClassID;
 	}
+
+	String GetString() const;
+
+	explicit CrAssetReference(const CrID& InAssetID, const CrID& InClassID) : AssetID(InAssetID), ClassID(InClassID) {}
+	explicit CrAssetReference() : AssetID(), ClassID() {}
+	CrAssetReference(const CrID&) = delete; // delete this constructor since it can have unintended side effects.
 };
 
 //Implement std::hash for the asset ref so it can be used in maps.

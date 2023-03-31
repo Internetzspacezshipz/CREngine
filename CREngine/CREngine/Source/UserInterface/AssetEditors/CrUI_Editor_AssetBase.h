@@ -31,7 +31,7 @@ class CrUI_Editor_AssetBase : public CrUI_Base
 	template<typename AsType = CrManagedObject>
 	SP<AsType> GetEditedAsset() const
 	{
-		return DCast<AsType>(CurrentEditedAsset.Get<true>());
+		return DCast<AsType>(CurrentEditedAsset.Get());
 	}
 
 	//Put this as private until further notice (who is noticing but me?)

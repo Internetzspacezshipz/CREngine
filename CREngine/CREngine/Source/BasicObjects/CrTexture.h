@@ -20,10 +20,10 @@ class CrTexture : public CrManagedObject
 	virtual void OnRename() override;
 	// end editor funcs
 
-	Texture* GetData() { return TextureData.get(); };
+	TextureData* GetData() { return TexData.get(); };
 
-	bool ValidData() { return TextureData.get(); }
+	bool ValidData() { return TexData.get(); }
 
 private:
-	UP<Texture> TextureData { nullptr };
+	UP<TextureData> TexData { nullptr };
 };

@@ -285,8 +285,9 @@ namespace tser {
             m_readOffset = 0;
         }
         void initialize(std::string_view str) {
-            m_bytes = str;
-            m_bufferSize = str.size();
+            auto I = decode_base64(str);
+            m_bytes = I;
+            m_bufferSize = I.size();
             m_readOffset = 0;
         }
         std::string_view get_buffer() const {

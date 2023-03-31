@@ -28,6 +28,7 @@ using Func = fu2::function<args...>;
 using Path = std::filesystem::path;
 
 using String = std::string;
+using StringV = std::string_view;
 
 using Json = nlohmann::json;
 

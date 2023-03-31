@@ -760,7 +760,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
         // If we are drawing a one-pixel-wide line without a texture, or a textured line of any width, we only need 2 or 3 vertices per point
         if (use_texture || !thick_line)
         {
-            // [PATH 1] Texture-based lines (thick or non-thick)
+            // [PATH 1] TextureData-based lines (thick or non-thick)
             // [PATH 2] Non texture-based lines (non-thick)
 
             // The width of the geometry we need to draw - this is essentially <thickness> pixels for the line itself, plus "one pixel" for AA.
@@ -1566,11 +1566,14 @@ void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const Im
     PathStroke(col, 0, thickness);
 }
 
-void ImDrawList::AddText(const ImFont* font, float font_size, const ImVec2& pos, ImU32 col, ImStrv text, float wrap_width, const ImVec4* cpu_fine_clip_rect)
+void ImDrawList::AddText(const ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end, float wrap_width, const ImVec4* cpu_fine_clip_rect)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
-    if (text.Begin == text.End)
+
+    if (text_end == NULL)
+        text_end = text_begin + strlen(text_begin);
+    if (text_begin == text_end)
         return;
 
     // Pull default font/size from the shared ImDrawListSharedData instance
@@ -1589,12 +1592,12 @@ void ImDrawList::AddText(const ImFont* font, float font_size, const ImVec2& pos,
         clip_rect.z = ImMin(clip_rect.z, cpu_fine_clip_rect->z);
         clip_rect.w = ImMin(clip_rect.w, cpu_fine_clip_rect->w);
     }
-    font->RenderText(this, font_size, pos, col, clip_rect, text, wrap_width, cpu_fine_clip_rect != NULL);
+    font->RenderText(this, font_size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip_rect != NULL);
 }
 
-void ImDrawList::AddText(const ImVec2& pos, ImU32 col, ImStrv text)
+void ImDrawList::AddText(const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end)
 {
-    AddText(NULL, 0.0f, pos, col, text);
+    AddText(NULL, 0.0f, pos, col, text_begin, text_end);
 }
 
 void ImDrawList::AddImage(ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, ImU32 col)
@@ -2098,20 +2101,18 @@ static unsigned int stb_decompress_length(const unsigned char* input);
 static unsigned int stb_decompress(unsigned char* output, const unsigned char* input, unsigned int length);
 static const char*  GetDefaultCompressedFontDataTTFBase85();
 static unsigned int Decode85Byte(char c)                                    { return c >= '\\' ? c-36 : c-35; }
-static void         Decode85(ImStrv src, unsigned char* dst)
+static void         Decode85(const unsigned char* src, unsigned char* dst)
 {
-    const char* p = src.Begin;
-    const char* p_end = src.End;
-    while (p < p_end)
+    while (*src)
     {
-        unsigned int tmp = Decode85Byte(p[0]) + 85 * (Decode85Byte(p[1]) + 85 * (Decode85Byte(p[2]) + 85 * (Decode85Byte(p[3]) + 85 * Decode85Byte(p[4]))));
+        unsigned int tmp = Decode85Byte(src[0]) + 85 * (Decode85Byte(src[1]) + 85 * (Decode85Byte(src[2]) + 85 * (Decode85Byte(src[3]) + 85 * Decode85Byte(src[4]))));
         dst[0] = ((tmp >> 0) & 0xFF); dst[1] = ((tmp >> 8) & 0xFF); dst[2] = ((tmp >> 16) & 0xFF); dst[3] = ((tmp >> 24) & 0xFF);   // We can't assume little-endianness.
-        p += 5;
+        src += 5;
         dst += 4;
     }
 }
 
-// Load embedded ProggyClean.ttf at size 13, disable oversampling
+// LoadTexture embedded ProggyClean.ttf at size 13, disable oversampling
 ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 {
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
@@ -2133,7 +2134,7 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     return font;
 }
 
-ImFont* ImFontAtlas::AddFontFromFileTTF(ImStrv filename, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     size_t data_size = 0;
@@ -2148,9 +2149,8 @@ ImFont* ImFontAtlas::AddFontFromFileTTF(ImStrv filename, float size_pixels, cons
     {
         // Store a short copy of filename into into the font name for convenience
         const char* p;
-        for (p = filename.End; p > filename.Begin && p[-1] != '/' && p[-1] != '\\'; p--) {}
-        filename.Begin = p;
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%.*s, %.0fpx", (int)filename.length(), filename.Begin, size_pixels);
+        for (p = filename + strlen(filename); p > filename && p[-1] != '/' && p[-1] != '\\'; p--) {}
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", p, size_pixels);
     }
     return AddFontFromMemoryTTF(data, (int)data_size, size_pixels, &font_cfg, glyph_ranges);
 }
@@ -2181,11 +2181,11 @@ ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_d
     return AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, size_pixels, &font_cfg, glyph_ranges);
 }
 
-ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(ImStrv compressed_ttf_data_base85, float size_pixels, const ImFontConfig* font_cfg, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(const char* compressed_ttf_data_base85, float size_pixels, const ImFontConfig* font_cfg, const ImWchar* glyph_ranges)
 {
-    int compressed_ttf_size = (((int)compressed_ttf_data_base85.length() + 4) / 5) * 4;
+    int compressed_ttf_size = (((int)strlen(compressed_ttf_data_base85) + 4) / 5) * 4;
     void* compressed_ttf = IM_ALLOC((size_t)compressed_ttf_size);
-    Decode85(compressed_ttf_data_base85, (unsigned char*)compressed_ttf);
+    Decode85((const unsigned char*)compressed_ttf_data_base85, (unsigned char*)compressed_ttf);
     ImFont* font = AddFontFromMemoryCompressedTTF(compressed_ttf, compressed_ttf_size, size_pixels, font_cfg, glyph_ranges);
     IM_FREE(compressed_ttf);
     return font;
@@ -3074,13 +3074,13 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesVietnamese()
 // [SECTION] ImFontGlyphRangesBuilder
 //-----------------------------------------------------------------------------
 
-void ImFontGlyphRangesBuilder::AddText(ImStrv text)
+void ImFontGlyphRangesBuilder::AddText(const char* text, const char* text_end)
 {
-    while (!text.empty())
+    while (text_end ? (text < text_end) : *text)
     {
         unsigned int c = 0;
-        int c_len = ImTextCharFromUtf8(&c, text.Begin, text.End);
-        text.Begin += c_len;
+        int c_len = ImTextCharFromUtf8(&c, text, text_end);
+        text += c_len;
         if (c_len == 0)
             break;
         AddChar((ImWchar)c);
@@ -3365,7 +3365,7 @@ static inline const char* CalcWordWrapNextLineStartA(const char* text, const cha
 // Simple word-wrapping for English, not full-featured. Please submit failing cases!
 // This will return the next location to wrap from. If no wrapping if necessary, this will fast-forward to e.g. text_end.
 // FIXME: Much possible improvements (don't cut things like "word !", "word!!!" but cut within "word,,,,", more sensible support for punctuations, support for Unicode punctuations, etc.)
-const char* ImFont::CalcWordWrapPositionA(float scale, ImStrv text, float wrap_width) const
+const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width) const
 {
     // For references, possible wrap point marked with ^
     //  "aaa bbb, ccc,ddd. eee   fff. ggg!"
@@ -3378,20 +3378,17 @@ const char* ImFont::CalcWordWrapPositionA(float scale, ImStrv text, float wrap_w
 
     // Cut words that cannot possibly fit within one line.
     // e.g.: "The tropical fish" with ~5 characters worth of width --> "The tr" "opical" "fish"
-
     float line_width = 0.0f;
     float word_width = 0.0f;
     float blank_width = 0.0f;
     wrap_width /= scale; // We work with unscaled widths to avoid scaling every characters
 
-    const char* text_begin = text.Begin;
-    const char* text_end = text.End;
-
-    const char* word_end = text_begin;
+    const char* word_end = text;
     const char* prev_word_end = NULL;
     bool inside_word = true;
 
-    const char* s = text_begin;
+    const char* s = text;
+    IM_ASSERT(text_end != NULL);
     while (s < text_end)
     {
         unsigned int c = (unsigned int)*s;
@@ -3461,21 +3458,21 @@ const char* ImFont::CalcWordWrapPositionA(float scale, ImStrv text, float wrap_w
 
     // Wrap_width is too small to fit anything. Force displaying 1 character to minimize the height discontinuity.
     // +1 may not be a character start point in UTF-8 but it's ok because caller loops use (text >= word_wrap_eol).
-    if (s == text.Begin && text.Begin < text.End)
+    if (s == text && text < text_end)
         return s + 1;
     return s;
 }
 
-ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, ImStrv text, const char** remaining) const
+ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, const char* text_begin, const char* text_end, const char** remaining) const
 {
+    if (!text_end)
+        text_end = text_begin + strlen(text_begin); // FIXME-OPT: Need to avoid this.
+
     const float line_height = size;
     const float scale = size / FontSize;
 
     ImVec2 text_size = ImVec2(0, 0);
     float line_width = 0.0f;
-
-    const char* text_begin = text.Begin;
-    const char* text_end = text.End;
 
     const bool word_wrap_enabled = (wrap_width > 0.0f);
     const char* word_wrap_eol = NULL;
@@ -3487,7 +3484,7 @@ ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, ImSt
         {
             // Calculate how far we can render. Requires two passes on the string data but keeps the code simple and not intrusive for what's essentially an uncommon feature.
             if (!word_wrap_eol)
-                word_wrap_eol = CalcWordWrapPositionA(scale, ImStrv(s, text_end), wrap_width - line_width);
+                word_wrap_eol = CalcWordWrapPositionA(scale, s, text_end, wrap_width - line_width);
 
             if (s >= word_wrap_eol)
             {
@@ -3560,8 +3557,11 @@ void ImFont::RenderChar(ImDrawList* draw_list, float size, const ImVec2& pos, Im
 }
 
 // Note: as with every ImDrawList drawing function, this expects that the font atlas texture is bound.
-void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2 & pos, ImU32 col, const ImVec4& clip_rect, ImStrv text, float wrap_width, bool cpu_fine_clip) const
+void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2& pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
 {
+    if (!text_end)
+        text_end = text_begin + strlen(text_begin); // ImGui:: functions generally already provides a valid text_end, so this is merely to handle direct calls.
+
     // Align to be pixel perfect
     float x = IM_FLOOR(pos.x);
     float y = IM_FLOOR(pos.y);
@@ -3574,8 +3574,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2 & pos, I
     const bool word_wrap_enabled = (wrap_width > 0.0f);
 
     // Fast-forward to first visible line
-    const char* s = text.Begin;
-    const char* text_end = text.End;
+    const char* s = text_begin;
     if (y + line_height < clip_rect.y)
         while (y + line_height < clip_rect.y && s < text_end)
         {
@@ -3585,7 +3584,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2 & pos, I
                 // FIXME-OPT: This is not optimal as do first do a search for \n before calling CalcWordWrapPositionA().
                 // If the specs for CalcWordWrapPositionA() were reworked to optionally return on \n we could combine both.
                 // However it is still better than nothing performing the fast-forward!
-                s = CalcWordWrapPositionA(scale, ImStrv(s, line_end), wrap_width);
+                s = CalcWordWrapPositionA(scale, s, line_end ? line_end : text_end, wrap_width);
                 s = CalcWordWrapNextLineStartA(s, text_end);
             }
             else
@@ -3630,7 +3629,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2 & pos, I
         {
             // Calculate how far we can render. Requires two passes on the string data but keeps the code simple and not intrusive for what's essentially an uncommon feature.
             if (!word_wrap_eol)
-                word_wrap_eol = CalcWordWrapPositionA(scale, ImStrv(s, text_end), wrap_width - (x - start_x));
+                word_wrap_eol = CalcWordWrapPositionA(scale, s, text_end, wrap_width - (x - start_x));
 
             if (s >= word_wrap_eol)
             {
@@ -3791,7 +3790,6 @@ void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir d
 
 void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
 {
-    // FIXME-OPT: This should be baked in font.
     draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, col, 8);
 }
 

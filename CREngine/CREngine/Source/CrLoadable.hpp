@@ -154,9 +154,9 @@ public:
 		//VarSerialize(bSerializing, TargetJson, Reference);
 	}
 
-	CrLoadable() = default;
+	CrLoadable() : Reference{ CrID(), Type::StaticClass() }, LoadedObject(nullptr) {};
 	CrLoadable(SP<Type> In) { Set(In); };
-	CrLoadable(CrID In) { Set(In); };
+	CrLoadable(CrID In) { Set({ In, Type::StaticClass() }); };
 
 	//extra constructor that creates the shared pointer here if it is not already done.
 	CrLoadable(CrManagedObject* In) { Set(SP<Type>(In)); };

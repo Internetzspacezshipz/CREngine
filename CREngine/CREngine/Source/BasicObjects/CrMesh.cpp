@@ -28,8 +28,6 @@ CrMesh::~CrMesh()
 
 void CrMesh::BinSerialize(CrArchive& Arch)
 {
-	Arch <=> File;
-
 	//If loading
 	if (Arch.bSerializing == false)
 	{
@@ -44,9 +42,11 @@ bool CrMesh::UploadMesh()
 		return true;
 	}
 
-	if (File.empty() == false)
+	auto FileStr = MakeAssetReference().GetString();
+
+	if (FileStr.empty() == false)
 	{
-		if (MeshData.load_from_obj(File.generic_string().c_str()))
+		if (MeshData.load_from_obj(FileStr.c_str()))
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 			Engine->UploadMesh(&MeshData);

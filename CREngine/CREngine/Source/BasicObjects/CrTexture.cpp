@@ -40,17 +40,16 @@ bool CrTexture::UploadTexture()
 		return true;
 	}
 
-	auto FileStr = GetID().GetString();
-	FileStr.append(".png");
+	auto FileStr = MakeAssetReference().GetString();
 
 	if (FileStr.size())
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 
-		TextureData = std::make_unique<Texture>();
-		if (vkutil::load_image_from_file(Engine, FileStr.c_str(), TextureData->image))
+		TexData = std::make_unique<TextureData>();
+		if (vkutil::load_image_from_file(Engine, FileStr.c_str(), TexData->image))
 		{
-			Engine->UploadTexture(TextureData.get());
+			Engine->UploadTexture(TexData.get());
 			return true;
 		}
 	}
@@ -62,7 +61,7 @@ void CrTexture::UnloadTexture()
 	if (ValidData())
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-		Texture* TexPointer = TextureData.release();
+		TextureData* TexPointer = TexData.release();
 
 		//Might not be thread safe because this isn't guaranteed to be deleted after removal from the NextFrameDeletors array...
 		Engine->NextFrameDeletors.push_back(

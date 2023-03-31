@@ -79,7 +79,7 @@ Mesh* CrRenderable::GetMesh()
 	return MeshOb->GetData();
 }
 
-Material* CrRenderable::GetMaterial()
+MaterialData* CrRenderable::GetMaterial()
 {
 	//Later turn this into a thing that can return multiple materials.
 	return MaterialOb->GetData();

@@ -34,7 +34,7 @@ static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef,
 		UpdateCounter++;
 	}
 
-	if (ImGui::BeginCombo(TextBoxName.Value, IORef.AssetID.GetString().c_str()))
+	if (ImGui::BeginCombo(TextBoxName.Value, IORef.AssetID.GetString().data()))
 	{
 		// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 		ImGui::SetItemDefaultFocus();
@@ -86,7 +86,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<Type>>
 	{
 		CrAssetReference IORef = Item.GetRef();
 
-		String TempStr = IORef.AssetID.GetString();
+		String TempStr = String(IORef.AssetID.GetString());
 
 		if (ImGui::InputText(TextBoxName.Value, &TempStr), ImGuiInputTextFlags_EnterReturnsTrue)
 		{

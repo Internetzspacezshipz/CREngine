@@ -26,5 +26,5 @@ void CrUI_Base::RemoveUI(bool bPromptAllowed)
 
 void CrUI_Base::Construct()
 {
-	WindowTitle = GetID().GetString().c_str();
+	WindowTitle = GetID().GetString().data();
 }

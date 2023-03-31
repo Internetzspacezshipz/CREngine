@@ -941,7 +941,7 @@ void    ImGui_ImplVulkan_DestroyDeviceObjects()
 
 bool    ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data)
 {
-    // Load function pointers
+    // LoadTexture function pointers
     // You can use the default Vulkan loader using:
     //      ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void*) { return vkGetInstanceProcAddr(your_vk_isntance, function_name); });
     // But this would be equivalent to not setting VK_NO_PROTOTYPES.

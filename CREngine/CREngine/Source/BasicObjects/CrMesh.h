@@ -18,7 +18,6 @@ class CrMesh : public CrManagedObject
 
 	Mesh* GetData() { return &MeshData; }
 
-	Path File;
 private:
 	bool bMeshLoaded = false;
 	Mesh MeshData;

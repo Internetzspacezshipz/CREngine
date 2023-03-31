@@ -4,15 +4,22 @@
 #include <assert.h>
 #include "ThirdParty/archive/archive.h"
 
-struct CrArchive : public tser::BinaryArchive
+class CrArchive : public tser::BinaryArchive
 {
 	std::fstream Stream;
+	FILE* pFile;
+public:
 	bool bSerializing;
 
 	CrArchive(const std::string& Path, bool bIsSerializing)
 		: bSerializing(bIsSerializing)
 	{
-		Stream = std::fstream{ Path, std::ios::binary | (bIsSerializing ? std::ios::out : std::ios::in) };
+		//fopen_s(&pFile, Path.c_str(), "wb+");
+		//
+		//assert(pFile);
+
+
+		Stream = std::fstream{ Path, std::ios::binary | (bIsSerializing ? (std::ios::out) : (std::ios::in)) };
 		if (!Stream.is_open())
 		{
 			assert(0);
@@ -30,17 +37,32 @@ struct CrArchive : public tser::BinaryArchive
 		{
 			Save();
 		}
+		//fclose(pFile);
+
 		Stream.close();
 	}
 
-	void Save() 
+	void Save()
 	{
-		Stream << this;
+		//auto Buf = get_buffer();
+		//fwrite(Buf.data(), sizeof(char), Buf.size(), pFile);
+		Stream << *this;
 	};
 
 	void Load() 
 	{
-		*this << Stream;
+		//auto Buf = get_buffer();
+		//fseek(pFile, 0, SEEK_END);
+		//auto FileSize = ftell(pFile);
+		//fseek(pFile, 0, SEEK_SET);
+		//fread(const_cast<char*>(Buf.data()), sizeof(char), FileSize, pFile);
+		//assert(!ferror(pFile));
+		
+		// copies all data into buffer
+		//    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+
+		std::string buffer(std::istreambuf_iterator<char>(Stream), {});
+		initialize(buffer);
 	};
 };
 

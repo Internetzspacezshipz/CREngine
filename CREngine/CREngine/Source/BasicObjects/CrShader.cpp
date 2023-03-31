@@ -33,7 +33,7 @@ void CrShader::BinSerialize(CrArchive& Arch)
 
 bool CrShader::LoadShader()
 {
-	auto FileStr = GetID().GetString();
+	auto FileStr = MakeAssetReference().GetString();
 	if (FileStr.size())
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();

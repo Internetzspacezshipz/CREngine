@@ -987,7 +987,8 @@ void VulkanEngine::cleanup_pipelines()
 bool VulkanEngine::LoadShaderModule(const char* filePath, VkShaderModule& outShaderModule)
 {
 	//open the file. With cursor at the end
-	std::ifstream file(GetShadersPath() / filePath, std::ios::ate | std::ios::binary);
+	auto FP = BasePath() / filePath;
+	std::ifstream file(FP, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open())
 	{
@@ -1033,7 +1034,7 @@ void VulkanEngine::UnloadShaderModule(VkShaderModule& DeleteShader)
 	DeleteShader = nullptr;
 }
 
-void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, Material& MaterialDataOut)
+void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, MaterialData& MaterialDataOut)
 {
 	PipelineBuilder pipelineBuilder;
 
@@ -1122,7 +1123,7 @@ void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule
 	MaterialDataOut.pipelineLayout = PipelineLayout;
 }
 
-void VulkanEngine::DestroyMaterial(Material& MaterialDataOut)
+void VulkanEngine::DestroyMaterial(MaterialData& MaterialDataOut)
 {
 	if (MaterialDataOut.pipelineLayout)
 	{
@@ -1311,7 +1312,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 	vmaUnmapMemory(_allocator, get_current_frame().objectBuffer._allocation);
 
 	Mesh* lastMesh = nullptr;
-	Material* lastMaterial = nullptr;
+	MaterialData* lastMaterial = nullptr;
 
 	for (int i = 0; i < RenderItems.size(); i++)
 	{
@@ -1396,7 +1397,7 @@ void VulkanEngine::init_scene()
 	}
 
 
-	Material* texturedMat=	get_material("texturedmesh");
+	MaterialData* texturedMat=	get_material("texturedmesh");
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.pNext = nullptr;
@@ -1496,7 +1497,7 @@ void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& f
 	vkResetCommandPool(_device, _uploadContext._commandPool, 0);
 }
 
-void VulkanEngine::UploadTexture(Texture* NewTexture)
+void VulkanEngine::UploadTexture(TextureData* NewTexture)
 {
 	VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, NewTexture->image._image, VK_IMAGE_ASPECT_COLOR_BIT);
 
@@ -1519,7 +1520,7 @@ void VulkanEngine::UploadTexture(Texture* NewTexture)
 	NewTexture->DescriptorSet = ImGui_ImplVulkan_AddTexture(NewTexture->Sampler, NewTexture->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void VulkanEngine::UnloadTexture(Texture* DeleteTex)
+void VulkanEngine::UnloadTexture(TextureData* DeleteTex)
 {
 	_vkbSwapchain.destroy_image_views({ DeleteTex->imageView });
 	vmaDestroyImage(_allocator, DeleteTex->image._image, DeleteTex->image._allocation);

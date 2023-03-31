@@ -34,10 +34,10 @@ class CrMaterial : public CrManagedObject
 
 	//Todo: setup push constants here, since they are shared between vert shader and frag shader in the pipeline.
 
-	Material* GetData() { return &MaterialData; }
+	MaterialData* GetData() { return &MatData; }
 
 private:
-	Material MaterialData;
+	MaterialData MatData;
 };
 
 

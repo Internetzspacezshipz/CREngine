@@ -152,7 +152,6 @@ class CrSerialization
 	Map<String, CrID> ExtensionToClass;
 	Map<CrID, String> ClassToExtension;
 
-	String GetExtensionForClass(const CrID& InID) const;
 	CrID GetClassForExtension(const String& InExt) const;
 
 	Path RefToPath(const CrAssetReference& In) const;
@@ -187,6 +186,7 @@ public:
 	void RegisterExtensionClass(const String& Extension, const CrID& ClassID);
 
 	bool IsSupportedFileType(const Path& InPath);
+	String GetExtensionForClass(const CrID& InID) const;
 };
 
 template<typename SpecificClass, StringLiteral Extension>

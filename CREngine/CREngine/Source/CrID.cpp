@@ -1,20 +1,37 @@
 #include "CrID.hpp"
 #include "CrSimpleHashes.h"
+#include "CrSerialization.hpp"
+
 
 consteval void CrObjectIDRegistry::AddInitValue()
 {
 
 }
 
-Map<IDNum_t, String>& CrObjectIDRegistry::GetMap()
+Map<IDNum_t, uint32_t>& CrObjectIDRegistry::GetMap()
 {
-	static Map<IDNum_t, String> Map { };
+	static Map<IDNum_t, uint32_t> Map { };
 	return Map;
+}
+
+Array<String>& CrObjectIDRegistry::GetStringArr()
+{
+	static Array<String> Arr{ };
+	return Arr;
+}
+
+void CrObjectIDRegistry::Emplace(IDNum_t Number, String&& InString)
+{
+	Array<String>& Arr = GetStringArr();
+	auto V = Arr.size();
+	Arr.push_back(std::move(InString));
+	GetMap().emplace(Number, V);
 }
 
 CrID CrObjectIDRegistry::CreateUniqueID(const String& In)
 {
-	Map<IDNum_t, String>& Map = GetMap();
+	Map<IDNum_t, uint32_t>& Map = GetMap();
+	Array<String>& StrArr = GetStringArr();
 	int Index = 0;
 	String UniqueString = In;
 	IDNum_t UniqueValue = 0;
@@ -24,7 +41,7 @@ CrID CrObjectIDRegistry::CreateUniqueID(const String& In)
 		UniqueValue = crc32(UniqueString);
 	} while (Map.find(UniqueValue) != Map.end());
 
-	Map.emplace(UniqueValue, UniqueString);
+	Emplace(UniqueValue, std::move(UniqueString));
 
 	CrID Out;
 	Out.FlagValue = true;
@@ -42,16 +59,15 @@ FlagSize CrID::GetFlags() const
 	return FlagValue >> NUMBER_OFFSET;
 }
 
-String CrID::GetString() const
+
+StringV CrID::GetString() const
 {
-	String Out = "";
-	auto Map = CrObjectIDRegistry::GetMap();
-	auto Itr = Map.find(Number);
-	if (Map.end() != Itr)
-	{
-		Out = Itr->second;
-	}
-	return Out;
+	return CrObjectIDRegistry::GetStringImpl<false>(Number);
+}
+
+StringV CrID::GetStringPretty() const
+{
+	return CrObjectIDRegistry::GetStringImpl<true>(Number);
 }
 
 bool CrID::IsValidID() const
@@ -73,10 +89,10 @@ CrID::CrID(String Name)
 	Number = crc32(Name.c_str(), Name.length());
 
 	//Check if we have this number yet...
-	Map<IDNum_t, String>& Map = CrObjectIDRegistry::GetMap();
+	auto& Map = CrObjectIDRegistry::GetMap();
 	if (!Map.contains(Number))
 	{
-		Map.emplace(Number, std::move(Name));
+		CrObjectIDRegistry::Emplace(Number, std::move(Name));
 	}
 }
 
@@ -86,8 +102,16 @@ CrID::CrID(const IDNum_t& InNum, const String& InString) :
 	Number(InNum),
 	FlagValue(HasBeenSet)
 {
-	Map<IDNum_t, String>& Reg = CrObjectIDRegistry::GetMap();
+	auto& Reg = CrObjectIDRegistry::GetMap();
 	//If this is hit, that means somehow this constructor was hit twice for the same key, which should NOT happen.
 	assert(!Reg.contains(Number));
-	Reg.emplace(Number, InString);
+	CrObjectIDRegistry::Emplace(Number, String(InString));
 }
+
+String CrAssetReference::GetString() const
+{
+	String OutString = String(AssetID.GetString());
+	OutString.append(CrSerialization::Get().GetExtensionForClass(ClassID));
+	return OutString;
+}
+

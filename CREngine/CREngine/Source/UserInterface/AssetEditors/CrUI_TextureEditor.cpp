@@ -29,7 +29,7 @@ void CrUI_TextureEditor::DrawUI()
 
 	if (Casted->ValidData())
 	{
-		Texture* Tex = Casted->GetData();
+		TextureData* Tex = Casted->GetData();
 		if (ImGui::CollapsingHeader("Show Image", DefaultCollapsingHeaderFlags))
 		{
 			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 1.f);//added 1 here to make sure it can never div/zero

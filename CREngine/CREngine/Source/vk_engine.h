@@ -23,9 +23,9 @@
 //for keycodes.
 #include <SDL_keycode.h>
 
-#include "CRE_KeySystem.hpp"
-#include "CRE_Utilities.hpp"
-#include "CRE_Types.hpp"
+#include "CrKeySystem.hpp"
+#include "CrUtilities.hpp"
+#include "CrTypes.hpp"
 
 
 class PipelineBuilder 
@@ -167,7 +167,7 @@ public:
 	//Call to this every frame for drawing ImGui UI elements.
 	std::function<void()> UIDrawFunction;
 
-	CRE_KeySystem _KeySystem;
+	CrKeySystem _KeySystem;
 
 
 

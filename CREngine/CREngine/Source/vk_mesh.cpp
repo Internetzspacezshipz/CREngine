@@ -1,7 +1,7 @@
 ﻿#include <vk_mesh.h>
 #include <thirdparty/tinyobjloader/tiny_obj_loader.h>
 #include <iostream>
-#include <CRE_Paths.hpp>
+#include <CrPaths.hpp>
 
 VertexInputDescription Vertex::get_vertex_description()
 {
@@ -53,7 +53,7 @@ VertexInputDescription Vertex::get_vertex_description()
 
 bool Mesh::load_from_obj(const char* filename)
 {
-	auto Pfilename = getAssetsPath() / filename;
+	auto Pfilename = GetAssetsPath() / filename;
 
 	//attrib will contain the vertex arrays of the file
 	tinyobj::attrib_t attrib;

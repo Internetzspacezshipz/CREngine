@@ -8,7 +8,7 @@
 #endif
 
 
-#include "CRE_App.hpp"
+#include "CrApp.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 #endif
 
 	VulkanEngine engine;
-	CRE_App MainApp;
+	CrApp MainApp;
 	engine.init();
 
 	MainApp.SetupGlobalVariables(&engine);

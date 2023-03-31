@@ -2,7 +2,7 @@
 #include <iostream>
 
 //cre incl.
-#include <CRE_Paths.hpp>
+#include <CrPaths.hpp>
 
 #include <vk_initializers.h>
 
@@ -13,7 +13,8 @@
 
 bool vkutil::load_image_from_file(VulkanEngine* engine, const char* file, AllocatedImage & outImage)
 {
-	stbi_uc* pixels = stbi_load((getAssetsPath() / file).string().c_str(), &outImage.texWidth, &outImage.texHeight, &outImage.texChannelsActual, STBI_rgb_alpha);
+	auto FileStr = (BasePath() / file).string();
+	stbi_uc* pixels = stbi_load(FileStr.c_str(), &outImage.texWidth, &outImage.texHeight, &outImage.texChannelsActual, STBI_rgb_alpha);
 
 	if (!pixels) {
 		std::cout << "Failed to load texture file " << file << std::endl;

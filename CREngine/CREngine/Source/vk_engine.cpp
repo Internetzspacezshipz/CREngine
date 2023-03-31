@@ -2,7 +2,7 @@
 #include "vk_engine.h"
 
 //CRE includes
-#include <CRE_Paths.hpp>
+#include <CrPaths.hpp>
 
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -273,7 +273,7 @@ void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 
-	//Call the UIDrawFunction to ask the CRE_App to call all UI object Draw functions.
+	//Call the UIDrawFunction to ask the CrApp to call all UI object Draw functions.
 	//if (bDrawUI)
 	{
 		if (UIDrawFunction)
@@ -319,7 +319,7 @@ void VulkanEngine::init_vulkan()
 	vkb::InstanceBuilder builder;
 
 	//make the vulkan instance, with basic debug features
-	auto inst_ret = builder.set_app_name("CRE_Engine")
+	auto inst_ret = builder.set_app_name("CrEngine")
 		.request_validation_layers(bUseValidationLayers)
 		.use_default_debug_messenger()
 		.require_api_version(1, 1, 0)
@@ -987,7 +987,7 @@ void VulkanEngine::cleanup_pipelines()
 bool VulkanEngine::LoadShaderModule(const char* filePath, VkShaderModule& outShaderModule)
 {
 	//open the file. With cursor at the end
-	std::ifstream file(getShadersPath() / filePath, std::ios::ate | std::ios::binary);
+	std::ifstream file(GetShadersPath() / filePath, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open())
 	{

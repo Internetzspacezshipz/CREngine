@@ -327,7 +327,9 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CrLogging.h" />
     <ClInclude Include="Source\CrSerializationBin.h" />
+    <ClInclude Include="Source\ThirdParty\ThirdPartyLibs.h" />
     <ClInclude Include="Source\ThirdParty\archive\archive.h" />
     <ClInclude Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.h" />
     <ClInclude Include="Source\BasicObjects\CrMaterial.h" />

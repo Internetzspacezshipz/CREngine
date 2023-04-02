@@ -304,6 +304,12 @@
     <ClInclude Include="Source\CrSerializationBin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CrLogging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\ThirdPartyLibs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Shaders\Simple_FragShader.frag">

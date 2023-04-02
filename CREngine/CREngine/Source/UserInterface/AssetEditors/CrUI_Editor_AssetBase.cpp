@@ -30,7 +30,7 @@ void CrUI_Editor_AssetBase::Construct()
 
 void CrUI_Editor_AssetBase::DrawUI()
 {
-	ImGui::Begin(WindowTitle.c_str(), &bOpen, GetWindowFlags());
+	ImGui::Begin(WindowTitle, &bOpen, GetWindowFlags());
 	ImGui::SetWindowSize(DefaultEditorWindowSize, ImGuiCond_Once);
 	ImGui::SetWindowPos({ 200.f, 50.f }, ImGuiCond_Once);
 

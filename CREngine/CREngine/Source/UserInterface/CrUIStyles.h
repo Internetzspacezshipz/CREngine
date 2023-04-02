@@ -1,5 +1,5 @@
 #pragma once
-#include <ThirdParty/imgui/imgui.h>
+#include "ThirdParty/ThirdPartyLibs.h"
 
 constexpr static ImVec2 DefaultEditorWindowSize{ 400.f, 600.f };
 

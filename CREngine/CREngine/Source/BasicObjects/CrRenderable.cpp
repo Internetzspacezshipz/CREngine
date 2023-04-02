@@ -17,8 +17,8 @@ CrRenderable::~CrRenderable()
 //	//advise to do this for each child class of this one.
 //	Super::Serialize(bSerializing, TargetJson);
 //
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, MaterialOb);
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, MeshOb);
+//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, Material);
+//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, Mesh);
 //
 //	if (!bSerializing)
 //	{
@@ -28,8 +28,8 @@ CrRenderable::~CrRenderable()
 
 void CrRenderable::BinSerialize(CrArchive& Arch)
 {
-	Arch <=> MaterialOb;
-	Arch <=> MeshOb;
+	Arch <=> Material;
+	Arch <=> Mesh;
 
 	if (!Arch.bSerializing)
 	{
@@ -51,13 +51,13 @@ void CrRenderable::SetRenderingEnabled(bool bRenderingEnabled)
 
 void CrRenderable::LoadRenderable()
 {
-	if (MeshOb.IsLoadedOrLoadable())
+	if (Mesh.IsLoadedOrLoadable())
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-		MeshOb.SafeLoad();
+		Mesh.SafeLoad();
 
 		//Ensure mesh is uploaded.
-		MeshOb->UploadMesh();
+		Mesh->UploadMesh();
 		bHasBeenLoaded = true;
 
 		//Make a shared pointer from ourself.
@@ -74,13 +74,13 @@ void CrRenderable::UnloadRenderable()
 	}
 }
 
-Mesh* CrRenderable::GetMesh()
+MeshData* CrRenderable::GetMesh()
 {
-	return MeshOb->GetData();
+	return Mesh->GetData();
 }
 
 MaterialData* CrRenderable::GetMaterial()
 {
 	//Later turn this into a thing that can return multiple materials.
-	return MaterialOb->GetData();
+	return Material->GetData();
 }

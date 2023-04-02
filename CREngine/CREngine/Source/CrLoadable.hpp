@@ -74,7 +74,7 @@ public:
 		}
 		else
 		{
-			LoadedObject = DCast<Type>(CrSerialization::Get().Reload(LoadedObject, Reference));
+			CrSerialization::Get().Reload(LoadedObject, Reference);
 		}
 	}
 

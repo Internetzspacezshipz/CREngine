@@ -27,10 +27,10 @@ void CrUI_RenderableEditor::DrawUI()
 		return;
 	}
 
-	bool bWasEdited = true;
+	bool bWasEdited = false;
 
-	bWasEdited |= EditField<"Material">(Casted->MaterialOb);
-	bWasEdited |= EditField<"Mesh">(Casted->MeshOb);
+	bWasEdited |= EditField<"Material">(Casted->Material);
+	bWasEdited |= EditField<"MeshData">(Casted->Mesh);
 
 	if (bWasEdited)
 	{

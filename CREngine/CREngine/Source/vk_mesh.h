@@ -29,7 +29,7 @@ enum Shape : uint16_t
 	ShapeQuad = 1 << 1,
 };
 
-struct Mesh
+struct MeshData
 {
 	std::vector<Vertex> _vertices;
 

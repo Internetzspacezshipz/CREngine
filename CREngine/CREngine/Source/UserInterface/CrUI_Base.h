@@ -2,8 +2,7 @@
 #include "CrManagedObject.hpp"
 
 //include this here in order to ensure we have imgui for child classes.
-#include "ThirdParty/imgui/imgui.h"
-#include "ThirdParty/imgui/imgui_stdlib.h"
+#include "ThirdParty/ThirdPartyLibs.h"
 
 //Basic user interface object, with the virtual function DrawUI.
 class CrUI_Base : public CrManagedObject

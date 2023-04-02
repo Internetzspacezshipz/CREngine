@@ -17,6 +17,8 @@ class CrShader : public CrManagedObject
 	void UnloadShader();
 
 	VkShaderModule GetShader();
+
+	virtual void Construct() override;
 private:
 	VkShaderModule ShaderData;
 };

@@ -9,7 +9,7 @@
 
 #include "vk_engine.h"
 
-struct Mesh;
+struct MeshData;
 struct MaterialData;
 
 //A 2d object that is renderable in the scene used for UI mainly.
@@ -26,18 +26,16 @@ class CrRenderable : public CrManagedObject, public RenderObject, public std::en
 	void LoadRenderable();
 	void UnloadRenderable();
 
-	CrLoadable<CrMaterial> MaterialOb;
-
-	CrLoadable<CrMesh> MeshOb;
+	CrLoadable<CrMaterial> Material;
+	CrLoadable<CrMesh> Mesh;
 
 	// Inherited via RenderObject
-	virtual Mesh* GetMesh() override;
+	virtual MeshData* GetMesh() override;
 	virtual MaterialData* GetMaterial() override;
 
 private:
 	bool bHasBeenLoaded = false;
 	bool bRenderEnable = true;
-
 };
 
 

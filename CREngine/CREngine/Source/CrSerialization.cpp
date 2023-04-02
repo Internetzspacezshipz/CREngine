@@ -39,36 +39,6 @@ bool CrSerialization::SaveJsonToFile(Path InPath, const Json& InJson) const
 	return !File.fail();
 }
 
-String CrSerialization::GetExtensionForClass(const CrID& InID) const
-{
-	auto Found = ClassToExtension.find(InID);
-	if (Found != ClassToExtension.end())
-	{
-		return Found->second;
-	}
-	return GenericItemExt;
-}
-
-CrID CrSerialization::GetClassForExtension(const String& InExt) const
-{
-	if (InExt.starts_with('.') == false)
-	{
-		return CrID();
-	}
-
-	if (InExt == GenericItemExt)
-	{
-		return CrManagedObject::StaticClass();
-	}
-
-	auto Found = ExtensionToClass.find(InExt);
-	if (Found != ExtensionToClass.end())
-	{
-		return Found->second;
-	}
-	return CrID();
-}
-
 Path CrSerialization::RefToPath(const CrAssetReference& In) const
 {
 	if (!In.IsValidID())
@@ -239,7 +209,7 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 	}
 
 	Path TargetPath = RefToPath(ToLoad);
-	CrArchive LoadedFile{ TargetPath.generic_string(), false};
+	CrArchiveIn LoadedFile { TargetPath.generic_string() };
 
 	if (!Target)
 	{
@@ -266,11 +236,11 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 				Target.swap(Object);
 			}
 		}
+		LoadedFile <=> Target->ID;
 	}
 
 	if (Target)
 	{
-		Target->ID = ToLoad.AssetID;
 		Target->BinSerialize(LoadedFile);
 	}
 }
@@ -288,7 +258,7 @@ void CrSerialization::Save(SP<CrManagedObject> ToSave)
 	}
 
 	const String StrPath = (BasePath() / ToSave->GetID().GetString()).generic_string() + GetExtensionForClass(ToSave->GetClass());
-	CrArchive OutArch { StrPath, true };
+	CrArchiveOut OutArch { StrPath };
 	CrID ClassID = ToSave->GetClass();
 	OutArch <=> ClassID;
 	OutArch <=> ToSave->ID;
@@ -316,4 +286,36 @@ bool CrSerialization::IsSupportedFileType(const Path& InPath)
 	}
 
 	return ExtensionToClass.contains(Ext);
+}
+
+String CrSerialization::GetExtensionForClass(const CrID& InID) const
+{
+	auto Found = ClassToExtension.find(InID);
+	if (Found != ClassToExtension.end())
+	{
+		return Found->second;
+	}
+	return GenericItemExt;
+}
+
+CrID CrSerialization::GetClassForExtension(const String& InExt) const
+{
+	if (InExt.starts_with('.') == false)
+	{
+		assert(false);
+		return CrID();
+	}
+
+	if (InExt == GenericItemExt)
+	{
+		return CrManagedObject::StaticClass();
+	}
+
+	auto Found = ExtensionToClass.find(InExt);
+	if (Found != ExtensionToClass.end())
+	{
+		return Found->second;
+	}
+	assert(false);
+	return CrID();
 }

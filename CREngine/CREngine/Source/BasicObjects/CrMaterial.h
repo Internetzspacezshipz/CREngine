@@ -15,7 +15,6 @@ class CrMaterial : public CrManagedObject
 	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 	virtual void BinSerialize(CrArchive& Arch) override;
 
-
 	// A "material" in vulkan is initialized in the following manner:
 	// 1. Load/create shader modules - specifically these are the compiled shader files
 	// 2. Build a pipeline for the shaders to be used in. A usual setup will have 2 shader stages, vertex, then fragment

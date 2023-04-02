@@ -21,20 +21,6 @@ void CrMaterial::BinSerialize(CrArchive& Arch)
 	}
 }
 
-//void CrMaterial::Serialize(bool bSerializing, nlohmann::json& TargetJson)
-//{
-//	//Super::Serialize(bSerializing, TargetJson);
-//
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, VertexShader);
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, FragmentShader);
-//
-//	if (!bSerializing)
-//	{
-//		UnloadMaterial();
-//		LoadMaterial();
-//	}
-//}
-
 bool CrMaterial::LoadMaterial()
 {
 	//Already loaded.

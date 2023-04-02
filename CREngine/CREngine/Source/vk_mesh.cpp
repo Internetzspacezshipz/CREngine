@@ -51,7 +51,7 @@ VertexInputDescription Vertex::get_vertex_description()
 	return description;
 }
 
-bool Mesh::load_from_obj(const char* filename)
+bool MeshData::load_from_obj(const char* filename)
 {
 	auto Pfilename = GetAssetsPath() / filename;
 
@@ -134,7 +134,7 @@ bool Mesh::load_from_obj(const char* filename)
 	return true;
 }
 
-void Mesh::MakeFromShape(Shape InShape)
+void MeshData::MakeFromShape(Shape InShape)
 {
 	switch (InShape)
 	{

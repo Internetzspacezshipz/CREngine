@@ -1,8 +1,7 @@
 #pragma once
 #include "CrLoadable.hpp"
 
-#include "ThirdParty/imgui/imgui.h"
-#include "ThirdParty/imgui/imgui_stdlib.h"
+#include "ThirdParty/ThirdPartyLibs.h"
 
 //For paths
 #include "CrPaths.hpp"
@@ -11,9 +10,10 @@
 //For inline tex ref editor.
 #include "BasicObjects/CrTexture.h"
 #include "BasicObjects/CrShader.h"
+#include <BasicObjects/CrMesh.h>
 
 
-template<StringLiteral TextBoxName, uint32_t UpdateFrequency = 600, typename DirIterType = std::filesystem::recursive_directory_iterator>
+template<StringLiteral TextBoxName, StringLiteral RequiredExtension = "", uint32_t UpdateFrequency = 1800, typename DirIterType = std::filesystem::recursive_directory_iterator>
 static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef, const Path& StartPath)
 {
 	bool bSelected = false;
@@ -45,13 +45,28 @@ static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef,
 		for (auto& Directory : Items)
 		{
 			String Str = Directory.generic_string();
+
+			//check for required extension
+			if constexpr (RequiredExtension.Size != 0)
+			{
+				if (Directory.has_extension())
+				{
+					String TestStr = RequiredExtension.Value;
+					String Test2 = Directory.extension().generic_string().c_str();
+					if (Test2 != TestStr)
+					{
+						continue;
+					}
+				}
+			}
+
 			if (Filter.PassFilter(Str.c_str()))
 			{
 				if (ImGui::Selectable(Str.c_str(), &bSelected))
 				{
 					bClicked = true;
 					IORef.AssetID = Str;
-					IORef.ClassID = Directory.extension().generic_string();
+					IORef.ClassID = CrSerialization::Get().GetClassForExtension(Directory.extension().generic_string());
 				}
 			}
 		}
@@ -88,9 +103,9 @@ struct CrFieldEditor<TextBoxName, CrLoadable<Type>>
 
 		String TempStr = String(IORef.AssetID.GetString());
 
-		if (ImGui::InputText(TextBoxName.Value, &TempStr), ImGuiInputTextFlags_EnterReturnsTrue)
+		//Unknown type - just give it a 
+		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".crap">(IORef, GetAssetsPath()))
 		{
-			IORef.AssetID = TempStr;
 			Item.Set(IORef);
 			return true;
 		}
@@ -107,7 +122,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrTexture>>
 		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName>(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".tga">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);	
 			return true;
@@ -125,7 +140,25 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrShader>>
 		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName>(IORef, GetShadersPath()))
+		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".spv">(IORef, GetShadersPath()))
+		{
+			Item.Set(IORef);
+			return true;
+		}
+		return false;
+	}
+};
+
+//Tex editor, specifically looks up textures in the asset folder.
+template<StringLiteral TextBoxName>
+struct CrFieldEditor<TextBoxName, CrLoadable<CrMesh>>
+{
+	static bool Call(CrLoadable<CrMesh>& Item)
+	{
+		bool bSelected = false;
+		CrAssetReference IORef = Item.GetRef();
+
+		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".obj">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);
 			return true;

@@ -46,12 +46,14 @@ void CrApp::SetupGlobalVariables(VulkanEngine* InEnginePointer)
 
 void CrApp::DrawUIObjects()
 {
-    for (auto Element : UIObjects)
+    for (auto& Element : UIObjects)
     {
-        Element.second->DrawUI();
+        //keep a copy of the temp shared pointer here in case the UI tries to remove itself before it's done execution.
+        SP<CrUI_Base> TempSP = Element.second;
+        TempSP->DrawUI();
     }
 
-    //Remove all null items that might have been deleted during the loop.
+    //Remove all null items that might have been deleted at any time before..
     RemoveByPredicate(UIObjects, [](const Pair<const CrID, SP<CrUI_Base>>& Item)->bool { return Item.second.get() == nullptr; });
 }
 

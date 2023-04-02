@@ -16,11 +16,11 @@ class CrMesh : public CrManagedObject
 	bool UploadMesh();
 	void UnloadMesh();
 
-	Mesh* GetData() { return &MeshData; }
+	MeshData* GetData() { return &MeshData; }
 
 private:
 	bool bMeshLoaded = false;
-	Mesh MeshData;
+	MeshData MeshData;
 };
 
 

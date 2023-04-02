@@ -13,7 +13,7 @@ class CrObjectIDRegistry
 	friend class CrID;
 	friend class CrObjectFactory;
 
-	static Map<IDNum_t, uint32_t>& GetMap();
+	static Map<IDNum_t, uint64_t>& GetMap();
 
 	//We keep the strings separated from the map since we need stable string locations for making std::string_views into them.
 	static Array<String>& GetStringArr();
@@ -76,15 +76,19 @@ public:
 	}
 	bool operator == (const CrID& CompareWith) const { return Number == CompareWith.Number; }
 
-	CrID(String Name);
+	CrID(const String& Name);
+	CrID(String&& Name);
 	CrID();
 
 	//Helper for creating CrID at compile time without ever having to do the crc
 	template<StringLiteral LitString>
 	static CrID Constant()
 	{
-		constexpr auto Output = crc32_CONSTEVAL<LitString.Size>(LitString.Value);
+		constexpr uint32_t Output = crc32_CONSTEVAL<LitString.Size>(LitString.Value);
 		constexpr auto Str = LitString.Value;
+
+		//CrLOG("Static ID Made:   <%ul>    <%s> sz:<%ull>     x", Output, LitString.Value, LitString.Size);
+
 		//Compiler only makes the ID once.
 		static CrID V = CrID(Output, Str);
 		return V;
@@ -131,17 +135,18 @@ static void VarSerialize(bool bSerializing, nlohmann::json& TargetJson, CrID& Va
 }
 
 //Special serialize for IDs.
-template<>
-inline static void operator <=><CrID>(CrArchive& Arch, CrID& ToSerialize)
+inline static void operator <=>(CrArchive& Arch, CrID& ToSerialize)
 {
 	if (Arch.bSerializing)
 	{
-		Arch.save(ToSerialize.GetString());
+		//Must copy since it's a string_view
+		String TempStr = String(ToSerialize.GetString());
+		Arch <=> TempStr;
 	}
 	else
 	{
-		std::string TempStr;
-		Arch.load(TempStr);
+		String TempStr;
+		Arch <=> TempStr;
 		ToSerialize = CrID(std::move(TempStr));
 	}
 }
@@ -199,8 +204,7 @@ namespace std
 }
 
 //Special serialize for IDs.
-template<>
-inline static void operator <=><CrAssetReference>(CrArchive& Arch, CrAssetReference& ToSerialize)
+inline static void operator <=>(CrArchive& Arch, CrAssetReference& ToSerialize)
 {
 	Arch <=> ToSerialize.AssetID;
 	Arch <=> ToSerialize.ClassID;

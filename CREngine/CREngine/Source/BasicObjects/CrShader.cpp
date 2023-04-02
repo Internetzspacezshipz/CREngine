@@ -59,3 +59,9 @@ VkShaderModule CrShader::GetShader()
 	}
 	return ShaderData;
 }
+
+void CrShader::Construct()
+{
+	//ensure this is zerofilled.
+	ShaderData = nullptr;
+}

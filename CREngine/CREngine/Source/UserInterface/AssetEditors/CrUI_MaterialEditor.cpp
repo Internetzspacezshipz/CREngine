@@ -28,7 +28,7 @@ void CrUI_MaterialEditor::DrawUI()
 		ImGui::End();
 		return;
 	}
-	bool bWasEdited = true;
+	bool bWasEdited = false;
 
 	bWasEdited |= EditField<"Vertex Shader">(Casted->VertexShader);
 	bWasEdited |= EditField<"Fragment Shader">(Casted->FragmentShader);

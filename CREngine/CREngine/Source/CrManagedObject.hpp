@@ -154,6 +154,7 @@ public:
 	template<class T>
 	void RegisterClass(const ClassGUID& ClassID)
 	{
+		CrLOG("Register Class : Index: <%ul>   Name: <%s>     x", ClassID.GetNumber(), String(ClassID.GetString()).c_str());
 		ClassCreators.insert({ ClassID, [](const ObjGUID& Name)->SP<CrManagedObject> { return DCast<CrManagedObject>(std::make_shared<T>(Name)); } });
 		ClassInfos.insert({ ClassID, &CrClassConcrete<T>::Get() });
 	}

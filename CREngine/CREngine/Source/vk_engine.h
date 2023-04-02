@@ -14,11 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-//Vulkan bootstrap for helping with managment of swapchain and other vulkan parts.
-#include "thirdparty/vkbootstrap/VkBootstrap.h"
-
-//Vulkan descriptor allocator https://github.com/vblanco20-1/Vulkan-Descriptor-Allocator
-#include <thirdparty/descriptorAlloc/descriptor_allocator.h>
+#include "ThirdParty/ThirdPartyLibs.h"
 
 //for keycodes.
 #include <SDL_keycode.h>
@@ -92,7 +88,7 @@ struct TextureData
 
 struct RenderObject 
 {
-	virtual Mesh* GetMesh() = 0;
+	virtual MeshData* GetMesh() = 0;
 	virtual MaterialData* GetMaterial() = 0;
 	Matrix4 transformMatrix;
 };
@@ -290,8 +286,8 @@ public:
 	void UnloadTexture(TextureData* DeleteTex);
 
 	//Upload mesh to GPU
-	void UploadMesh(Mesh* NewMesh);
-	void UnloadMesh(Mesh* DeleteMesh);
+	void UploadMesh(MeshData* NewMesh);
+	void UnloadMesh(MeshData* DeleteMesh);
 
 	//loads a shader module from a spir-v file. Returns false if it errors
 	bool LoadShaderModule(const char* FilePath, VkShaderModule& OutShaderModule);

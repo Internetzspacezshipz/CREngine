@@ -3,14 +3,12 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <ThirdParty/func/func.hpp>
 #include <filesystem>
 
-//Serialization:
-#include <json.hpp>
-#include <ThirdParty/archive/archive.h>
+//Logging
+#include "CrLogging.h"
 
-#include <glm/glm.hpp>
+#include "ThirdParty/ThirdPartyLibs.h"
 
 
 template<typename ... args>
@@ -29,6 +27,9 @@ using Path = std::filesystem::path;
 
 using String = std::string;
 using StringV = std::string_view;
+
+using WString = std::wstring;
+using WStringV = std::wstring_view;
 
 using Json = nlohmann::json;
 

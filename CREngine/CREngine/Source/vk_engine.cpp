@@ -26,10 +26,7 @@
 #include <filesystem>
 
 //Imgui incl
-#include "thirdparty/imgui/imgui.h"
-#include "thirdparty/imgui/imgui_impl_sdl2.h"
-#include "thirdparty/imgui/imgui_impl_vulkan.h"
-
+#include "ThirdParty/ThirdPartyLibs.h"
 
 constexpr bool bUseValidationLayers = true;
 
@@ -1204,7 +1201,7 @@ void VulkanEngine::load_meshes()
 {
 	return;
 #if 0
-	Mesh triMesh{};
+	MeshData triMesh{};
 	//make the array 3 vertices long
 	triMesh._vertices.resize(3);
 
@@ -1220,10 +1217,10 @@ void VulkanEngine::load_meshes()
 	//we dont care about the vertex normals
 
 	//load the monkey
-	Mesh monkeyMesh{};
+	MeshData monkeyMesh{};
 	monkeyMesh.load_from_obj("monkey_smooth.obj");
 
-	Mesh lostEmpire{};
+	MeshData lostEmpire{};
 	lostEmpire.load_from_obj("lost_empire.obj");
 
 	UploadMesh(&triMesh);
@@ -1311,7 +1308,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 	
 	vmaUnmapMemory(_allocator, get_current_frame().objectBuffer._allocation);
 
-	Mesh* lastMesh = nullptr;
+	MeshData* lastMesh = nullptr;
 	MaterialData* lastMaterial = nullptr;
 
 	for (int i = 0; i < RenderItems.size(); i++)
@@ -1527,7 +1524,7 @@ void VulkanEngine::UnloadTexture(TextureData* DeleteTex)
 	vkDestroySampler(_device, DeleteTex->Sampler, nullptr);
 }
 
-void VulkanEngine::UploadMesh(Mesh* NewMesh)
+void VulkanEngine::UploadMesh(MeshData* NewMesh)
 {
 	const size_t bufferSize = NewMesh->_vertices.size() * sizeof(Vertex);
 	//allocate vertex buffer
@@ -1592,7 +1589,7 @@ void VulkanEngine::UploadMesh(Mesh* NewMesh)
 	vmaDestroyBuffer(_allocator, stagingBuffer._buffer, stagingBuffer._allocation);
 }
 
-void VulkanEngine::UnloadMesh(Mesh* DeleteMesh)
+void VulkanEngine::UnloadMesh(MeshData* DeleteMesh)
 {
 	vmaDestroyBuffer(_allocator, DeleteMesh->_vertexBuffer._buffer, DeleteMesh->_vertexBuffer._allocation);
 }

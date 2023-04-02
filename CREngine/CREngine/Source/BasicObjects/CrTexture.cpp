@@ -3,7 +3,7 @@
 #include "CrGlobals.h"
 #include "CrSerialization.hpp"
 
-REGISTER_CLASS_FLAGS(CrTexture, CrClassFlags_Unique, CrClassFlags_Transient);
+REGISTER_CLASS_FLAGS(CrTexture, CrClassFlags_Unique, CrClassFlags_Transient, CrClassFlags_DataOnly);
 
 REGISTER_EXTENSION(CrTexture, ".png");
 
@@ -12,18 +12,6 @@ CrTexture::~CrTexture()
 	//Remember to unload when destroying
 	UnloadTexture();
 }
-
-//void CrTexture::Serialize(bool bSerializing, nlohmann::json& TargetJson)
-//{
-//	Super::Serialize(bSerializing, TargetJson);
-//
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, File);
-//
-//	if (!bSerializing)
-//	{
-//		UploadTexture();
-//	}
-//}
 
 void CrTexture::BinSerialize(CrArchive& Arch)
 {

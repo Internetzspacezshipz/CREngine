@@ -1,30 +1,16 @@
 #include "CrMesh.h"
 #include "vk_engine.h"
 #include "CrGlobals.h"
+#include "CrSerialization.hpp"
 
-REGISTER_CLASS(CrMesh);
+REGISTER_CLASS_FLAGS(CrMesh, CrClassFlags_Unique, CrClassFlags_Transient, CrClassFlags_DataOnly);
+
+REGISTER_EXTENSION(CrMesh, ".obj");
 
 CrMesh::~CrMesh()
 {
 	UnloadMesh();
 }
-
-//void CrMesh::Serialize(bool bSerializing, nlohmann::json& TargetJson)
-//{
-//	Super::Serialize(bSerializing, TargetJson);
-//
-//	JSON_SERIALIZE_VARIABLE(TargetJson, bSerializing, File);
-//
-//	VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-//	if (!bSerializing)
-//	{
-//		//empty is such a dumb name for a function that checks if it is empty...
-//		if (File.empty() == false)
-//		{
-//			UploadMesh();
-//		}
-//	}
-//}
 
 void CrMesh::BinSerialize(CrArchive& Arch)
 {
@@ -42,7 +28,7 @@ bool CrMesh::UploadMesh()
 		return true;
 	}
 
-	auto FileStr = MakeAssetReference().GetString();
+	String FileStr = MakeAssetReference().GetString();
 
 	if (FileStr.empty() == false)
 	{

@@ -182,7 +182,7 @@ public:
 
 	Path GetBaseAssetPath();
 
-	void RegisterExtensionClass(const String& Extension, const CrID& ClassID);
+	void RegisterExtensionClass(String&& Extension, const CrID& ClassID);
 
 	bool IsSupportedFileType(const Path& InPath);
 	String GetExtensionForClass(const CrID& InID) const;
@@ -194,7 +194,7 @@ struct ExtensionRegistrar
 {
 	ExtensionRegistrar()
 	{
-		CrSerialization::Get().RegisterExtensionClass(String(Extension.Value), SpecificClass::StaticClass());
+		CrSerialization::Get().RegisterExtensionClass(std::move(String(Extension.Value)), SpecificClass::StaticClass());
 	}
 };
 

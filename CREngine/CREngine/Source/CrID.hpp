@@ -74,6 +74,11 @@ public:
 	{
 		return *this = CrID(MakeFrom);
 	}
+
+	CrID& operator = (StringV MakeFrom)
+	{
+		return *this = CrID(String(MakeFrom));
+	}
 	bool operator == (const CrID& CompareWith) const { return Number == CompareWith.Number; }
 
 	CrID(const String& Name);

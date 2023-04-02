@@ -2,7 +2,10 @@
 #include "CrGlobals.h"
 #include "CrShader.h"
 
-REGISTER_CLASS(CrMaterial);
+REGISTER_CLASS_FLAGS(CrMaterial, CrClassFlags_Unique);
+
+//Is this necessary? Not really. But I want to.
+REGISTER_EXTENSION(CrMaterial, ".crmat");
 
 CrMaterial::~CrMaterial()
 {

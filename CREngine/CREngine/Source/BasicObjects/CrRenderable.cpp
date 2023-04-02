@@ -51,13 +51,16 @@ void CrRenderable::SetRenderingEnabled(bool bRenderingEnabled)
 
 void CrRenderable::LoadRenderable()
 {
-	if (Mesh.IsLoadedOrLoadable())
+	if (Material.IsLoadedOrLoadable() &&
+		Mesh.IsLoadedOrLoadable())
 	{
+		transformMatrix = Matrix4();
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
+		Material.SafeLoad();
 		Mesh.SafeLoad();
 
-		//Ensure mesh is uploaded.
-		Mesh->UploadMesh();
+		//Ensure mesh is uploaded. -- nvm, should be loaded by CrMesh.
+		//Mesh->UploadMesh();
 		bHasBeenLoaded = true;
 
 		//Make a shared pointer from ourself.

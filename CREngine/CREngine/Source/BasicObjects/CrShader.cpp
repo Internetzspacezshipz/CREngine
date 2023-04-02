@@ -2,7 +2,7 @@
 #include "CrGlobals.h"
 #include "CrSerialization.hpp"
 
-REGISTER_CLASS_FLAGS(CrShader, CrClassFlags_Unique, CrClassFlags_Transient);
+REGISTER_CLASS_FLAGS(CrShader, CrClassFlags_Unique, CrClassFlags_Transient, CrClassFlags_DataOnly);
 
 REGISTER_EXTENSION(CrShader, ".spv");
 

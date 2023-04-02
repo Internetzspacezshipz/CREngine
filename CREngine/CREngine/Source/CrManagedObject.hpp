@@ -98,7 +98,8 @@ enum CrClassFlags : uint32_t
 	CrClassFlags_HAS_BEEN_SET = 1 << 0, //The flags have already been set for this class - do not allow them to be set again or crash.
 	CrClassFlags_Unique = 1 << 1, //When loading this object, we do not want to make more than one instance ever.
 	CrClassFlags_Transient = 1 << 2, //Can never save this asset.
-	CrClassFlags_UNUSED = 1 << 3, //NOT USED YET.
+	CrClassFlags_DataOnly = 1 << 3, //Asset is loaded directly from a data file such as .png, .obj, etc. You should not inherit from this class.
+	CrClassFlags_UNUSED = 1 << 4, //NOT USED YET.
 };
 
 //Contains info about what classes are derived, and what the parent class is.

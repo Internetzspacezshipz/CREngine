@@ -19,7 +19,7 @@ void CrUI_MaterialEditor::DrawUI()
 {
 	Super::DrawUI();
 	
-	ImGui::Begin(WindowTitle.c_str(), &bOpen, GetWindowFlags());
+	ImGui::Begin(WindowTitle, &bOpen, GetWindowFlags());
 
 	auto Casted = GetEditedAsset<CrMaterial>();
 	

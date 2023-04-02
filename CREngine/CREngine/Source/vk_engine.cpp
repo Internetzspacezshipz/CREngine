@@ -1241,7 +1241,7 @@ void VulkanEngine::RunPostFrameDeletors()
 	NextFrameDeletors.clear();
 }
 
-#define USE_ORTHO 1
+#define USE_ORTHO 0
 
 void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 {

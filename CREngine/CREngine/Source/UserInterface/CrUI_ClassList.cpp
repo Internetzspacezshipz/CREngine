@@ -7,16 +7,29 @@
 #include "AssetEditors/CrUI_Editor_AssetBase.h"
 #include "AssetEditors/CrEditorUIManager.h"
 
-REGISTER_CLASS(CrUI_ClassList);
+REGISTER_CLASS_FLAGS(CrUI_ClassList);
 
 void CrUI_ClassList::DrawUI()
 {
-	ImGui::Begin(WindowTitle.c_str(), &bOpen);
+	ImGui::Begin(WindowTitle, &bOpen);
 	CrObjectFactory& OF = CrObjectFactory::Get();
 
 	CrClass* WantsToSpawn = nullptr;
 
 	CrClass* Base = OF.GetClass(CrManagedObject::StaticClass());
+
+	if (ImGui::RadioButton("Show Data-Only", bShowDataOnlyClasses))
+	{
+		bShowDataOnlyClasses = !bShowDataOnlyClasses;
+	}
+
+	ImGui::SameLine();
+	
+	if (ImGui::RadioButton("Show Transient", bShowTransientClasses))
+	{
+		bShowTransientClasses = !bShowTransientClasses;
+	}
+
 	WantsToSpawn = ShowTable_Classes(Base);
 
 	if (WantsToSpawn)
@@ -56,7 +69,7 @@ void RecurseClass(CrClass* Class)
 	ImGui::PopID();
 }
 
-void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
+void CrUI_ClassList::RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 {
 	ImGui::PushID(Class);
 	//ImGui::SameLine();
@@ -69,7 +82,7 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 	if (Class->GetChildren().size())
 	{
 		bOpen = ImGui::CollapsingHeader(Class->GetClassName().data(),
-			ImGuiTreeNodeFlags_DefaultOpen |
+			//ImGuiTreeNodeFlags_DefaultOpen |
 			ImGuiTreeNodeFlags_OpenOnArrow |
 			ImGuiTreeNodeFlags_OpenOnDoubleClick |
 			ImGuiTreeNodeFlags_AllowItemOverlap);
@@ -78,7 +91,6 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 	{
 		ImGui::Text(Class->GetClassName().data());
 	}
-
 
 	ImGui::TableNextColumn();
 
@@ -98,7 +110,22 @@ void RecurseClass_Table(CrClass* Class, CrClass*& WantsToSpawn)
 	{
 		for (CrClass* Child : Class->GetChildren())
 		{
-			RecurseClass_Table(Child, WantsToSpawn);
+			bool bShow = true;
+
+			if (!bShowDataOnlyClasses && Child->HasFlag(CrClassFlags_DataOnly))
+			{
+				bShow = false;
+			}
+
+			if (!bShowTransientClasses && Child->HasFlag(CrClassFlags_Transient))
+			{
+				bShow = false;
+			}
+
+			if (bShow)
+			{
+				RecurseClass_Table(Child, WantsToSpawn);
+			}
 		}
 	}
 

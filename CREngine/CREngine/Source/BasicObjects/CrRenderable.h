@@ -13,6 +13,7 @@ struct MeshData;
 struct MaterialData;
 
 //A 2d object that is renderable in the scene used for UI mainly.
+//Todo: remove RenderObject inheritance and turn it to composition instead.
 class CrRenderable : public CrManagedObject, public RenderObject, public std::enable_shared_from_this<CrRenderable>
 {
 	DEF_CLASS(CrRenderable, CrManagedObject);

@@ -188,9 +188,14 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrID& ToLoad)
 
 void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference& ToLoad)
 {
+	//Load the base class of what we're trying to load.
+	CrClass* BaseClassInfo = CrObjectFactory::Get().GetClass(ToLoad.ClassID);
+
+	//If it's a data only class type, then don't load anything from it.
+	bool bIsDataOnlyClass = BaseClassInfo->HasFlag(CrClassFlags_DataOnly);
+
 	//If we're looking for something that can never be instanced, find it here instead of loading/creating it
-	CrClass* ClassInfo = CrObjectFactory::Get().GetClass(ToLoad.ClassID);
-	if (ClassInfo->HasFlag(CrClassFlags_Unique))
+	if (BaseClassInfo->HasFlag(CrClassFlags_Unique))
 	{
 		auto Found = NonInstancedObjects.find(ToLoad);
 		if (Found != NonInstancedObjects.end())
@@ -213,11 +218,16 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 
 	if (!Target)
 	{
-		CrID ClassID = GetClassForExtension(TargetPath.extension().generic_string());
-		if (ClassID == CrManagedObject::StaticClass() ||
-			ClassID.IsValidID() == false)
+		CrID ClassID;
+		CrID NameID = ToLoad.AssetID;
+		if (bIsDataOnlyClass)
+		{
+			ClassID = GetClassForExtension(TargetPath.extension().generic_string());
+		}
+		else
 		{
 			LoadedFile <=> ClassID;
+			LoadedFile <=> NameID;
 		}
 	
 		if (ClassID.IsValidID())
@@ -236,7 +246,7 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 				Target.swap(Object);
 			}
 		}
-		LoadedFile <=> Target->ID;
+		Target->ID = NameID;
 	}
 
 	if (Target)
@@ -270,8 +280,10 @@ Path CrSerialization::GetBaseAssetPath()
 	return BasePath();
 }
 
-void CrSerialization::RegisterExtensionClass(const String& Extension, const CrID& ClassID)
+void CrSerialization::RegisterExtensionClass(String&& Extension, const CrID& ClassID)
 {
+	transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
 	ExtensionToClass.emplace(Extension, ClassID);
 	ClassToExtension.emplace(ClassID, Extension);
 }
@@ -279,6 +291,7 @@ void CrSerialization::RegisterExtensionClass(const String& Extension, const CrID
 bool CrSerialization::IsSupportedFileType(const Path& InPath)
 {
 	auto Ext = InPath.extension().generic_string();
+	transform(Ext.begin(), Ext.end(), Ext.begin(), ::tolower);
 
 	if (Ext == GenericItemExt)
 	{

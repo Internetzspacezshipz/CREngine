@@ -53,7 +53,7 @@ VertexInputDescription Vertex::get_vertex_description()
 
 bool MeshData::load_from_obj(const char* filename)
 {
-	auto Pfilename = GetAssetsPath() / filename;
+	auto Pfilename = BasePath() / filename;
 
 	//attrib will contain the vertex arrays of the file
 	tinyobj::attrib_t attrib;

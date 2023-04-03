@@ -1,6 +1,5 @@
 #include "CrMaterial.h"
 #include "CrGlobals.h"
-#include "CrShader.h"
 
 REGISTER_CLASS_FLAGS(CrMaterial, CrClassFlags_Unique);
 
@@ -16,6 +15,7 @@ void CrMaterial::BinSerialize(CrArchive& Arch)
 {
 	Arch <=> VertexShader;
 	Arch <=> FragmentShader;
+	Arch <=> Texture;
 
 	if (Arch.bSerializing == false)
 	{
@@ -34,12 +34,15 @@ bool CrMaterial::LoadMaterial()
 
 	VertexShader.SafeLoad();
 	FragmentShader.SafeLoad();
+	Texture.SafeLoad();
 
 	if (VertexShader.IsLoaded()
-		&& FragmentShader.IsLoaded())
+		&& FragmentShader.IsLoaded()
+		&& Texture.IsLoaded())
 	{
 		auto VShader = VertexShader->GetShader();
 		auto FShader = FragmentShader->GetShader();
+		MatData.textureSet = Texture->GetData()->DescriptorSet;
 		if (VShader && FShader)
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();

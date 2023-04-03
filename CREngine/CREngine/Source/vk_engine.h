@@ -64,10 +64,32 @@ struct DeletionQueue
     }
 };
 
+//If in 2D mode, the engine will not bother with camera projection and such.
+#define ENGINE_MODE_3D 0
+
 struct MeshPushConstants 
 {
 	glm::vec4 data;
+#if ENGINE_MODE_3D
 	glm::mat4 render_matrix;
+#else
+	Vec2 Translation;
+	float Rotation;
+	Vec2 Scale;
+#endif
+
+};
+
+//A struct that is sent to the GPU in a large buffer for each object.
+struct GPUObjectData
+{
+#if ENGINE_MODE_3D
+	glm::mat4 modelMatrix;
+#else
+	Vec2 Translation;
+	float Rotation;
+	Vec2 Scale;
+#endif
 };
 
 struct MaterialData 
@@ -90,7 +112,9 @@ struct RenderObject
 {
 	virtual MeshData* GetMesh() = 0;
 	virtual MaterialData* GetMaterial() = 0;
-	Matrix4 transformMatrix;
+
+	//Data we push to the GPU every frame. Includes transform information.
+	GPUObjectData GPUData;
 };
 
 
@@ -134,10 +158,6 @@ struct GPUSceneData
 	glm::vec4 sunlightColor;
 };
 
-struct GPUObjectData 
-{
-	glm::mat4 modelMatrix;
-};
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 

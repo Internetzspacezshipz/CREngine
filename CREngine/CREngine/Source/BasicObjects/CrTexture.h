@@ -4,6 +4,7 @@
 #include <vk_textures.h>
 
 //In charge of loading textures from disk and uploading to GPU/Vulkan
+//TODO: change the format to tga.
 class CrTexture : public CrManagedObject
 {
 	DEF_CLASS(CrTexture, CrManagedObject);

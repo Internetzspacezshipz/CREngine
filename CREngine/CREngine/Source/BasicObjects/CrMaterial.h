@@ -3,7 +3,9 @@
 #include "CrManagedObject.hpp"
 #include <vk_engine.h>
 #include "CrLoadable.hpp"
+
 #include "CrShader.h"
+#include "CrTexture.h"
 
 //A material which can be loaded into the GPU and used in the scene.
 class CrMaterial : public CrManagedObject
@@ -30,6 +32,7 @@ class CrMaterial : public CrManagedObject
 
 	CrLoadable<CrShader> VertexShader;
 	CrLoadable<CrShader> FragmentShader;
+	CrLoadable<CrTexture> Texture;
 
 	//Todo: setup push constants here, since they are shared between vert shader and frag shader in the pipeline.
 

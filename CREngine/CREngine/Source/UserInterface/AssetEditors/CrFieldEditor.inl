@@ -123,7 +123,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrTexture>>
 		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".tga">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".png">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);	
 			return true;

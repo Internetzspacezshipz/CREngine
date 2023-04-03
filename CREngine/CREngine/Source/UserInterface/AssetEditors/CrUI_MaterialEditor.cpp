@@ -32,6 +32,7 @@ void CrUI_MaterialEditor::DrawUI()
 
 	bWasEdited |= EditField<"Vertex Shader">(Casted->VertexShader);
 	bWasEdited |= EditField<"Fragment Shader">(Casted->FragmentShader);
+	bWasEdited |= EditField<"Texture">(Casted->Texture);
 
 	if (bWasEdited)
 	{

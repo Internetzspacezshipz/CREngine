@@ -54,7 +54,6 @@ void CrRenderable::LoadRenderable()
 	if (Material.IsLoadedOrLoadable() &&
 		Mesh.IsLoadedOrLoadable())
 	{
-		transformMatrix = Matrix4();
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 		Material.SafeLoad();
 		Mesh.SafeLoad();

@@ -1250,6 +1250,8 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 
 	//make a model view matrix for rendering the object
 	//camera view
+
+#if ENGINE_MODE_3D
 	glm::vec3 camPos = { 0.f, -6.f, -10.f };
 
 	glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
@@ -1277,6 +1279,11 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 	memcpy(data, &camData, sizeof(GPUCameraData));
 
 	vmaUnmapMemory(_allocator, get_current_frame().cameraBuffer._allocation);
+#else
+
+	//Todo: something here for 2d shit./
+
+#endif
 
 	float framed = (_frameNumber / 120.f);
 
@@ -1303,7 +1310,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 	for (int i = 0; i < RenderItems.size(); i++)
 	{
 		auto object = RenderItems[i].lock();
-		objectSSBO[i].modelMatrix = object->transformMatrix;
+		objectSSBO[i] = object->GPUData;
 	}
 	
 	vmaUnmapMemory(_allocator, get_current_frame().objectBuffer._allocation);
@@ -1313,15 +1320,30 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 
 	for (int i = 0; i < RenderItems.size(); i++)
 	{
-		auto object = RenderItems[i].lock();
-		auto Matp = object->GetMaterial();
-		auto Meshp = object->GetMesh();
+		auto Object = RenderItems[i].lock();
+		auto Matp = Object->GetMaterial();
+		auto Meshp = Object->GetMesh();
+
+		if (Matp == nullptr)
+		{
+			CrLOG("Error - MatP was nullptr for an object!");
+			continue;
+		}
+
+		if (Meshp == nullptr)
+		{
+			CrLOG("Error - Meshp was nullptr for an object!");
+			continue;
+		}
 
 		//only bind the pipeline if it doesnt match with the already bound one
 		if (Matp != lastMaterial)
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipeline);
 			lastMaterial = Matp;
+
+
+			//bug here somewhere!
 
 			uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
@@ -1336,15 +1358,13 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 			}
 		}
 
-		glm::mat4 model = object->transformMatrix;
-		//final render matrix, that we are calculating on the cpu
-		glm::mat4 mesh_matrix = model;
+		if constexpr (sizeof(MeshPushConstants))
+		{
+			MeshPushConstants constants;
 
-		MeshPushConstants constants;
-		constants.render_matrix = mesh_matrix;
-
-		//upload the mesh to the gpu via pushconstants
-		vkCmdPushConstants(cmd, Matp->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+			//upload the mesh to the gpu via pushconstants
+			vkCmdPushConstants(cmd, Matp->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+		}
 
 		//only bind the mesh if its a different one from last bind
 		if (Meshp != lastMesh)

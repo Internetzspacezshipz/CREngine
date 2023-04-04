@@ -981,41 +981,17 @@ void VulkanEngine::cleanup_pipelines()
 #endif
 }
 
-bool VulkanEngine::LoadShaderModule(const char* filePath, VkShaderModule& outShaderModule)
+bool VulkanEngine::LoadShaderModule(uint32_t* ShaderCode, uint64_t ShaderSize, VkShaderModule& outShaderModule)
 {
-	//open the file. With cursor at the end
-	auto FP = BasePath() / filePath;
-	std::ifstream file(FP, std::ios::ate | std::ios::binary);
-
-	if (!file.is_open())
-	{
-		return false;
-	}
-
-	//find what the size of the file is by looking up the location of the cursor
-	//because the cursor is at the end, it gives the size directly in bytes
-	size_t fileSize = (size_t)file.tellg();
-
-	//spirv expects the buffer to be on uint32, so make sure to reserve a int vector big enough for the entire file
-	std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
-
-	//put file cursor at beggining
-	file.seekg(0);
-
-	//load the entire file into the buffer
-	file.read((char*)buffer.data(), fileSize);
-
-	//now that the file is loaded into the buffer, we can close it
-	file.close();
-
 	//create a new shader module, using the buffer we loaded
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.pNext = nullptr;
+	createInfo.flags = 0;
 
-	//codeSize has to be in bytes, so multply the ints in the buffer by size of int to know the real size of the buffer
-	createInfo.codeSize = buffer.size() * sizeof(uint32_t);
-	createInfo.pCode = buffer.data();
+	//codeSize has to be in bytes, so size*sizeof(uint32_t), which is our array element size.
+	createInfo.codeSize = ShaderSize;
+	createInfo.pCode = ShaderCode;
 
 	//check that the creation goes well.
 	if (vkCreateShaderModule(_device, &createInfo, nullptr, &outShaderModule) != VK_SUCCESS)
@@ -1055,7 +1031,7 @@ void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule
 
 	VkDescriptorSetLayout setLayouts[] = { _globalSetLayout, _objectSetLayout };
 
-	mesh_pipeline_layout_info.setLayoutCount = 2;
+	mesh_pipeline_layout_info.setLayoutCount = sizeof(setLayouts) / sizeof(VkDescriptorSetLayout);
 	mesh_pipeline_layout_info.pSetLayouts = setLayouts;
 
 	VkPipelineLayout PipelineLayout;
@@ -1067,7 +1043,7 @@ void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule
 
 	VkDescriptorSetLayout texturedSetLayouts[] = { _globalSetLayout, _objectSetLayout, _singleTextureSetLayout };
 
-	textured_pipeline_layout_info.setLayoutCount = 3;
+	textured_pipeline_layout_info.setLayoutCount = sizeof(texturedSetLayouts) / sizeof(VkDescriptorSetLayout);
 	textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
 
 	//hook the push constants layout
@@ -1343,7 +1319,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 			lastMaterial = Matp;
 
 
-			//bug here somewhere!
+			//bug here somewhere probably!
 
 			uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);

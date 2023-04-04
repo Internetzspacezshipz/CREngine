@@ -13,8 +13,12 @@
 #include "BasicObjects/CrMesh.h"
 #include "BasicObjects/CrMaterial.h"
 
-template<StringLiteral TextBoxName, StringLiteral RequiredExtension = "", uint32_t UpdateFrequency = 600, typename DirIterType = std::filesystem::recursive_directory_iterator>
-static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef, const Path& StartPath)
+template<
+	StringLiteral TextBoxName,
+	StringLiteral RequiredExtension = "",
+	uint32_t UpdateFrequency = 600,
+	typename DirIterType = std::filesystem::recursive_directory_iterator>
+static inline bool ComboBox_FilterableDirectoryIterator_Path(Path& IORef, const Path& StartPath)
 {
 	bool bSelected = false;
 	static uint32_t UpdateCounter = UpdateFrequency;
@@ -34,7 +38,7 @@ static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef,
 		UpdateCounter++;
 	}
 
-	if (ImGui::BeginCombo(TextBoxName.Value, IORef.AssetID.GetString().data()))
+	if (ImGui::BeginCombo(TextBoxName.Value, IORef.generic_string()))
 	{
 		// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 		ImGui::SetItemDefaultFocus();
@@ -60,14 +64,8 @@ static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef,
 			{
 				if (ImGui::Selectable(StringV(Str), &bSelected))
 				{
-					StringV PathStrV = StringV(Str);
-					size_t FromFront = PathStrV.find_last_of('.');
-					FromFront = PathStrV.size() - FromFront;
-					PathStrV.remove_suffix(FromFront);
-
+					IORef = Directory;
 					bClicked = true;
-					IORef.AssetID = PathStrV;
-					IORef.ClassID = CrSerialization::Get().GetClassForExtension(Directory.extension().generic_string());
 				}
 			}
 		}
@@ -78,9 +76,65 @@ static inline bool ComboBox_FilterableDirectoryIterator(CrAssetReference& IORef,
 	return false;
 };
 
+template<
+	StringLiteral TextBoxName,
+	StringLiteral RequiredExtension = "",
+	uint32_t UpdateFrequency = 600,
+	typename DirIterType = std::filesystem::recursive_directory_iterator>
+static inline bool ComboBox_FilterableDirectoryIterator_Asset(CrAssetReference& IORef, const Path& StartPath)
+{
+	Path IOPath;
+	IOPath = IORef.GetString();
+	if (ComboBox_FilterableDirectoryIterator_Path<TextBoxName, RequiredExtension, UpdateFrequency, DirIterType>(IOPath, StartPath))
+	{
+		String Str = IOPath.generic_string();
+		StringV PathStrV = StringV(Str);
+		size_t FromFront = PathStrV.find_last_of('.');
+		FromFront = PathStrV.size() - FromFront;
+		PathStrV.remove_suffix(FromFront);
+
+		IORef.AssetID = PathStrV;
+		IORef.ClassID = CrSerialization::Get().GetClassForExtension(IOPath.extension().generic_string());
+		return true;
+	}
+	return false;
+}
+
+enum FolderLocation : uint8_t
+{
+	FolderLocation_Undefined, //allow implementation to decide.
+	FolderLocation_Assets, //for unimported assets.
+	FolderLocation_Shaders, //for unimported shaders.
+	FolderLocation_Data, //for all imported/created data.
+};
+
+template<FolderLocation Loc = FolderLocation_Assets>
+Path GetFolderLocation()
+{
+	if constexpr (Loc == FolderLocation_Assets)
+	{
+		return GetAssetsPath();
+	}
+	else if constexpr (Loc == FolderLocation_Shaders)
+	{
+		return GetShadersPath();
+	}
+	else if constexpr (Loc == FolderLocation_Data)
+	{
+		return GetDataPath();
+	}
+	else
+	{
+		return BasePath();
+	}
+}
 
 //A specific type editor that will be used inside of other UI editors to edit fields that are not supported by ImGui by default 
-template<StringLiteral TextBoxName, typename _EditedType>
+template<
+	StringLiteral TextBoxName,
+	typename _EditedType,
+	FolderLocation FLoc = FolderLocation_Undefined,
+	StringLiteral Extension = "">
 struct CrFieldEditor { };
 
 //Call the EditField function externally to edit a field.
@@ -90,6 +144,17 @@ static bool EditField(EditedType& Field)
 	//Push the address of the input, it will be good enough for ImGui to not overlap.
 	ImGui::PushID(&Field);
 	bool ReturnVal = CrFieldEditor<TextBoxName, EditedType>::Call(Field);
+	ImGui::PopID();
+	return ReturnVal;
+}
+
+//Version for specifically setting a path to an importable item.
+template<StringLiteral TextBoxName, FolderLocation Location = FolderLocation_Data, StringLiteral Extension = "">
+static bool EditField(Path& Field)
+{
+	//Push the address of the input, it will be good enough for ImGui to not overlap.
+	ImGui::PushID(&Field);
+	bool ReturnVal = CrFieldEditor<TextBoxName, Path, Location, Extension>::Call(Field);
 	ImGui::PopID();
 	return ReturnVal;
 }
@@ -105,7 +170,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<Type>>
 		String TempStr = String(IORef.AssetID.GetString());
 
 		//Unknown type - just give it a 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".crap">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crap">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);
 			return true;
@@ -120,10 +185,9 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrTexture>>
 {
 	static bool Call(CrLoadable<CrTexture>& Item)
 	{
-		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".png">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".png">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);	
 			return true;
@@ -138,15 +202,24 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrShader>>
 {
 	static bool Call(CrLoadable<CrShader>& Item)
 	{
-		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".spv">(IORef, GetShadersPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crsh">(IORef, GetDataPath()))
 		{
 			Item.Set(IORef);
 			return true;
 		}
 		return false;
+	}
+};
+
+//Path selector. Customizable extension.
+template<StringLiteral TextBoxName, FolderLocation Location, StringLiteral Extension>
+struct CrFieldEditor<TextBoxName, Path, Location, Extension>
+{
+	static bool Call(Path& Item)
+	{
+		return ComboBox_FilterableDirectoryIterator_Path<TextBoxName, Extension>(Item, GetFolderLocation<Location>());
 	}
 };
 
@@ -156,10 +229,9 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrMesh>>
 {
 	static bool Call(CrLoadable<CrMesh>& Item)
 	{
-		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".obj">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".obj">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);
 			return true;
@@ -174,10 +246,9 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrMaterial>>
 {
 	static bool Call(CrLoadable<CrMaterial>& Item)
 	{
-		bool bSelected = false;
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator<TextBoxName, ".crmat">(IORef, GetDataPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crmat">(IORef, GetDataPath()))
 		{
 			Item.Set(IORef);
 			return true;

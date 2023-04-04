@@ -5,6 +5,7 @@
 
 //Styles
 #include "UserInterface/CrUIStyles.h"
+#include "CrFieldEditor.inl"
 
 #include "CrEditorUIManager.h"
 
@@ -20,6 +21,21 @@ void CrUI_ShaderEditor::DrawUI()
 
 	auto Casted = GetEditedAsset<CrShader>();
 	
+	if (Casted.get() == nullptr)
+	{
+		ImGui::End();
+		return;
+	}
+
+	bool bWasEdited = false;
+
+	bWasEdited |= EditField<"Material", FolderLocation_Shaders, ".spv">(Casted->ImportPath);
+
+	if (bWasEdited)
+	{
+		MarkAssetNeedsSave();
+	}
+
 	if (Casted.get() == nullptr)
 	{
 		ImGui::End();

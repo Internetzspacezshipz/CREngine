@@ -13,14 +13,25 @@ class CrShader : public CrManagedObject
 	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
 	virtual void BinSerialize(CrArchive& Arch) override;
 
+	//Imports the shader code from ImportPath
+	bool Import();
+
 	bool LoadShader();
 	void UnloadShader();
 
 	VkShaderModule GetShader();
 
+	//Path we have imported from.
+	Path ImportPath;
+
+	//Push constant size in bytes.
+	int32_t PushConstantSize = 0;
+
 	virtual void Construct() override;
 private:
+
 	VkShaderModule ShaderData;
+	BinArray ShaderCode;
 };
 
 

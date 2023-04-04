@@ -67,7 +67,8 @@ struct DeletionQueue
 //If in 2D mode, the engine will not bother with camera projection and such.
 #define ENGINE_MODE_3D 0
 
-struct MeshPushConstants 
+//Must align to a certain boundry.
+struct alignas(uint64_t) MeshPushConstants 
 {
 	glm::vec4 data;
 #if ENGINE_MODE_3D
@@ -81,7 +82,7 @@ struct MeshPushConstants
 };
 
 //A struct that is sent to the GPU in a large buffer for each object.
-struct GPUObjectData
+struct alignas(uint64_t) GPUObjectData
 {
 #if ENGINE_MODE_3D
 	glm::mat4 modelMatrix;
@@ -310,7 +311,7 @@ public:
 	void UnloadMesh(MeshData* DeleteMesh);
 
 	//loads a shader module from a spir-v file. Returns false if it errors
-	bool LoadShaderModule(const char* FilePath, VkShaderModule& OutShaderModule);
+	bool LoadShaderModule(uint32_t* ShaderCode, uint64_t ShaderSize, VkShaderModule& OutShaderModule);
 	void UnloadShaderModule(VkShaderModule& DeleteShader);
 
 	void MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, MaterialData& MaterialDataOut);

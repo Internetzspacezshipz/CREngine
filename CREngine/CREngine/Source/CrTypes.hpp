@@ -14,6 +14,11 @@
 template<typename ... args>
 using Array = std::vector<args...>;
 
+//char size binary array - aka string lol.
+//This is clarified to be BinArray so it is clear that this is not a displayable string.
+using BinArray = std::string;
+using BinArrayV = std::string_view;
+
 template<typename ... args>
 using Map = std::unordered_map<args...>;
 
@@ -27,6 +32,7 @@ using Path = std::filesystem::path;
 
 using String = std::string;
 using StringV = std::string_view;
+
 
 using WString = std::wstring;
 using WStringV = std::wstring_view;

@@ -14,8 +14,6 @@
 #include "ThirdParty/ThirdPartyLibs.h"
 #endif
 
-constexpr uint64_t Zero64 = 0x00000000;
-
 #define MemberFunction(ThisClass, Type) void (##ThisClass::*Serialize_##Type)(Type&);	 \
 template<>																				 \
 __forceinline void Serialize<Type>(Type& Value) { (this->*Serialize_##Type)(Value); }		
@@ -29,13 +27,6 @@ __forceinline void Serialize<Type>(Type& Value) { (this->*Serialize_##Type)(Valu
 //Remove later.
 #include "CrLogging.h"
 #endif
-
-//class CrArchive;
-//template<class T> using Has_Serialize_Function_t = decltype(std::declval<CrArchive>().Serialize(std::declval<T&>()));
-//template<class T> using Has_Serialize_Operator_t = decltype(std::declval<CrArchive&>() <=> std::declval<T&>());
-//
-//template<typename T> constexpr bool Has_Serialize_Function = std::is_detected_v<Has_Serialize_Function_t, T>;
-//template<typename T> constexpr bool Has_Serialize_Operator = std::is_detected_v<Has_Serialize_Operator_t, T>;
 
 class CrArchive
 {
@@ -78,106 +69,13 @@ public:
 
 	virtual void Setup(const std::string& InPath) { assert(0); }
 
+	//Declare that the serialize function exists, but is specialized by the MemberFunction macro (inside the macro it specializes this function)
 	template<typename PODType>
-	void Serialize(PODType& InType)
-	{
-		//Unhandled type tried to be serialized - please implement that type.
-		assert(0);
-	}
-
-	//This is really the core of functionality in the whole class - it provides a specialization toward serialization or deserialization
-	template<typename Type, bool bSerializing, bool Encoding> 
-	__forceinline void SerializeSpecific(Type& Item)
-	{
-#if DEBUG_SERIALIZE
-		SCounter++;
-#endif
-#if USE_VARINT
-		if constexpr (Encoding == false)
-#endif
-		{
-			//Write/read directly to/from the stream if not encoding/compressing the values.
-			if constexpr (bSerializing)
-			{
-				Stream << Item;
-			}
-			else
-			{
-				Stream >> Item;
-			}
-		}
-		//Disabled for the moment until I have time to figure out compression and such.
-#if USE_VARINT
-		else
-		{
-			constexpr std::size_t TypeSize = sizeof(Type);
-			if constexpr (bSerializing)
-			{
-				if constexpr (std::is_integral_v<Type> && TypeSize > 2)
-				{
-					BufferSize += tser::encode_varint(Item, BufferString.data() + BufferSize);
-				}
-				else
-				{
-					//currently crashes here - but I don't care enough to fix it for the moment.
-					std::memcpy(BufferString.data() + BufferSize, std::addressof(Item), TypeSize);
-					BufferSize += TypeSize;
-				}
-			}
-			else
-			{
-				if constexpr (std::is_integral_v<Type> && TypeSize > 2)
-				{
-					ReadOffset += tser::decode_varint(Item, BufferString.data() + ReadOffset);
-				}
-				else 
-				{
-					std::memcpy(&Item, BufferString.data() + ReadOffset, TypeSize);
-					ReadOffset += TypeSize;
-				}
-			}
-		}
-#endif
-	}
-
-
-	template<typename Type, bool bSerializing, bool Encoding>
-	__forceinline void SerializeSpecificContainer(Type& Item)
-	{
-		uint64_t V = 0;
-		if constexpr (bSerializing)
-		{
-			V = Item.size();
-		}
-		//Serialize/deserialize size first so we know how long to loop.
-		Serialize(V);
-		if constexpr (!bSerializing)
-		{
-			Item.resize(V);
-		}
-
-		constexpr bool HasSerFunc = requires(CrArchive& Ar, Type::value_type& Itm) { Ar.Serialize(Itm); };
-		constexpr bool HasSerOper = requires(CrArchive& Ar, Type::value_type& Itm) { Ar <=> Itm; };
-
-		for (uint64_t i = 0; i < V; i++)
-		{
-			if constexpr (HasSerFunc)
-			{
-				Serialize(Item[i]);
-			}
-			else if constexpr (HasSerOper)
-			{
-				*this <=> Item[i];
-			}
-			else
-			{
-				assert(0);//?????
-			}
-		}
-	}
+	void Serialize(PODType& InType) = delete;
 
 	MemberFunction(CrArchive, bool);
 	MemberFunction(CrArchive, char);//unfortunate side effect of char being hardware-specific.
+	MemberFunction(CrArchive, wchar_t);//same as above
 	MemberFunction(CrArchive, uint8_t);
 	MemberFunction(CrArchive, uint16_t);
 	MemberFunction(CrArchive, uint32_t);
@@ -192,6 +90,73 @@ public:
 	//String types for simplicity since they're pretty straightforward since their value types are known here (which arrays do not have the advantage of)
 	MemberFunction(CrArchive, String);
 	MemberFunction(CrArchive, WString);
+
+	//Stupid specialized wchar_t, since it doesn't interact well with a normal char fstream,
+	//and I do not want to save into a wchar_t stream.
+	template<typename Type, bool tSerializing, bool Encoding>
+	__forceinline void SerializeSpecific(Type& Item)
+	{
+		if constexpr (tSerializing)
+		{
+			Stream.write((char*) &Item, sizeof(Type));
+		}
+		else
+		{
+			Stream.read((char*) &Item, sizeof(Type));
+		}
+	}
+
+	template<typename Type, bool tSerializing, bool Encoding>
+	__forceinline void SerializeSpecificContainer(Type& Item)
+	{
+		//retrieve element type that the container uses.
+		typedef std::type_identity<std::remove_cv_t<typename Type::value_type>>::type ElemType;
+
+		uint64_t V = 0;
+		if constexpr (tSerializing)
+		{
+			V = Item.size();
+		}
+		//Serialize/deserialize size first so we know how long to loop.
+		SerializeSpecific<uint64_t, tSerializing, Encoding>(V);
+		if constexpr (!tSerializing)
+		{
+			Item.resize(V);
+		}
+
+		//If it's a POD/fundamental type we can just copy the contents of the container in a strip.
+		if constexpr (std::is_fundamental<ElemType>::value)
+		{
+			if constexpr (tSerializing)
+			{
+				Stream.write((char*)&Item[0], V * sizeof(ElemType));
+			}
+			else
+			{
+				Stream.read((char*)&Item[0], V * sizeof(ElemType));
+			}
+		}
+		else if constexpr (std::is_fundamental<ElemType>::value == false)
+		{
+			constexpr bool HasSerFunc = requires(CrArchive & Ar, ElemType & Itm) { Ar.SerializeSpecific<ElemType, tSerializing, Encoding>(Itm); };
+			constexpr bool HasSerOper = requires(CrArchive & Ar, ElemType & Itm) { Ar <=> Itm; };
+			//Must have some type of serialization setup for these.
+			static_assert(HasSerFunc == true || HasSerOper == true);
+
+			for (uint64_t i = 0; i < V; i++)
+			{
+				if constexpr (HasSerFunc)
+				{
+					//More optimized since it goes right to the serialize specific function instead of calling the func ptr
+					SerializeSpecific<ElemType, tSerializing, Encoding>(Item[i]);
+				}
+				else if constexpr (HasSerOper)
+				{
+					*this <=> Item[i];
+				}
+			}
+		}
+	}
 };
 
 template<bool ShouldSerialize, bool bEncoding>
@@ -217,6 +182,7 @@ public:
 
 		VariableFunction(CrArchive, bool) = &CrArchive::SerializeSpecific<bool, ShouldSerialize, bEncoding>;
 		VariableFunction(CrArchive, char) = &CrArchive::SerializeSpecific<char, ShouldSerialize, bEncoding>;
+		VariableFunction(CrArchive, wchar_t) = &CrArchive::SerializeSpecific<wchar_t, ShouldSerialize, bEncoding>;
 		VariableFunction(CrArchive, uint8_t) = &CrArchive::SerializeSpecific<uint8_t, ShouldSerialize, bEncoding>;
 		VariableFunction(CrArchive, uint16_t) = &CrArchive::SerializeSpecific<uint16_t, ShouldSerialize, bEncoding>;
 		VariableFunction(CrArchive, uint32_t) = &CrArchive::SerializeSpecific<uint32_t, ShouldSerialize, bEncoding>;
@@ -283,29 +249,22 @@ __forceinline static void operator <=>(CrArchive& Arch, std::pair<Key, Value> & 
 	Arch <=> ToSerialize->second;
 }
 
-//For basic resizable containers, currently only vector.
+//For basic resizable containers, currently only vector (although it uses the same code as string and wstring)
 template<typename T>
 __forceinline static void operator <=>(CrArchive& Arch, T& ToSerialize) requires is_container<T>::value
 {
-	uint64_t V = 0;
 	if (Arch.bSerializing)
 	{
-		V = ToSerialize.size();
-		Arch.Serialize(V);
+		Arch.SerializeSpecificContainer<T, true, USE_VARINT>(ToSerialize);
 	}
 	else
 	{
-		Arch.Serialize(V);
-		ToSerialize.resize(V);
-	}
-
-	for (uint64_t i = 0; i < V; i++)
-	{
-		Arch <=> ToSerialize[i];
+		Arch.SerializeSpecificContainer<T, false, USE_VARINT>(ToSerialize);
 	}
 }
 
 //For unordered/hashed containers. - unordered_map and unordered_set
+//Maybe I can come up with a better implementation in the future.
 template<typename T>
 __forceinline static void operator <=>(CrArchive& Arch, T& ToSerialize) requires is_hashed_container<T>::value
 {

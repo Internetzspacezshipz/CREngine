@@ -165,15 +165,15 @@ bool ShowObjectInfo(CrLoadable<CrManagedObject>& Object)
 void CrUI_AssetListEditor::DrawUI()
 {
 	Super::DrawUI();
-	ImGui::Begin(WindowTitle.c_str(), &bOpen);
+	ImGui::Begin(WindowTitle, &bOpen);
 
 	auto AssetList = GetEditedAsset<CrAssetList>();
 
-	//if (ImGui::Button("LoadTexture", DefaultButtonSize))
-	//{
-	//	auto Shared = DCast<CrManagedObject>(PinnedAssetList);
-	//	Serialization.Reload(Shared, PinnedAssetList->GetID());
-	//}
+	if (AssetList.get() == nullptr)
+	{
+		ImGui::End();
+		return;
+	}
 
 	String NewAssetName;
 	if (ImGui::InputText("NewAssetName", &NewAssetName))

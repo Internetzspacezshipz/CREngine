@@ -7,6 +7,7 @@
 
 #include "CrID.hpp"
 
+#include "CrPaths.hpp"
 
 //Each class gets an ID as well, which will be used by serialization to make instances of the class.
 typedef CrID ClassGUID;
@@ -169,7 +170,9 @@ public:
 		}
 		if (!Name.IsValidID())
 		{
-			Name = CrObjectIDRegistry::CreateUniqueID(String(ClassInfos[it->first]->GetClassName()));
+			//Add the data folder as the base.
+			String BaseName = DataPath.generic_string() + "/" + String(ClassInfos[it->first]->GetClassName());
+			Name = CrObjectIDRegistry::CreateUniqueID(BaseName);
 		}
 
 		SP<CrManagedObject> NewOb = (it->second)(Name);

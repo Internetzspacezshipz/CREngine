@@ -33,7 +33,9 @@ class CrObjectIDRegistry
 			{
 				//Shorten string view
 				StringV View = StringV(GetStringArr()[Itr->second]);
-				return View.substr(0, View.find_last_of('_'));
+				View = View.substr(View.find_last_of('/') + 1);
+				View = View.substr(0, View.find_last_of('_'));
+				return View;
 			}
 			else
 			{

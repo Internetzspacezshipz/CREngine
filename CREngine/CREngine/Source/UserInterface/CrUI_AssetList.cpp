@@ -6,7 +6,7 @@ REGISTER_CLASS(CrUI_AssetList);
 
 void CrUI_AssetList::DrawUI()
 {
-	ImGui::Begin(WindowTitle.c_str(), &bOpen);
+	ImGui::Begin(WindowTitle, &bOpen);
 	ImGui::SetWindowSize(DefaultEditorWindowSize, ImGuiCond_Once);
 
 

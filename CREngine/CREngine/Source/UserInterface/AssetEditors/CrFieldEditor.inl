@@ -187,7 +187,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrTexture>>
 	{
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".png">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crim">(IORef, GetAssetsPath()))
 		{
 			Item.Set(IORef);	
 			return true;
@@ -231,7 +231,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrMesh>>
 	{
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".obj">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crob">(IORef, GetDataPath()))
 		{
 			Item.Set(IORef);
 			return true;
@@ -252,6 +252,28 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrMaterial>>
 		{
 			Item.Set(IORef);
 			return true;
+		}
+		return false;
+	}
+};
+
+//Texture format editor.
+template<StringLiteral TextBoxName>
+struct CrFieldEditor<TextBoxName, CrTextureFormatTypes>
+{
+	static bool Call(CrTextureFormatTypes& Item)
+	{
+		if (ImGui::BeginCombo(TextBoxName.Value, TextureFormatStrings::Get(Item).String))
+		{
+			TextureFormatStrings::Visit(
+				[&](const CrTextureFormatTypes K, const StringLiteral2 V)
+				{
+					if (ImGui::Selectable(StringV(V.String)))
+					{
+						Item = K;
+					}
+				});
+			ImGui::EndCombo();
 		}
 		return false;
 	}

@@ -274,10 +274,20 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\CrSerializationBin.cpp" />
+    <ClCompile Include="Source\Utilities\CrCompression.cpp" />
     <ClCompile Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.cpp" />
     <ClCompile Include="Source\BasicObjects\CrMaterial.cpp" />
     <ClCompile Include="Source\BasicObjects\CrShader.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_API.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_BC67.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_BC6H_IO.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_BC7_PrioData.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_BCCommon.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_ETC.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_IndexSelector.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_S3TC.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_SingleFile.cpp" />
+    <ClCompile Include="Source\ThirdParty\texcompression\ConvectionKernels_Util.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_MaterialEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_MeshEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_RenderableEditor.cpp" />
@@ -327,8 +337,32 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Utilities\CrCompression.h" />
     <ClInclude Include="Source\CrLogging.h" />
     <ClInclude Include="Source\CrSerializationBin.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_AggregatedError.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BC67.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BC6H_IO.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BC7_Prio.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BC7_SingleColor.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BCCommon.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_Config.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_EndpointRefiner.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_EndpointSelector.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_ETC.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_ETC1.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_ETC2.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_ETC2_Rounding.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_FakeBT709_Rounding.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_IndexSelector.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_IndexSelectorHDR.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_PackedCovarianceMatrix.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_ParallelMath.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_S3TC.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_S3TC_SingleColor.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_UnfinishedEndpoints.h" />
+    <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_Util.h" />
     <ClInclude Include="Source\ThirdParty\ThirdPartyLibs.h" />
     <ClInclude Include="Source\ThirdParty\archive\archive.h" />
     <ClInclude Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.h" />

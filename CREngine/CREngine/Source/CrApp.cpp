@@ -112,7 +112,7 @@ void CrApp::LoadGameObjects()
 
         //Box.Scale(-1.f, -1.f);
 
-        std::vector<CrVertex> Tris = Box.GetRenderTris();
+        std::vector<Vertex> Tris = Box.GetRenderTris();
 
         //std::shared_ptr<CrMesh> BoxPtr = std::make_unique<CrMesh>(Device, Tris);
 
@@ -134,7 +134,7 @@ void CrApp::LoadGameObjects()
 
         //Box.Scale(-1.f, -1.f);
 
-        std::vector<CrVertex> Tris = Box.GetRenderTris();
+        std::vector<Vertex> Tris = Box.GetRenderTris();
 
        // std::shared_ptr<CrMesh> BoxPtr = std::make_unique<CrMesh>(Device, Tris);
 

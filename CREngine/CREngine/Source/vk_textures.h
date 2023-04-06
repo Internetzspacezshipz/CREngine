@@ -10,4 +10,12 @@ namespace vkutil {
 
 	bool load_image_from_file(VulkanEngine* engine, const char* file, AllocatedImage& outImage);
 
+	bool AllocImage(
+		VulkanEngine* engine,
+		void* PixelPtr, 
+		int TextureWidth, 
+		int TextureHeight, 
+		int TextureChannels, 
+		VkFormat image_format,
+		AllocatedImage& outImage);
 }

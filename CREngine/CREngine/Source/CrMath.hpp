@@ -16,6 +16,9 @@
 
 #include <vulkan/vulkan.h>
 
+//todo - remove this incld.
+#include "vk_mesh.h"
+
 
 //#define Min(A,B) std::min({ A, B })
 //#define Max(A,B) std::max({ A, B })
@@ -204,12 +207,12 @@ struct CrTransformBox2D
 	glm::vec2 BotRight;
 	float CameraDistance;
 
-	std::vector<CrVertex> GetRenderTris() const
+	std::vector<Vertex> GetRenderTris() const
 	{
-		CrVertex TopRight = { {BotRight.x, TopLeft.y, CameraDistance}, {1.f, 0.f, 0.f} };
-		CrVertex BottomLeft = { {TopLeft.x, BotRight.y, CameraDistance}, {0.f, 1.f, 0.f} };
+		Vertex TopRight = { {BotRight.x, TopLeft.y, CameraDistance}, {1.f, 0.f, 0.f} };
+		Vertex BottomLeft = { {TopLeft.x, BotRight.y, CameraDistance}, {0.f, 1.f, 0.f} };
 
-		std::vector<CrVertex> Vertices
+		std::vector<Vertex> Vertices
 		{
 			//Top left
 			{ {TopLeft.x, TopLeft.y, CameraDistance}, { 0.f, 0.f, 0.f } },

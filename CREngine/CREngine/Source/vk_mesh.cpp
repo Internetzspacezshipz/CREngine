@@ -2,6 +2,7 @@
 #include <thirdparty/tinyobjloader/tiny_obj_loader.h>
 #include <iostream>
 #include <CrPaths.hpp>
+#include <CrMath.hpp>
 
 VertexInputDescription Vertex::get_vertex_description()
 {
@@ -51,7 +52,7 @@ VertexInputDescription Vertex::get_vertex_description()
 	return description;
 }
 
-bool MeshData::load_from_obj(const char* filename)
+bool MeshData::LoadFromObj(const Path& filename)
 {
 	auto Pfilename = BasePath() / filename;
 
@@ -125,7 +126,7 @@ bool MeshData::load_from_obj(const char* filename)
 				new_vert.color = new_vert.normal;
 
 
-				_vertices.push_back(new_vert);
+				Verts.push_back(new_vert);
 			}
 			index_offset += fv;
 		}
@@ -143,6 +144,11 @@ void MeshData::MakeFromShape(Shape InShape)
 	case ShapeTriangle:
 		return;
 	case ShapeQuad:
+		CrTransformBox2D Box;
+		Box.TopLeft = { -.5f, -.5f };
+		Box.BotRight = { .5f, .5f };
+		Box.CameraDistance = 0.5f;
+		Verts = Box.GetRenderTris();
 		return;
 	}
 }

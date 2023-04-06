@@ -14,6 +14,8 @@
 #include "ThirdParty/ThirdPartyLibs.h"
 #endif
 
+#include "CrSimpleHashes.h"
+
 #define MemberFunction(ThisClass, Type) void (##ThisClass::*Serialize_##Type)(Type&);	 \
 template<>																				 \
 __forceinline void Serialize<Type>(Type& Value) { (this->*Serialize_##Type)(Value); }		
@@ -32,7 +34,8 @@ class CrArchive
 {
 protected:
 	std::fstream Stream;
-	
+	bool bIsNewFile;
+
 	bool bEncode;
 	std::string BufferString;
 	size_t BufferSize = 0;
@@ -45,7 +48,17 @@ protected:
 
 	//Minimum element size
 	typedef uint64_t MinSize;
-	CrArchive() {}
+	CrArchive(const std::string& InPath)
+	{
+		if (std::filesystem::exists(InPath))
+		{
+			bIsNewFile = false;
+		}
+		else
+		{
+			bIsNewFile = true;
+		}
+	}
 public:
 	bool bSerializing;
 
@@ -64,6 +77,7 @@ public:
 		}
 		CrLOG("SCounter at: %u      x", SCounter);
 #endif
+		//Handle shrinkage.
 		Stream.close();
 	}
 
@@ -103,6 +117,101 @@ public:
 		else
 		{
 			Stream.read((char*) &Item, sizeof(Type));
+		}
+	}
+
+	//returns true if it does need to reserialize
+	template<bool tSerializing>
+	__forceinline bool HashCheck(void* Ptr, size_t& SizeBytes)
+	{
+		if constexpr (tSerializing)
+		{
+			//Save the starting point.
+			auto StartPoint = Stream.tellg();
+
+			uint32_t BegHashNew = 0;
+			uint32_t MidHashNew = 0;
+			uint32_t EndHashNew = 0;
+
+			bool bLargeEnough = false;
+
+			if (SizeBytes >= 128)
+			{
+				bLargeEnough = true;
+				BegHashNew = crc32((const char*)Ptr, 32);
+				MidHashNew = crc32((const char*)Ptr + (SizeBytes / 2) - 16, 32);
+				EndHashNew = crc32((const char*)Ptr + SizeBytes - 32, 32);
+			}
+
+			bool bIsSameHash = false;
+
+			if (!bIsNewFile)
+			{
+				size_t OldSize = 0;
+				uint32_t BegHashOld = 0;
+				uint32_t MidHashOld = 0;
+				uint32_t EndHashOld = 0;
+
+				SerializeSpecific<size_t, false, false>(OldSize);
+				SerializeSpecific<uint32_t, false, false>(BegHashOld);
+				SerializeSpecific<uint32_t, false, false>(MidHashOld);
+				SerializeSpecific<uint32_t, false, false>(EndHashOld);
+
+				bIsSameHash =
+					bLargeEnough &&
+					OldSize == SizeBytes &&
+					BegHashNew == BegHashOld &&
+					MidHashNew == MidHashOld &&
+					EndHashNew == EndHashOld;
+			}
+
+			if (!bIsSameHash)
+			{
+				//If it's not the same size/hash, write all values back into the file before we write our new data block.
+				Stream.seekg(StartPoint);
+				SerializeSpecific<size_t, true, false>(SizeBytes);
+				SerializeSpecific<uint32_t, true, false>(BegHashNew);
+				SerializeSpecific<uint32_t, true, false>(MidHashNew);
+				SerializeSpecific<uint32_t, true, false>(EndHashNew);
+				return true;
+			}
+		}
+		else
+		{
+			uint32_t BegHashOld = 0;
+			uint32_t MidHashOld = 0;
+			uint32_t EndHashOld = 0;
+
+			//Read the hashes/sizes in order to keep everything going in the correct order.
+			SerializeSpecific<size_t, false, false>(SizeBytes);
+			SerializeSpecific<uint32_t, false, false>(BegHashOld);
+			SerializeSpecific<uint32_t, false, false>(MidHashOld);
+			SerializeSpecific<uint32_t, false, false>(EndHashOld);
+
+			//Maybe we could check the hashes here to ensure no alterations to the file were done...
+		}
+		return false;
+	}
+
+	//For large data sections, do a hash of the start, end, and midpoint ot check if it should be the same file.
+	template<bool tSerializing>
+	__forceinline void SerializeChunk(void*& Ptr, size_t& SizeBytes)
+	{
+		if constexpr (tSerializing)
+		{
+			if (HashCheck<tSerializing>(Ptr, SizeBytes))
+			{
+				Stream.write((char*)Ptr, SizeBytes);
+			}
+		}
+		else
+		{
+			HashCheck<tSerializing>(Ptr, SizeBytes);
+			if (Ptr == nullptr)
+			{
+				Ptr = malloc(SizeBytes);
+			}
+			Stream.read((char*)Ptr, SizeBytes);
 		}
 	}
 
@@ -163,7 +272,7 @@ template<bool ShouldSerialize, bool bEncoding>
 class CrArchive_Implement : public CrArchive
 {
 public:
-	CrArchive_Implement(const std::string& InPath)
+	CrArchive_Implement(const std::string& InPath) : CrArchive(InPath)
 	{
 		bSerializing = ShouldSerialize;
 

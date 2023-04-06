@@ -3,7 +3,6 @@
 
 REGISTER_CLASS_FLAGS(CrMaterial, CrClassFlags_Unique);
 
-//Is this necessary? Not really. But I want to.
 REGISTER_EXTENSION(CrMaterial, ".crmat");
 
 CrMaterial::~CrMaterial()

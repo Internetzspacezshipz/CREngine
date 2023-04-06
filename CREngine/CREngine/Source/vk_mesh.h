@@ -4,6 +4,7 @@
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include "CrTypes.hpp"
 
 struct VertexInputDescription 
 {
@@ -31,11 +32,11 @@ enum Shape : uint16_t
 
 struct MeshData
 {
-	std::vector<Vertex> _vertices;
+	std::vector<Vertex> Verts;
 
 	AllocatedBuffer _vertexBuffer;
 
-	bool load_from_obj(const char* filename);
+	bool LoadFromObj(const Path& filename);
 
 	//Simple hardcoded shapes that will conform to having a maximum extent of a unit vector.
 	void MakeFromShape(Shape InShape);

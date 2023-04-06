@@ -5,6 +5,7 @@
 
 //Styles
 #include "UserInterface/CrUIStyles.h"
+#include "CrFieldEditor.inl"
 
 #include "CrEditorUIManager.h"
 
@@ -24,6 +25,15 @@ void CrUI_MeshEditor::DrawUI()
 	{
 		ImGui::End();
 		return;
+	}
+
+	bool bWasEdited = false;
+
+	bWasEdited |= EditField<"Mesh", FolderLocation_Assets, ".obj">(Casted->ImportPath);
+
+	if (bWasEdited)
+	{
+		MarkAssetNeedsSave();
 	}
 
 	ImGui::End();

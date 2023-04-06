@@ -416,6 +416,7 @@ void VulkanEngine::init_vulkan()
 
 void VulkanEngine::cleanup_vulkan()
 {
+	RunPostFrameDeletors();
 	vmaDestroyAllocator(_allocator);
 	vkDestroyDevice(_device, nullptr);
 	vkb::destroy_debug_utils_messenger(_instance, _debug_messenger);
@@ -1179,25 +1180,25 @@ void VulkanEngine::load_meshes()
 #if 0
 	MeshData triMesh{};
 	//make the array 3 vertices long
-	triMesh._vertices.resize(3);
+	triMesh.Verts.resize(3);
 
 	//vertex positions
-	triMesh._vertices[0].position = { 1.f,1.f, 0.0f };
-	triMesh._vertices[1].position = { -1.f,1.f, 0.0f };
-	triMesh._vertices[2].position = { 0.f,-1.f, 0.0f };
+	triMesh.Verts[0].position = { 1.f,1.f, 0.0f };
+	triMesh.Verts[1].position = { -1.f,1.f, 0.0f };
+	triMesh.Verts[2].position = { 0.f,-1.f, 0.0f };
 
 	//vertex colors, all green
-	triMesh._vertices[0].color = { 0.f,1.f, 0.0f }; //pure green
-	triMesh._vertices[1].color = { 0.f,1.f, 0.0f }; //pure green
-	triMesh._vertices[2].color = { 0.f,1.f, 0.0f }; //pure green
+	triMesh.Verts[0].color = { 0.f,1.f, 0.0f }; //pure green
+	triMesh.Verts[1].color = { 0.f,1.f, 0.0f }; //pure green
+	triMesh.Verts[2].color = { 0.f,1.f, 0.0f }; //pure green
 	//we dont care about the vertex normals
 
 	//load the monkey
 	MeshData monkeyMesh{};
-	monkeyMesh.load_from_obj("monkey_smooth.obj");
+	monkeyMesh.LoadFromObj("monkey_smooth.obj");
 
 	MeshData lostEmpire{};
-	lostEmpire.load_from_obj("lost_empire.obj");
+	lostEmpire.LoadFromObj("lost_empire.obj");
 
 	UploadMesh(&triMesh);
 	UploadMesh(&monkeyMesh);
@@ -1334,7 +1335,8 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 			}
 		}
 
-		if constexpr (sizeof(MeshPushConstants))
+		//Turned this off for now since it was causing crashes since the push constants did not match up with the vert shader. Doesn't matter rn
+		if constexpr (0 && sizeof(MeshPushConstants))
 		{
 			MeshPushConstants constants;
 
@@ -1352,7 +1354,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 		}
 
 		//we can now draw
-		vkCmdDraw(cmd, Meshp->_vertices.size(), 1, 0, i);
+		vkCmdDraw(cmd, Meshp->Verts.size(), 1, 0, i);
 	}
 }
 
@@ -1490,9 +1492,9 @@ void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& f
 	vkResetCommandPool(_device, _uploadContext._commandPool, 0);
 }
 
-void VulkanEngine::UploadTexture(TextureData* NewTexture)
+void VulkanEngine::UploadTexture(TextureData* NewTexture, VkFormat TextureFormat)
 {
-	VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, NewTexture->image._image, VK_IMAGE_ASPECT_COLOR_BIT);
+	VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(TextureFormat, NewTexture->image._image, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	vkCreateImageView(_device, &imageinfo, nullptr, &NewTexture->imageView);
 
@@ -1522,7 +1524,7 @@ void VulkanEngine::UnloadTexture(TextureData* DeleteTex)
 
 void VulkanEngine::UploadMesh(MeshData* NewMesh)
 {
-	const size_t bufferSize = NewMesh->_vertices.size() * sizeof(Vertex);
+	const size_t bufferSize = NewMesh->Verts.size() * sizeof(Vertex);
 	//allocate vertex buffer
 	VkBufferCreateInfo stagingBufferInfo = {};
 	stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1549,7 +1551,7 @@ void VulkanEngine::UploadMesh(MeshData* NewMesh)
 	void* data;
 	vmaMapMemory(_allocator, stagingBuffer._allocation, &data);
 
-	memcpy(data, NewMesh->_vertices.data(), NewMesh->_vertices.size() * sizeof(Vertex));
+	memcpy(data, NewMesh->Verts.data(), NewMesh->Verts.size() * sizeof(Vertex));
 
 	vmaUnmapMemory(_allocator, stagingBuffer._allocation);
 

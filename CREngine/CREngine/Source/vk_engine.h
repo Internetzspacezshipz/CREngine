@@ -303,7 +303,7 @@ public:
 
 	//New CRE funcs
 
-	void UploadTexture(TextureData* NewTexture);
+	void UploadTexture(TextureData* NewTexture, VkFormat Format);
 	void UnloadTexture(TextureData* DeleteTex);
 
 	//Upload mesh to GPU

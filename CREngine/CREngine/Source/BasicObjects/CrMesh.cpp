@@ -3,9 +3,9 @@
 #include "CrGlobals.h"
 #include "CrSerialization.hpp"
 
-REGISTER_CLASS_FLAGS(CrMesh, CrClassFlags_Unique, CrClassFlags_Transient, CrClassFlags_DataOnly);
+REGISTER_CLASS_FLAGS(CrMesh, CrClassFlags_Unique);
 
-REGISTER_EXTENSION(CrMesh, ".obj");
+REGISTER_EXTENSION(CrMesh, ".crob");
 
 CrMesh::~CrMesh()
 {
@@ -14,11 +14,41 @@ CrMesh::~CrMesh()
 
 void CrMesh::BinSerialize(CrArchive& Arch)
 {
+	Arch <=> ImportPath;
+
+	//Import mesh.
+	if (Arch.bSerializing)
+	{
+		Import();
+	}
+
+	Arch <=> Data.Verts;
+
 	//If loading
 	if (Arch.bSerializing == false)
 	{
 		UploadMesh();
 	}
+}
+
+bool CrMesh::Import()
+{
+	bool bImportSuccess = false;
+
+	if (!ImportPath.empty())
+	{
+		Data.Verts = {};
+		bImportSuccess = Data.LoadFromObj(ImportPath);
+	}
+
+	if (!bImportSuccess)
+	{
+		//setup standard mesh.
+		Data.MakeFromShape(ShapeQuad);
+		return false;
+	}
+
+	return true;
 }
 
 bool CrMesh::UploadMesh()
@@ -32,10 +62,10 @@ bool CrMesh::UploadMesh()
 
 	if (FileStr.empty() == false)
 	{
-		if (MeshData.load_from_obj(FileStr.c_str()))
+		if (Data.LoadFromObj(FileStr.c_str()))
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-			Engine->UploadMesh(&MeshData);
+			Engine->UploadMesh(&Data);
 			bMeshLoaded = true;
 			return true;
 		}
@@ -48,7 +78,7 @@ void CrMesh::UnloadMesh()
 	if (bMeshLoaded == true)
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-		Engine->UnloadMesh(&MeshData);
+		Engine->UnloadMesh(&Data);
 		bMeshLoaded = false;
 	}
 }

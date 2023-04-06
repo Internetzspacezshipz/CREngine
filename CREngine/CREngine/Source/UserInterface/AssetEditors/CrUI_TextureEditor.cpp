@@ -25,33 +25,49 @@ void CrUI_TextureEditor::DrawUI()
 		ImGui::End();
 		return;
 	}
-	//TODO: Make macros for these pragmas.
 
-	if (Casted->ValidData())
+	bool bWasEdited = false;
+
+	bWasEdited |= EditField<"Texture File", FolderLocation_Assets, ".png">(Casted->ImportPath);
+	
+	bWasEdited |= EditField<"Texture Format">(Casted->CompressionType);
+
+	ImGui::Text("Size: %ix%i", Casted->TextureWidth, Casted->TextureHeight);
+
+	ImGui::Text("Channels: %i", Casted->TextureChannels);
+
+	ImGui::Text("Raw Size Bytes: %i", Casted->GetSizeBytes());
+
+	ImGui::Text("Compressed Size Bytes: %i", Casted->GetSizeBytesReal());
+
+	if (bWasEdited)
 	{
-		TextureData* Tex = Casted->GetData();
+		MarkAssetNeedsSave();
+	}
+
+	if (Casted->ValidData() && Casted->GetSizeBytes())
+	{
 		if (ImGui::CollapsingHeader("Show Image", DefaultCollapsingHeaderFlags))
 		{
-			float LargestSide = std::max(std::max((float)Tex->image.texWidth, (float)Tex->image.texHeight), 1.f);//added 1 here to make sure it can never div/zero
+			float LargestSide = std::max(std::max((float)Casted->TextureWidth, (float)Casted->TextureHeight), 1.f);//added 1 here to make sure it can never div/zero
 
 			float Scale = 500.f / LargestSide;
 
 			//Shows actual texture size.
-			ImGui::Text("Size: %.0fx%.0f", (float)Tex->image.texWidth, (float)Tex->image.texHeight);
 
 			//The size we want to zoom to.
-			float my_tex_w_zoomed = (float)Tex->image.texWidth * Scale;
-			float my_tex_h_zoomed = (float)Tex->image.texHeight * Scale;
+			float my_tex_w_zoomed = (float)Casted->TextureWidth * Scale;
+			float my_tex_h_zoomed = (float)Casted->TextureHeight * Scale;
 
 			ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
 			ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
 			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
 			ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
 
-			ImGui::Image(Tex->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
+			ImGui::Image(Casted->GetData()->DescriptorSet, ImVec2(my_tex_w_zoomed, my_tex_h_zoomed), uv_min, uv_max, tint_col, border_col);
 		}
 	}
-	else
+	else if (!Casted->ImportPath.empty())
 	{
 		if (ImGui::Button("Load"))
 		{

@@ -10,17 +10,22 @@ class CrMesh : public CrManagedObject
 
 	virtual ~CrMesh();
 
-	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
+	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) ovMeserride;
 	virtual void BinSerialize(CrArchive& Arch) override;
+
+	//Imports the mesh from ImportPath
+	bool Import();
 
 	bool UploadMesh();
 	void UnloadMesh();
 
-	MeshData* GetData() { return &MeshData; }
+	MeshData* GetData() { return &Data; }
+
+	Path ImportPath;
 
 private:
 	bool bMeshLoaded = false;
-	MeshData MeshData;
+	MeshData Data;
 };
 
 

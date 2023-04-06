@@ -173,8 +173,17 @@ struct StringLiteral
     char Value[N];
 };
 
+//Different version of above that does not take template arguments for the main type.
+struct StringLiteral2
+{
+    const char* String;
+    std::size_t Size;
 
+    template<std::size_t N>
+    constexpr StringLiteral2(const char(&a)[N]) : String(a), Size(N - 1) {}
+};
 
+#define StrLitFrom(ToText) StringLiteral2(""#ToText"")
 
 //hide shared_ptr and such.
 #define SP std::shared_ptr
@@ -198,4 +207,15 @@ typedef glm::vec3 Vec3;
 typedef glm::mat2 Mat2;
 typedef glm::vec2 Vec2;
 
+template<typename ...Types>
+using Tuple = std::tuple<Types...>;
 
+template<class Type, size_t Size>
+using FixedArray = std::array<Type, Size>;
+
+//Tuple with types exposed.
+//template<typename ... InTypes>
+//struct Tuple : std::tuple<InTypes...>
+//{
+//    using Types = InTypes...;
+//};

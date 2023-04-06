@@ -26,11 +26,6 @@ struct AllocatedBuffer
 
 struct AllocatedImage
 {
-	int texWidth;
-	int texHeight;
-	int texChannelsActual;
-	int texChannelsCreated;
-
 	VkImage _image;
 	VmaAllocation _allocation;
 };

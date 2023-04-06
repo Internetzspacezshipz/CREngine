@@ -76,8 +76,12 @@ bool CrTexture::UploadTexture()
 {
 	if (Image.size())
 	{
-		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
+		//If we have a tex already, unload it.
+		UnloadTexture();
+		//Make a new texture pointer since we might have just deleted it.
+		TexData = std::make_unique<TextureData>();
 
+		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 		if (vkutil::AllocImage(Engine, Image, TextureWidth, TextureHeight, TextureChannels, GetVkFormat(), GetData()->image))
 		{
 			Engine->UploadTexture(TexData.get(), GetVkFormat());

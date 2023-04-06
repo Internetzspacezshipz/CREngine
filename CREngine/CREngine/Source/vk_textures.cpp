@@ -111,20 +111,17 @@ bool vkutil::load_image_from_file(VulkanEngine* engine, const char* file, Alloca
 	return true;
 }
 
-bool vkutil::AllocImage(VulkanEngine* engine, void* PixelPtr, int TextureWidth, int TextureHeight, int TextureChannels, VkFormat image_format, AllocatedImage& outImage)
+bool vkutil::AllocImage(VulkanEngine* engine, const BinArray& ImageData, int TextureWidth, int TextureHeight, int TextureChannels, VkFormat image_format, AllocatedImage& outImage)
 {
-	VkDeviceSize imageSize = TextureWidth * TextureHeight * TextureChannels;
-
-	AllocatedBuffer stagingBuffer = engine->create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+	AllocatedBuffer stagingBuffer = engine->create_buffer(ImageData.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 
 	//Allocate memory mapped to the GPU to copy into.
 	void* data;
 	vmaMapMemory(engine->_allocator, stagingBuffer._allocation, &data);
 
-	memcpy(data, PixelPtr, static_cast<size_t>(imageSize));
+	memcpy(data, ImageData.data(), ImageData.size());
 
 	vmaUnmapMemory(engine->_allocator, stagingBuffer._allocation);
-
 
 	VkExtent3D imageExtent;
 	imageExtent.width = static_cast<uint32_t>(TextureWidth);

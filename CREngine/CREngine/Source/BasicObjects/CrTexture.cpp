@@ -78,7 +78,7 @@ bool CrTexture::UploadTexture()
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 
-		if (vkutil::AllocImage(Engine, Image.data(), TextureWidth, TextureHeight, TextureChannels, GetVkFormat(), GetData()->image))
+		if (vkutil::AllocImage(Engine, Image, TextureWidth, TextureHeight, TextureChannels, GetVkFormat(), GetData()->image))
 		{
 			Engine->UploadTexture(TexData.get(), GetVkFormat());
 			//remove the pixels after our work is all done.

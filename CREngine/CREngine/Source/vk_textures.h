@@ -12,7 +12,7 @@ namespace vkutil {
 
 	bool AllocImage(
 		VulkanEngine* engine,
-		void* PixelPtr, 
+		const BinArray& ImageData,
 		int TextureWidth, 
 		int TextureHeight, 
 		int TextureChannels, 

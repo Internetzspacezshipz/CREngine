@@ -18,6 +18,52 @@ namespace CrCompression
 		return false;
 	}
 
+	//Annoying gigantic fake function to sort out specific format types.
+	template<uint8_t FormatType, typename BlockType>
+	forceinline void EncodeFunction(Array<uint8_t>& outputBlock, const BlockType* pixelBlocks, const cvtt::Options& options, const cvtt::BC7EncodingPlan& EncPlan)
+	{
+		if constexpr (FormatType == BC1)
+		{
+			cvtt::Kernels::EncodeBC1(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC2)
+		{
+			cvtt::Kernels::EncodeBC2(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC3)
+		{
+			cvtt::Kernels::EncodeBC3(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC4U)
+		{
+			cvtt::Kernels::EncodeBC4U(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC4S)
+		{
+			cvtt::Kernels::EncodeBC4S(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC5U)
+		{
+			cvtt::Kernels::EncodeBC5U(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC5S)
+		{
+			cvtt::Kernels::EncodeBC5S(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC6HU)
+		{
+			cvtt::Kernels::EncodeBC6HU(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC6HS)
+		{
+			cvtt::Kernels::EncodeBC6HS(outputBlock.data(), pixelBlocks, options);
+		}
+		else if constexpr (FormatType == BC7)
+		{
+			cvtt::Kernels::EncodeBC7(outputBlock.data(), pixelBlocks, options, EncPlan);
+		}
+	}
+
 	template<typename BlockType, int blockSizeBytes, int PixelSize, uint8_t FormatType>
 	static void Encode(RawImage& OutData, stbi_uc* PixelsIn, int InChannel, int TextureWidth, int TextureHeight)
 	{
@@ -73,54 +119,14 @@ namespace CrCompression
 				if (PreparedBlocks == cvtt::NumParallelBlocks)
 				{
 					const size_t OutputIndex = FracturedImageIndex * outputBlockChunkSize;
-					//Copy pixel blocks, which might be a fairly sizable copy, but it is probably better than m
+					//Copy pixel blocks, which might be a fairly sizable copy, but it is probably better than another giant array.
 					TaskHandles.push_back(concurrency::create_task(
 						[&OutData, OutputIndex, pixelBlocks, &options, &EncPlan]()
 						{
 							Array<uint8_t> outputBlock;
 							outputBlock.resize(outputBlockChunkSize);
 
-							//Giant annoying thing.
-							if constexpr (FormatType == BC1)
-							{
-								cvtt::Kernels::EncodeBC1(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC2)
-							{
-								cvtt::Kernels::EncodeBC2(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC3)
-							{
-								cvtt::Kernels::EncodeBC3(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC4U)
-							{
-								cvtt::Kernels::EncodeBC4U(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC4S)
-							{
-								cvtt::Kernels::EncodeBC4S(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC5U)
-							{
-								cvtt::Kernels::EncodeBC5U(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC5S)
-							{
-								cvtt::Kernels::EncodeBC5S(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC6HU)
-							{
-								cvtt::Kernels::EncodeBC6HU(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC6HS)
-							{
-								cvtt::Kernels::EncodeBC6HS(outputBlock.data(), pixelBlocks, options);
-							}
-							else if constexpr (FormatType == BC7)
-							{
-								cvtt::Kernels::EncodeBC7(outputBlock.data(), pixelBlocks, options, EncPlan);
-							}
+							EncodeFunction<FormatType, BlockType>(outputBlock, pixelBlocks, options, EncPlan);
 
 							memcpy(&OutData[OutputIndex], (char*)outputBlock.data(), outputBlockChunkSize);
 						}));
@@ -130,6 +136,7 @@ namespace CrCompression
 			}
 		}
 
+		//Wait for all done before continuing.
 		concurrency::when_all(begin(TaskHandles), end(TaskHandles)).wait();
 	}
 
@@ -164,6 +171,7 @@ namespace CrCompression
 
 		stbi_uc* Pix = stbi_load(FilePath.c_str(), &TextureWidth, &TextureHeight, &TextureChannelsActual, ImportChannels);
 
+		//Switch on the format type to get an optimized template compression/encoding function
 		switch (FormatType)
 		{
 		default://default to BC1 since it's pretty basic.
@@ -202,83 +210,6 @@ namespace CrCompression
 		stbi_image_free(Pix);
 
 		return OutData.size();
-#if 0
-		//step + 4 for each axis of the pixel blocks.
-		for (size_t CurHeight = 0; CurHeight < TextureHeight; CurHeight += 4)
-		{
-			for (size_t CurWidth = 0; CurWidth < TextureWidth; CurWidth += 4)
-			{
-				//Base point
-				size_t BaseIndex = (CurHeight * SourceRowBytes) + (CurWidth * ImportChannels);
-
-				//Pack the pixel block here.
-					//Move down one row.
-				for (size_t CurBlockWidth = 0; CurBlockWidth < 4; CurBlockWidth++)
-				{
-					for (size_t CurBlockHeight = 0; CurBlockHeight < 4; CurBlockHeight++)
-					{
-						size_t CellBaseIndex = ((CurBlockHeight * SourceRowBytes) + (CurBlockWidth * ImportChannels)) + BaseIndex;
-
-						for (size_t CurBlockDepth = 0; CurBlockDepth < ImportChannels; CurBlockDepth++)
-						{
-							uint8_t CurPix = Pix[CellBaseIndex + CurBlockDepth];
-							pixelBlocks[PreparedBlocks].m_pixels[(CurBlockHeight * 4) + CurBlockWidth][CurBlockDepth] = CurPix;
-						}
-					}
-				}
-
-				PreparedBlocks++;
-				if (PreparedBlocks == cvtt::NumParallelBlocks)
-				{
-					switch (FormatType)
-					{
-					default://default to BC1 since it's pretty basic.
-					case BC1:
-						cvtt::Kernels::EncodeBC1(outputBlock.data(), pixelBlocks, options);
-						break;
-					case BC2:
-						cvtt::Kernels::EncodeBC2(outputBlock.data(), pixelBlocks, options);
-						break;
-					case BC3:
-						cvtt::Kernels::EncodeBC3(outputBlock.data(), pixelBlocks, options);
-						break;
-					case BC4U:
-						cvtt::Kernels::EncodeBC4U(outputBlock.data(), pixelBlocks, options);
-						break;
-					case BC4S:
-						//cvtt::Kernels::EncodeBC4S(outputBlock, pixelBlocks, options);
-						break;
-					case BC5U:
-						cvtt::Kernels::EncodeBC5U(outputBlock.data(), pixelBlocks, options);
-						break;
-					case BC5S:
-						//cvtt::Kernels::EncodeBC5S(outputBlock, pixelBlocks, options);
-						break;
-					case BC6HU:
-						//cvtt::Kernels::EncodeBC6HU(outputBlock, pixelBlocks, options);
-						break;
-					case BC6HS:
-						//cvtt::Kernels::EncodeBC6HS(outputBlock, pixelBlocks, options);
-						break;
-					case BC7:
-						cvtt::Kernels::EncodeBC7(outputBlock.data(), pixelBlocks, options, EncPlan);
-						break;
-					}
-
-					for (int block = 0; block < cvtt::NumParallelBlocks; block++)
-					{
-						//when string
-						OutData.append((char*)(outputBlock.data() + ((size_t)block * (size_t)blockSizeBytes)), blockSizeBytes);
-					}
-					PreparedBlocks = 0;
-				}
-			}
-		}
-
-		stbi_image_free(Pix);
-
-		return OutData.size();
-#endif
 	}
 
 	CrCompressionAttributes GetFormatAttributes(CrTextureFormatTypes Format)

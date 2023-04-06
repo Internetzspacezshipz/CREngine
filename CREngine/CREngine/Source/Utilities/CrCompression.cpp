@@ -24,8 +24,11 @@ namespace CrCompression
 		cvtt::Options options;
 		cvtt::BC7EncodingPlan EncPlan;
 
-		Array<uint8_t> outputBlock;
-		outputBlock.resize(blockSizeBytes * cvtt::NumParallelBlocks);
+
+		constexpr size_t inputBlockChunkSize = sizeof(BlockType) * cvtt::NumParallelBlocks;
+		constexpr size_t outputBlockChunkSize = blockSizeBytes * cvtt::NumParallelBlocks;
+
+
 
 		//The total number of bytes in the image from the source.
 		const size_t SourceTotalBytes = (size_t)TextureWidth * (size_t)TextureHeight * (size_t)InChannel * (size_t)PixelSize;
@@ -37,12 +40,9 @@ namespace CrCompression
 		
 		BlockType pixelBlocks[cvtt::NumParallelBlocks];
 
-		//Maybe implement this for max speed - caution - requires ppl include
-
-
-		//concurrency::parallel_for();
-		//concurrency::parallel_invoke();
-
+		//for concurrent writing of data on worker threads.
+		int FracturedImageIndex = 0;
+		OutData.resize((SourceTotalBytes / inputBlockChunkSize)*outputBlockChunkSize);
 		Array<concurrency::task<void>> TaskHandles;
 
 		//step + 4 for each axis of the pixel blocks.
@@ -69,67 +69,62 @@ namespace CrCompression
 					}
 				}
 
-
 				PreparedBlocks++;
 				if (PreparedBlocks == cvtt::NumParallelBlocks)
 				{
-					//const size_t OutBlockArrSize = sizeof(BlockType)* cvtt::NumParallelBlocks;
-					//
-					//
-					//
-					//TaskHandles.push_back(concurrency::create_task(
-					//	[=]()
-					//	{
-					//
-					//	}));
+					const size_t OutputIndex = FracturedImageIndex * outputBlockChunkSize;
+					//Copy pixel blocks, which might be a fairly sizable copy, but it is probably better than m
+					TaskHandles.push_back(concurrency::create_task(
+						[&OutData, OutputIndex, pixelBlocks, &options, &EncPlan]()
+						{
+							Array<uint8_t> outputBlock;
+							outputBlock.resize(outputBlockChunkSize);
 
-					//Giant annoying thing.
-					if constexpr (FormatType == BC1)
-					{
-						cvtt::Kernels::EncodeBC1(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC2)
-					{
-						cvtt::Kernels::EncodeBC2(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC3)
-					{
-						cvtt::Kernels::EncodeBC3(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC4U)
-					{
-						cvtt::Kernels::EncodeBC4U(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC4S)
-					{
-						cvtt::Kernels::EncodeBC4S(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC5U)
-					{
-						cvtt::Kernels::EncodeBC5U(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC5S)
-					{
-						cvtt::Kernels::EncodeBC5S(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC6HU)
-					{
-						cvtt::Kernels::EncodeBC6HU(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC6HS)
-					{
-						cvtt::Kernels::EncodeBC6HS(outputBlock.data(), pixelBlocks, options);
-					}
-					else if constexpr (FormatType == BC7)
-					{
-						cvtt::Kernels::EncodeBC7(outputBlock.data(), pixelBlocks, options, EncPlan);
-					}
+							//Giant annoying thing.
+							if constexpr (FormatType == BC1)
+							{
+								cvtt::Kernels::EncodeBC1(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC2)
+							{
+								cvtt::Kernels::EncodeBC2(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC3)
+							{
+								cvtt::Kernels::EncodeBC3(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC4U)
+							{
+								cvtt::Kernels::EncodeBC4U(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC4S)
+							{
+								cvtt::Kernels::EncodeBC4S(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC5U)
+							{
+								cvtt::Kernels::EncodeBC5U(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC5S)
+							{
+								cvtt::Kernels::EncodeBC5S(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC6HU)
+							{
+								cvtt::Kernels::EncodeBC6HU(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC6HS)
+							{
+								cvtt::Kernels::EncodeBC6HS(outputBlock.data(), pixelBlocks, options);
+							}
+							else if constexpr (FormatType == BC7)
+							{
+								cvtt::Kernels::EncodeBC7(outputBlock.data(), pixelBlocks, options, EncPlan);
+							}
 
-					for (int block = 0; block < cvtt::NumParallelBlocks; block++)
-					{
-						//when string
-						OutData.append((char*)(outputBlock.data() + ((size_t)block * (size_t)blockSizeBytes)), blockSizeBytes);
-					}
+							memcpy(&OutData[OutputIndex], (char*)outputBlock.data(), outputBlockChunkSize);
+						}));
+					FracturedImageIndex++;
 					PreparedBlocks = 0;
 				}
 			}

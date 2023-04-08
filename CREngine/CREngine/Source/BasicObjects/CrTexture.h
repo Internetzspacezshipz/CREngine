@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CrManagedObject.hpp"
+#include "CrManagedObject.h"
 #include "Utilities/CrCompression.h"
 #include <vk_textures.h>
 
@@ -56,7 +56,7 @@ class CrTexture : public CrManagedObject
 private:
 	void DeletePixels();
 
-	RawImage Image;
+	BinArray Image;
 
 	UP<TextureData> TexData { nullptr };
 };

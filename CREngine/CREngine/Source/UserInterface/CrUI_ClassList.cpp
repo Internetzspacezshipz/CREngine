@@ -2,7 +2,7 @@
 #include "CrUIStyles.h"
 
 #include <CrGlobals.h>
-#include "CrApp.hpp"
+#include "CrApp.h"
 
 #include "AssetEditors/CrUI_Editor_AssetBase.h"
 #include "AssetEditors/CrEditorUIManager.h"

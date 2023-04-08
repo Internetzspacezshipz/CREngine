@@ -7,14 +7,15 @@
 #include <assert.h>
 #endif
 
-
-#include "CrApp.hpp"
-
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
+#include "CrApp.h"
 #include <vk_engine.h>
+#include "CrAudioSystem.h"
+#include "CrGlobals.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -22,16 +23,37 @@ int main(int argc, char* argv[])
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	VulkanEngine engine;
-	CrApp MainApp;
-	engine.init();
+	//Setup main systems and set up their global pointers.
 
-	MainApp.SetupGlobalVariables(&engine);
+	VulkanEngine RenderEngine;
+	CrGlobals::GetEnginePointer() = &RenderEngine;
+
+	CrApp MainApp;
+	CrGlobals::GetAppPointer() = &MainApp;
+
+	CrAudioSystem AudioSystem;
+	CrGlobals::GetAudioSystemPointer() = &AudioSystem;
+
+	CrKeySystem InputSystem;
+	CrGlobals::GetKeySystemPointer() = &InputSystem;
+
+
+	RenderEngine.init();
+
+	MainApp.Setup();
+
+	assert(AudioSystem.InitializeAudioEngine());
+
 	MainApp.LoadInitialGameFiles();
 
-	engine.run();
 
-	MainApp.SaveGame();
+	//main render loop here.
+	RenderEngine.run();
+
+
+	MainApp.Cleanup();
+
+	AudioSystem.DestroyAudioEngine();
 
 	return 0;
 }

@@ -65,7 +65,7 @@ namespace CrCompression
 	}
 
 	template<typename BlockType, int blockSizeBytes, int PixelSize, uint8_t FormatType>
-	static void Encode(RawImage& OutData, stbi_uc* PixelsIn, int InChannel, int TextureWidth, int TextureHeight)
+	static void Encode(BinArray& OutData, stbi_uc* PixelsIn, int InChannel, int TextureWidth, int TextureHeight)
 	{
 		cvtt::Options options;
 		cvtt::BC7EncodingPlan EncPlan;
@@ -140,7 +140,7 @@ namespace CrCompression
 		concurrency::when_all(begin(TaskHandles), end(TaskHandles)).wait();
 	}
 
-	bool ImportAndCompress(RawImage& OutData, const String& FilePath, CrTextureFormatTypes FormatType)
+	bool ImportAndCompress(BinArray& OutData, const String& FilePath, CrTextureFormatTypes FormatType)
 	{
 		static_assert(STBI_grey == 1);
 		static_assert(STBI_grey_alpha == 2);

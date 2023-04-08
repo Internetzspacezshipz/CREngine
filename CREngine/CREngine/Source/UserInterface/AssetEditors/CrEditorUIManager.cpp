@@ -1,7 +1,7 @@
 #include "CrEditorUIManager.h"
 #include <UserInterface/AssetEditors/CrUI_Editor_AssetBase.h>
 #include <CrGlobals.h>
-#include "CrApp.hpp"
+#include "CrApp.h"
 
 CrEditorUIManager& CrEditorUIManager::Get()
 {

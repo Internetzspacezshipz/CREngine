@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CrManagedObject.hpp"
+#include "CrManagedObject.h"
 #include <vk_engine.h>
 
 //A material which can be loaded into the GPU and used in the scene.

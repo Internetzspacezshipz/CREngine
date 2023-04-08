@@ -5,8 +5,8 @@
 
 //For adding new UI.
 #include "CrGlobals.h"
-#include "CrApp.hpp"
-#include "CrKeySystem.hpp"
+#include "CrApp.h"
+#include "CrKeySystem.h"
 
 #include "CrFieldEditor.inl"
 

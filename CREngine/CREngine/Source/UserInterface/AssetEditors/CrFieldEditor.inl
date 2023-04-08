@@ -1,10 +1,10 @@
 #pragma once
-#include "CrLoadable.hpp"
+#include "CrLoadable.h"
 
 #include "ThirdParty/ThirdPartyLibs.h"
 
 //For paths
-#include "CrPaths.hpp"
+#include "CrPaths.h"
 #include <filesystem>
 
 //For inline tex ref editor.

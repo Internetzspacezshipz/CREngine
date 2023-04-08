@@ -1,6 +1,6 @@
 #include "CrUI_Base.h"
 #include "CrGlobals.h"
-#include "CrApp.hpp"
+#include "CrApp.h"
 
 //Styles
 #include "UserInterface/CrUIStyles.h"

@@ -1,7 +1,7 @@
 #include "CrUI_AssetListEditor.h"
 #include "CrGlobals.h"
-#include "CrApp.hpp"
-#include "CrAssetList.hpp"
+#include "CrApp.h"
+#include "CrAssetList.h"
 
 //Basic objects we can edit.
 #include "BasicObjects/CrTexture.h"

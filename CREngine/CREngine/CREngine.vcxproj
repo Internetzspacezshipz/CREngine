@@ -74,28 +74,28 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Source/Systems</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Source/Systems</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Source/Systems</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
-    <IncludePath>$(ProjectDir)Source;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Source/Systems</IncludePath>
     <SourcePath>$(ProjectDir)CREngine\Source;$(ProjectDir)Source</SourcePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
@@ -103,25 +103,25 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WITH_SDL2</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;$(SolutionDir)ThirdParty\soloud\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Precise</FloatingPointModel>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration);$(SolutionDir)\ThirdParty\soloud\lib</AdditionalLibraryDirectories>
       <AdditionalOptions>
       </AdditionalOptions>
-      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib;$(SolutionDir)ThirdParty\soloud\lib\soloud_static_x64_d.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>call "$(ProjectDir)compileShaders.bat"
@@ -146,15 +146,15 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WITH_SDL2</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;$(SolutionDir)ThirdParty\soloud\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Precise</FloatingPointModel>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -163,10 +163,10 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration);$(SolutionDir)\ThirdParty\soloud\lib</AdditionalLibraryDirectories>
       <AdditionalOptions>
       </AdditionalOptions>
-      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib;$(SolutionDir)ThirdParty\soloud\lib\soloud_static_x64_d.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>call "$(ProjectDir)compileShaders.bat"
@@ -189,10 +189,10 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WITH_SDL2</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;$(SolutionDir)ThirdParty\soloud\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -205,8 +205,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration);$(SolutionDir)\ThirdParty\soloud\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib;$(SolutionDir)ThirdParty\soloud\lib\soloud_static_x64_d.lib</AdditionalDependencies>
       <AdditionalOptions>
       </AdditionalOptions>
     </Link>
@@ -233,15 +233,15 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WITH_SDL2</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.239.0\Include;$(SolutionDir)ThirdParty\glfw\include;$(SolutionDir)ThirdParty\glm;$(SolutionDir)ThirdParty\imgui;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\boost;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\vma;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\stb_image;$(SolutionDir)ThirdParty\vkbootstrap;$(SolutionDir)ThirdParty\sdl\include;$(SolutionDir)ThirdParty\soloud\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Precise</FloatingPointModel>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -250,10 +250,10 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.3.239.0\Lib;$(SolutionDir)\ThirdParty\glfw\include\GLFW;$(SolutionDir)\ThirdParty\sdl\VisualC\$(LibrariesArchitecture)\$(Configuration);$(SolutionDir)\ThirdParty\soloud\lib</AdditionalLibraryDirectories>
       <AdditionalOptions>
       </AdditionalOptions>
-      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;$(SolutionDir)\ThirdParty\glfw\lib-vc2022\glfw3.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2.lib;$(SolutionDir)ThirdParty\sdl\VisualC\$(Platform)\$(Configuration)\SDL2main.lib;$(SolutionDir)ThirdParty\soloud\lib\soloud_static_x64_d.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>call "$(ProjectDir)compileShaders.bat"
@@ -274,6 +274,11 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\BasicObjects\CrSoundPlayer.cpp" />
+    <ClCompile Include="Source\Systems\CrComponent.cpp" />
+    <ClCompile Include="Source\Systems\CrAudioSystem.cpp" />
+    <ClCompile Include="Source\BasicObjects\CrSound.cpp" />
+    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundEditor.cpp" />
     <ClCompile Include="Source\Utilities\CrCompression.cpp" />
     <ClCompile Include="Source\ThirdParty\descriptorAlloc\descriptor_allocator.cpp" />
     <ClCompile Include="Source\BasicObjects\CrMaterial.cpp" />
@@ -298,19 +303,19 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_TextureEditor.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_Editor_AssetBase.cpp" />
     <ClCompile Include="Source\UserInterface\CrUI_MenuBar.cpp" />
-    <ClCompile Include="Source\CrID.cpp" />
-    <ClCompile Include="Source\CrKeySystem.cpp" />
-    <ClCompile Include="Source\CrGlobals.cpp" />
+    <ClCompile Include="Source\Systems\CrID.cpp" />
+    <ClCompile Include="Source\Systems\CrKeySystem.cpp" />
+    <ClCompile Include="Source\Systems\CrGlobals.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_AssetListEditor.cpp" />
     <ClCompile Include="Source\UserInterface\CrUI_Base.cpp" />
     <ClCompile Include="Source\BasicObjects\CrMesh.cpp" />
     <ClCompile Include="Source\BasicObjects\CrTexture.cpp" />
-    <ClCompile Include="Source\CrAssetList.cpp" />
-    <ClCompile Include="Source\CrApp.cpp" />
-    <ClCompile Include="Source\CrManagedObject.cpp" />
+    <ClCompile Include="Source\Systems\CrAssetList.cpp" />
+    <ClCompile Include="Source\Systems\CrApp.cpp" />
+    <ClCompile Include="Source\Systems\CrManagedObject.cpp" />
     <ClCompile Include="Source\BasicObjects\CrRenderable.cpp" />
-    <ClCompile Include="Source\CrSerialization.cpp" />
+    <ClCompile Include="Source\Systems\CrSerialization.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui_demo.cpp" />
@@ -321,10 +326,10 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClCompile Include="Source\ThirdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.cc" />
     <ClCompile Include="Source\ThirdParty\vkbootstrap\VkBootstrap.cpp" />
-    <ClCompile Include="Source\vk_engine.cpp" />
-    <ClCompile Include="Source\vk_initializers.cpp" />
-    <ClCompile Include="Source\vk_mesh.cpp" />
-    <ClCompile Include="Source\vk_textures.cpp" />
+    <ClCompile Include="Source\Systems\vk_engine.cpp" />
+    <ClCompile Include="Source\Systems\vk_initializers.cpp" />
+    <ClCompile Include="Source\Systems\vk_mesh.cpp" />
+    <ClCompile Include="Source\Systems\vk_textures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat" />
@@ -337,9 +342,14 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\BasicObjects\CrSoundPlayer.h" />
+    <ClInclude Include="Source\Systems\CrComponent.h" />
+    <ClInclude Include="Source\Systems\CrAudioSystem.h" />
+    <ClInclude Include="Source\BasicObjects\CrSound.h" />
+    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundEditor.h" />
     <ClInclude Include="Source\Utilities\CrCompression.h" />
-    <ClInclude Include="Source\CrLogging.h" />
-    <ClInclude Include="Source\CrSerializationBin.h" />
+    <ClInclude Include="Source\Systems\CrLogging.h" />
+    <ClInclude Include="Source\Systems\CrSerializationBin.h" />
     <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels.h" />
     <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_AggregatedError.h" />
     <ClInclude Include="Source\ThirdParty\texcompression\ConvectionKernels_BC67.h" />
@@ -378,27 +388,27 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_TextureEditor.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_Editor_AssetBase.h" />
     <ClInclude Include="Source\UserInterface\CrUIStyles.h" />
-    <ClInclude Include="Source\UserInterface\CrUI_MenuBar.hpp" />
-    <ClInclude Include="Source\CrLoadable.hpp" />
-    <ClInclude Include="Source\CrID.hpp" />
-    <ClInclude Include="Source\CrKeySystem.hpp" />
-    <ClInclude Include="Source\CrUtilities.hpp" />
-    <ClInclude Include="Source\CrTypes.hpp" />
+    <ClInclude Include="Source\UserInterface\CrUI_MenuBar.h" />
+    <ClInclude Include="Source\Systems\CrLoadable.h" />
+    <ClInclude Include="Source\Systems\CrID.h" />
+    <ClInclude Include="Source\Systems\CrKeySystem.h" />
+    <ClInclude Include="Source\Systems\CrUtilities.h" />
+    <ClInclude Include="Source\Systems\CrTypes.h" />
     <ClInclude Include="Source\ThirdParty\func\func.hpp" />
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_AssetListEditor.h" />
     <ClInclude Include="Source\UserInterface\CrUI_Base.h" />
     <ClInclude Include="Source\BasicObjects\CrMesh.h" />
     <ClInclude Include="Source\BasicObjects\CrTexture.h" />
-    <ClInclude Include="Source\CrAssetList.hpp" />
-    <ClInclude Include="Source\CrApp.hpp" />
-    <ClInclude Include="Source\CrGlobals.h" />
-    <ClInclude Include="Source\CrManagedObject.hpp" />
-    <ClInclude Include="Source\CrMath.hpp" />
-    <ClInclude Include="Source\CrPaths.hpp" />
+    <ClInclude Include="Source\Systems\CrAssetList.h" />
+    <ClInclude Include="Source\Systems\CrApp.h" />
+    <ClInclude Include="Source\Systems\CrGlobals.h" />
+    <ClInclude Include="Source\Systems\CrManagedObject.h" />
+    <ClInclude Include="Source\Systems\CrMath.h" />
+    <ClInclude Include="Source\Systems\CrPaths.h" />
     <ClInclude Include="Source\BasicObjects\CrRenderable.h" />
-    <ClInclude Include="Source\CrSerialization.hpp" />
-    <ClInclude Include="Source\CrSimpleHashes.h" />
+    <ClInclude Include="Source\Systems\CrSerialization.h" />
+    <ClInclude Include="Source\Systems\CrSimpleHashes.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imgui.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imgui_impl_sdl2.h" />
@@ -409,11 +419,11 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.h" />
     <ClInclude Include="Source\ThirdParty\vkbootstrap\VkBootstrap.h" />
-    <ClInclude Include="Source\vk_engine.h" />
-    <ClInclude Include="Source\vk_initializers.h" />
-    <ClInclude Include="Source\vk_mesh.h" />
-    <ClInclude Include="Source\vk_textures.h" />
-    <ClInclude Include="Source\vk_types.h" />
+    <ClInclude Include="Source\Systems\vk_engine.h" />
+    <ClInclude Include="Source\Systems\vk_initializers.h" />
+    <ClInclude Include="Source\Systems\vk_mesh.h" />
+    <ClInclude Include="Source\Systems\vk_textures.h" />
+    <ClInclude Include="Source\Systems\vk_types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

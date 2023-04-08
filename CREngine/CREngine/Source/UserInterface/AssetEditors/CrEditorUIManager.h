@@ -1,5 +1,5 @@
 #pragma once
-#include "CrLoadable.hpp"
+#include "CrLoadable.h"
 
 class CrManagedObject;
 class CrUI_Editor_AssetBase;

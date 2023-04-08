@@ -21,28 +21,28 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrApp.cpp">
+    <ClCompile Include="Source\Systems\CrApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrManagedObject.cpp">
+    <ClCompile Include="Source\Systems\CrManagedObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\BasicObjects\CrRenderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrSerialization.cpp">
+    <ClCompile Include="Source\Systems\CrSerialization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\vk_engine.cpp">
+    <ClCompile Include="Source\Systems\vk_engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\vk_initializers.cpp">
+    <ClCompile Include="Source\Systems\vk_initializers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\vk_mesh.cpp">
+    <ClCompile Include="Source\Systems\vk_mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\vk_textures.cpp">
+    <ClCompile Include="Source\Systems\vk_textures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.cc">
@@ -51,7 +51,7 @@
     <ClCompile Include="Source\ThirdParty\vkbootstrap\VkBootstrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrAssetList.cpp">
+    <ClCompile Include="Source\Systems\CrAssetList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\BasicObjects\CrTexture.cpp">
@@ -90,13 +90,13 @@
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrGlobals.cpp">
+    <ClCompile Include="Source\Systems\CrGlobals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrKeySystem.cpp">
+    <ClCompile Include="Source\Systems\CrKeySystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CrID.cpp">
+    <ClCompile Include="Source\Systems\CrID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\UserInterface\CrUI_MenuBar.cpp">
@@ -171,6 +171,21 @@
     <ClCompile Include="Source\Utilities\CrCompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\BasicObjects\CrSound.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\CrAudioSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\CrComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\BasicObjects\CrSoundPlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -181,37 +196,37 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\CrApp.hpp">
+    <ClInclude Include="Source\Systems\CrApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrManagedObject.hpp">
+    <ClInclude Include="Source\Systems\CrManagedObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrMath.hpp">
+    <ClInclude Include="Source\Systems\CrMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CrRenderable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrSerialization.hpp">
+    <ClInclude Include="Source\Systems\CrSerialization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrSimpleHashes.h">
+    <ClInclude Include="Source\Systems\CrSimpleHashes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\vk_engine.h">
+    <ClInclude Include="Source\Systems\vk_engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\vk_initializers.h">
+    <ClInclude Include="Source\Systems\vk_initializers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\vk_mesh.h">
+    <ClInclude Include="Source\Systems\vk_mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\vk_textures.h">
+    <ClInclude Include="Source\Systems\vk_textures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\vk_types.h">
+    <ClInclude Include="Source\Systems\vk_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\tinyobjloader\tiny_obj_loader.h">
@@ -220,16 +235,16 @@
     <ClInclude Include="Source\ThirdParty\vkbootstrap\VkBootstrap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrPaths.hpp">
+    <ClInclude Include="Source\Systems\CrPaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrAssetList.hpp">
+    <ClInclude Include="Source\Systems\CrAssetList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CrTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrGlobals.h">
+    <ClInclude Include="Source\Systems\CrGlobals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CrMesh.h">
@@ -268,25 +283,25 @@
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrKeySystem.hpp">
+    <ClInclude Include="Source\Systems\CrKeySystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\func\func.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrUtilities.hpp">
+    <ClInclude Include="Source\Systems\CrUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrTypes.hpp">
+    <ClInclude Include="Source\Systems\CrTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrID.hpp">
+    <ClInclude Include="Source\Systems\CrID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrLoadable.hpp">
+    <ClInclude Include="Source\Systems\CrLoadable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\UserInterface\CrUI_MenuBar.hpp">
+    <ClInclude Include="Source\UserInterface\CrUI_MenuBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\UserInterface\CrUIStyles.h">
@@ -331,10 +346,10 @@
     <ClInclude Include="Source\ThirdParty\archive\archive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrSerializationBin.h">
+    <ClInclude Include="Source\Systems\CrSerializationBin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CrLogging.h">
+    <ClInclude Include="Source\Systems\CrLogging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\ThirdPartyLibs.h">
@@ -410,6 +425,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Utilities\CrCompression.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BasicObjects\CrSound.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Systems\CrAudioSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Systems\CrComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BasicObjects\CrSoundPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

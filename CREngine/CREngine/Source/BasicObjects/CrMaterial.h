@@ -1,8 +1,8 @@
 #pragma once
 
-#include "CrManagedObject.hpp"
+#include "CrManagedObject.h"
 #include <vk_engine.h>
-#include "CrLoadable.hpp"
+#include "CrLoadable.h"
 
 #include "CrShader.h"
 #include "CrTexture.h"

@@ -1,7 +1,7 @@
 #include "CrMesh.h"
 #include "vk_engine.h"
 #include "CrGlobals.h"
-#include "CrSerialization.hpp"
+#include "CrSerialization.h"
 
 REGISTER_CLASS_FLAGS(CrMesh, CrClassFlags_Unique);
 

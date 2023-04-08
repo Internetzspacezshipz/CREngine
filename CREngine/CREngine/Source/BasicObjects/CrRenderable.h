@@ -1,8 +1,7 @@
 #pragma once
 
-#include "CrManagedObject.hpp"
-#include "CrMath.hpp"
-#include "CrLoadable.hpp"
+#include "CrManagedObject.h"
+#include "CrLoadable.h"
 
 #include "CrMesh.h"
 #include "CrMaterial.h"

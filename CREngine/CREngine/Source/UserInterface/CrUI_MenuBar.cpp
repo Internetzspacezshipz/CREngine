@@ -1,5 +1,5 @@
-#include "CrUI_MenuBar.hpp"
-#include "CrApp.hpp"
+#include "CrUI_MenuBar.h"
+#include "CrApp.h"
 #include "CrGlobals.h"
 #include "CrUI_ClassList.h"
 #include "CrUI_AssetList.h"

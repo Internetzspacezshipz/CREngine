@@ -1,7 +1,7 @@
 #include "CrTexture.h"
 #include "vk_engine.h"
 #include "CrGlobals.h"
-#include "CrSerialization.hpp"
+#include "CrSerialization.h"
 
 #include <algorithm>
 
@@ -34,21 +34,7 @@ void CrTexture::BinSerialize(CrArchive& Arch)
 	Arch <=> TextureHeight;
 	Arch <=> TextureChannelsActual;
 	Arch <=> TextureChannels;
-
-	//Serialize all the image data
-	if (Image.size() && Arch.bSerializing)
-	{
-		void* DataP = Image.data();
-		Arch.SerializeChunk<true>(DataP, RealSizeBytes);
-	}
-	else if (!Arch.bSerializing)
-	{
-		Image.resize(RealSizeBytes);
-		void* DataP = Image.data();
-		Arch.SerializeChunk<false>(DataP, RealSizeBytes);
-		//Actual input size must match the expected size.
-		assert(RealSizeBytes == GetSizeBytes());
-	}
+	Arch <=> Image;
 
 	UploadTexture();
 }

@@ -1,6 +1,6 @@
 #include "CrShader.h"
 #include "CrGlobals.h"
-#include "CrSerialization.hpp"
+#include "CrSerialization.h"
 
 REGISTER_CLASS_FLAGS(CrShader, CrClassFlags_Unique);
 

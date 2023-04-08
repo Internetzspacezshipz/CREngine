@@ -1,6 +1,6 @@
 #pragma once
-#include "CrTypes.hpp"
-#include "CrUtilities.hpp"
+#include "CrSerializationBin.h"
+#include "CrUtilities.h"
 
 //https://www.reedbeta.com/blog/understanding-bcn-texture-compression-formats/
 enum CrTextureFormatTypes : uint8_t
@@ -55,12 +55,10 @@ using CompressionAttributes = Chain<
 	SPairT<BC7,		4, 16,	false,	false>
 >;
 
-using RawImage = String;
-
 namespace CrCompression
 {
 	extern bool GetFileInfo(const String& FilePath, int& Width, int& Height, int& Channels, bool& bIsFP);
-	extern bool ImportAndCompress(RawImage& OutData, const String& FilePath, CrTextureFormatTypes FormatType);
+	extern bool ImportAndCompress(BinArray& OutData, const String& FilePath, CrTextureFormatTypes FormatType);
 	extern CrCompressionAttributes GetFormatAttributes(CrTextureFormatTypes Format);
 };
 

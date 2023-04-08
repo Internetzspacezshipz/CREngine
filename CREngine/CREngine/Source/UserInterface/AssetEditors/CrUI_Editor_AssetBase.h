@@ -1,6 +1,6 @@
 #pragma once
 #include "UserInterface/CrUI_Base.h"
-#include "CrLoadable.hpp"
+#include "CrLoadable.h"
 
 
 class CrUI_Editor_AssetBase : public CrUI_Base

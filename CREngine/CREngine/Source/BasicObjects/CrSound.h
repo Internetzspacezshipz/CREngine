@@ -5,13 +5,13 @@
 //Audio system include so we can actually interact with the system.
 #include "CrAudioSystem.h"
 
-//Represents a sound which will be played. This is a component, so it must live inside another object using CrComponent<CrSound>.
-//This is paired with an actual audio file which this asset will play
+//Represents a sound which will be played.
 class CrSound : public CrManagedObject
 {
 	DEF_CLASS(CrSound, CrManagedObject);
 
 	friend class CrUI_SoundEditor;
+	friend class CrSoundPlayer;
 
 	virtual ~CrSound();
 
@@ -22,10 +22,8 @@ class CrSound : public CrManagedObject
 	//Imports the mesh from ImportPath
 	bool LoadSound();
 	void UnloadSound();
-	void UpdateSettings();
 
-	bool Play();
-	bool Stop();
+	void PlayThrowaway();
 
 	float GetDuration();
 	virtual void Construct() override;
@@ -35,9 +33,9 @@ class CrSound : public CrManagedObject
 protected:
 
 	CrAudioSystem* AudioSystem = nullptr;
-	bool bInitialized = false;
 	CrSoundSetting Settings;
 	BinArray RawSound;
+	SoLoud::Wav WaveObject;
 };
 
 

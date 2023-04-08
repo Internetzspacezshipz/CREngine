@@ -2,6 +2,9 @@
 #include "CrSerialization.h"
 #include "CrGlobals.h"
 
+//for import of file.
+#include "soloud_file.h"
+
 REGISTER_CLASS_FLAGS(CrSound, CrClassFlags_Unique);
 
 REGISTER_EXTENSION(CrSound, ".crsnd");
@@ -33,62 +36,48 @@ void CrSound::BinSerialize(CrArchive& Arch)
 
 bool CrSound::Import()
 {
-	// (DELETE RAW SOUND HERE TO MAKE SURE IT IS EMPTY BEFORE IMPORT)
-
+	//Clear so we don't have any junk data.
+	UnloadSound();
 	auto FileStr = (BasePath() / ImportPath).string();
 
+	//Use SoLoud's file loading in order to follow the exact same path that SoLoud would normally.
+	SoLoud::DiskFile df;
 
+	df.open(FileStr.c_str());
+	RawSound.resize(df.length());
+	df.read((unsigned char*)RawSound.data(), df.length());
 
 	return RawSound.size();
 }
 
 bool CrSound::LoadSound()
 {
-	//bInitialized = AudioSystem->ImportAudio(&Sound);
-	return bInitialized;
+	if (RawSound.size())
+	{
+		WaveObject.loadMem((unsigned char*)RawSound.data(), RawSound.size(), false, false);
+	}
+	return RawSound.size();
 }
 
 void CrSound::UnloadSound()
 {
-	if (bInitialized)
-	{
-		//AudioSystem->DestroySound(&Sound, Decoder);
-		bInitialized = false;
-	}
+	RawSound.clear();
 }
 
-void CrSound::UpdateSettings()
+void CrSound::PlayThrowaway()
 {
-	if (bInitialized)
+	if (RawSound.size())
 	{
-		//AudioSystem->SetSoundSettings(&Sound, Settings);
+		AudioSystem->GetEngine()->play(WaveObject);
 	}
-}
-
-bool CrSound::Play()
-{
-	if (bInitialized)
-	{
-		//return AudioSystem->PlayAudio(&Sound);
-	}
-	return false;
-}
-
-bool CrSound::Stop()
-{
-	if (bInitialized)
-	{
-		//return AudioSystem->StopAudio(&Sound);
-	}
-	return false;
 }
 
 float CrSound::GetDuration()
 {
-	return 0.0f;
+	return WaveObject.getLength();
 }
 
 void CrSound::Construct()
 {
-	 AudioSystem = CrGlobals::GetAudioSystemPointer();
+	AudioSystem = CrGlobals::GetAudioSystemPointer();
 }

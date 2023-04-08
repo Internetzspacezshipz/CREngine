@@ -24,19 +24,10 @@ __forceinline static void operator <=>(CrArchive& Arch, CrSoundSetting& ToSerial
 class CrAudioSystem
 {
 	SoLoud::Soloud AudioEngine;
-	SoLoud::Wav TestWav;
-
-	uint32_t SDL_DeviceID;
 
 public:
 	//Sets up the audio system
 	bool InitializeAudioEngine();
-
-	//Make a sound available to play using PlayAudio
-	bool ImportAudio(BinArray& DataOut, const Path& TargetPath);
-
-	//Play an audio that has been made available via InitializeSound
-	bool PlayAudio(SoLoud::Wav& OutData);
 
 	//Stop a playing audio file
 	bool StopAudio();

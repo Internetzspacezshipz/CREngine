@@ -24,49 +24,50 @@ void CrSoundPlayer::BinSerialize(CrArchive& Arch)
 
 bool CrSoundPlayer::LoadSound()
 {
-	//bInitialized = AudioSystem->ImportAudio(&Sound, Decoder, AudioFile);
-	//return bInitialized;
-	return true;
+	if (LoadableSound.IsLoadedOrLoadable())
+	{
+		if (false == LoadableSound.IsLoaded())
+		{
+			LoadableSound.Load();
+		}
+		return true;
+	}
+	return false;
 }
 
 void CrSoundPlayer::UnloadSound()
 {
-	//if (bInitialized)
-	//{
-	//	AudioSystem->DestroySound(&Sound, Decoder);
-	//	bInitialized = false;
-	//}
+
 }
 
 void CrSoundPlayer::UpdateSettings()
 {
-	//if (bInitialized)
-	{
-	//	AudioSystem->SetSoundSettings(&Sound, Settings);
-	}
+
 }
 
 bool CrSoundPlayer::Play()
 {
-	//if (bInitialized)
+	if (LoadableSound.IsLoaded())
 	{
-	//	return AudioSystem->PlayAudio(&Sound);
+		SoundHandle = AudioSystem->GetEngine()->play(LoadableSound->WaveObject);
+		return true;
 	}
 	return false;
 }
 
 bool CrSoundPlayer::Stop()
 {
-	//if (bInitialized)
+	if (SoundHandle)
 	{
-	//	return AudioSystem->StopAudio(&Sound);
+		AudioSystem->GetEngine()->stop(SoundHandle);
+		return true;
 	}
 	return false;
 }
 
 float CrSoundPlayer::GetDuration()
 {
-	return 0.0f;
+	return LoadableSound->WaveObject.getLength();
 }
 
 void CrSoundPlayer::Construct()

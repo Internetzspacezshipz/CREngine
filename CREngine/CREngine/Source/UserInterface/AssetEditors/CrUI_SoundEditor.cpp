@@ -44,13 +44,12 @@ void CrUI_SoundEditor::DrawUI()
 	{
 		if (ImGui::Button("Play"))
 		{
-			Casted->UpdateSettings();
-			Casted->Play();
+			Casted->PlayThrowaway();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Stop"))
 		{
-			Casted->Stop();
+
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load"))

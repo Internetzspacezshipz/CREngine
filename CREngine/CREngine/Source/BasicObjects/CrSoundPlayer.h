@@ -22,7 +22,6 @@ class CrSoundPlayer : public CrManagedObject
 
 	virtual void BinSerialize(CrArchive& Arch) override;
 
-	//Imports the mesh from ImportPath
 	bool LoadSound();
 	void UnloadSound();
 	void UpdateSettings();
@@ -32,8 +31,6 @@ class CrSoundPlayer : public CrManagedObject
 
 	float GetDuration();
 
-	//SP<CrSound> GetSound() { return &Sound; };
-
 	virtual void Construct() override;
 
 	CrLoadable<CrSound> LoadableSound;
@@ -41,6 +38,7 @@ class CrSoundPlayer : public CrManagedObject
 protected:
 	CrAudioSystem* AudioSystem = nullptr;
 	CrSoundSetting Settings;
+	SoLoud::handle SoundHandle = 0;
 };
 
 

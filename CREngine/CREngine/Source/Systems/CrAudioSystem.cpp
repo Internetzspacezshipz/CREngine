@@ -5,28 +5,30 @@
 #define CHANNELS    2
 #define SAMPLE_RATE 48000
 
-template<typename Type>
-Type StoMS(const Type& Value)
-{
-    return Value * (Type)1000;
-}
-
 bool CrAudioSystem::InitializeAudioEngine()
 {
     return AudioEngine.init() == 0;
 }
 
-bool CrAudioSystem::StopAudio()
+SoLoud::handle CrAudioSystem::PlaySound(SoLoud::Wav& SoundToPlay)
 {
-    return false;
+    return AudioEngine.play(SoundToPlay);
 }
 
-void CrAudioSystem::DestroySound()
+void CrAudioSystem::StopSound(SoLoud::handle HandleToStop)
 {
+    AudioEngine.stop(HandleToStop);
 }
 
-void CrAudioSystem::SetSoundSettings(const CrSoundSetting& InSettings)
+void CrAudioSystem::StopAll(SoLoud::Wav& SoundToPlay)
 {
+    AudioEngine.stopAudioSource(SoundToPlay);
+}
+
+void CrAudioSystem::SetSoundSettings(SoLoud::handle Handle, const CrSoundSetting& InSettings)
+{
+    AudioEngine.setVolume(Handle, InSettings.Volume);
+    AudioEngine.setLooping(Handle, InSettings.bLooping);
 }
 
 void CrAudioSystem::DestroyAudioEngine()

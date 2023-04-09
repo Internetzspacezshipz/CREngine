@@ -49,7 +49,7 @@ bool CrSoundPlayer::Play()
 {
 	if (LoadableSound.IsLoaded())
 	{
-		SoundHandle = AudioSystem->GetEngine()->play(LoadableSound->WaveObject);
+		SoundHandle = AudioSystem->PlaySound(LoadableSound->WaveObject);
 		return true;
 	}
 	return false;
@@ -59,7 +59,7 @@ bool CrSoundPlayer::Stop()
 {
 	if (SoundHandle)
 	{
-		AudioSystem->GetEngine()->stop(SoundHandle);
+		AudioSystem->StopSound(SoundHandle);
 		return true;
 	}
 	return false;

@@ -8,16 +8,12 @@ struct CrSoundSetting
 {
 	bool bLooping = false;
 	float Volume = 1.f;
-	float StartTime = 0.f;
-	float EndTime = FLT_MAX;
 };
 
 __forceinline static void operator <=>(CrArchive& Arch, CrSoundSetting& ToSerialize)
 {
 	Arch <=> ToSerialize.bLooping;
 	Arch <=> ToSerialize.Volume;
-	Arch <=> ToSerialize.StartTime;
-	Arch <=> ToSerialize.EndTime;
 }
 
 //UNTESTED
@@ -29,18 +25,16 @@ public:
 	//Sets up the audio system
 	bool InitializeAudioEngine();
 
-	//Stop a playing audio file
-	bool StopAudio();
+	SoLoud::handle PlaySound(SoLoud::Wav& SoundToPlay);
+	void StopSound(SoLoud::handle HandleToStop);
 
-	//Destroys a sound and makes it no longer valid to call PlayAudio for it.
-	void DestroySound();
+	//Called at the end of a CrSound's lifespan to make sure there are no instances of it being used.
+	void StopAll(SoLoud::Wav& SoundToPlay);
 
 	//Sound Settings
-	void SetSoundSettings(const CrSoundSetting& InSettings);
+	void SetSoundSettings(SoLoud::handle Handle, const CrSoundSetting& InSettings);
 
 	//Destroys the audio system
 	void DestroyAudioEngine();
-
-	SoLoud::Soloud* GetEngine() { return &AudioEngine; };
 };
 

@@ -47,6 +47,11 @@ bool CrSound::Import()
 	RawSound.resize(df.length());
 	df.read((unsigned char*)RawSound.data(), df.length());
 
+	if (RawSound.size())
+	{
+		LoadSound();
+	}
+
 	return RawSound.size();
 }
 
@@ -61,6 +66,7 @@ bool CrSound::LoadSound()
 
 void CrSound::UnloadSound()
 {
+	AudioSystem->StopAll(WaveObject);
 	RawSound.clear();
 }
 
@@ -68,7 +74,16 @@ void CrSound::PlayThrowaway()
 {
 	if (RawSound.size())
 	{
-		AudioSystem->GetEngine()->play(WaveObject);
+		ThrowawayHandle = AudioSystem->PlaySound(WaveObject);
+		AudioSystem->SetSoundSettings(ThrowawayHandle, Settings);
+	}
+}
+
+void CrSound::StopThrowaway()
+{
+	if (ThrowawayHandle)
+	{
+		AudioSystem->StopSound(ThrowawayHandle);
 	}
 }
 

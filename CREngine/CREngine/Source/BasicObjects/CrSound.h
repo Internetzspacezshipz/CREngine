@@ -24,6 +24,7 @@ class CrSound : public CrManagedObject
 	void UnloadSound();
 
 	void PlayThrowaway();
+	void StopThrowaway();
 
 	float GetDuration();
 	virtual void Construct() override;
@@ -35,7 +36,9 @@ protected:
 	CrAudioSystem* AudioSystem = nullptr;
 	CrSoundSetting Settings;
 	BinArray RawSound;
+
 	SoLoud::Wav WaveObject;
+	SoLoud::handle ThrowawayHandle;
 };
 
 

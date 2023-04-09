@@ -30,10 +30,8 @@ void CrUI_SoundEditor::DrawUI()
 
 	bWasEdited |= EditField<"Sound File", FolderLocation_Assets, ".ogg">(Casted->ImportPath);
 
-	ImGui::Checkbox("Looping", &Casted->Settings.bLooping);
-	ImGui::SliderFloat("Volume", &Casted->Settings.Volume, 0.f, 1.f);
-
-
+	bWasEdited |= ImGui::Checkbox("Looping", &Casted->Settings.bLooping);
+	bWasEdited |= ImGui::SliderFloat("Volume", &Casted->Settings.Volume, 0.f, 1.f);
 
 	if (bWasEdited)
 	{
@@ -49,7 +47,7 @@ void CrUI_SoundEditor::DrawUI()
 		ImGui::SameLine();
 		if (ImGui::Button("Stop"))
 		{
-
+			Casted->StopThrowaway();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load"))

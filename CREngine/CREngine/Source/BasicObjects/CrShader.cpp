@@ -14,7 +14,7 @@ CrShader::~CrShader()
 void CrShader::BinSerialize(CrArchive& Arch)
 {
 	Arch <=> ImportPath;
-	Arch <=> PushConstantSize;
+	Arch <=> PushConstantsLayout;
 
 	if (Arch.bSerializing)
 	{
@@ -95,4 +95,10 @@ void CrShader::Construct()
 {
 	//ensure this is zerofilled.
 	ShaderData = nullptr;
+
+	PushConstantsLayout.SetLayout({
+		CrPushConstantType_float,
+		CrPushConstantType_float,
+		CrPushConstantType_float
+		});
 }

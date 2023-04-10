@@ -35,6 +35,6 @@ class CrComponent : public CrComponentBase
 
 __forceinline static void operator <=>(CrArchive& Arch, CrComponentBase& ToSerialize)
 {
-	//In between
+	//Simply forward the serialization to the object.
 	ToSerialize.Component->BinSerialize(Arch);
 }

@@ -39,14 +39,21 @@ bool CrMaterial::LoadMaterial()
 		&& FragmentShader.IsLoaded()
 		&& Texture.IsLoaded())
 	{
-		auto VShader = VertexShader->GetShader();
-		auto FShader = FragmentShader->GetShader();
+
+		CrStandardPipelineInputs Inputs;
+		Inputs.VertShader = VertexShader->GetShader();
+		Inputs.VertShaderPushConstantSize = VertexShader->PushConstantsLayout.GetLayoutSize();
+
+		Inputs.FragShader = FragmentShader->GetShader();
+		Inputs.FragShaderPushConstantSize = FragmentShader->PushConstantsLayout.GetLayoutSize();
+
 		MatData.textureSet = Texture->GetData()->DescriptorSet;
-		if (VShader && FShader)
+
+		if (Inputs.FragShader && Inputs.VertShader)
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 
-			Engine->MakeDefaultPipeline(VShader, FShader, MatData);
+			Engine->MakeDefaultPipeline(Inputs, MatData);
 
 			//Unload shaders since we won't need them anymore. Maybe one day we will reuse them for other materials, but for now don't bother.
 			VertexShader->UnloadShader();

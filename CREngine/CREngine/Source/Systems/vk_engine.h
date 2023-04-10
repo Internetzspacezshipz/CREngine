@@ -41,7 +41,13 @@ public:
 	VkPipeline build_pipeline(VkDevice device, VkRenderPass pass);
 };
 
-
+struct CrStandardPipelineInputs
+{
+	VkShaderModule VertShader;
+	uint32_t VertShaderPushConstantSize;
+	VkShaderModule FragShader;
+	uint32_t FragShaderPushConstantSize;
+};
 
 struct DeletionQueue
 {
@@ -87,9 +93,9 @@ struct alignas(uint64_t) GPUObjectData
 #if ENGINE_MODE_3D
 	glm::mat4 modelMatrix;
 #else
-	Vec2 Translation;
-	float Rotation;
-	Vec2 Scale;
+	Vec2 Translation = { 0.f, 0.f };
+	float Rotation = 0.f;
+	Vec2 Scale = { 1.f, 1.f };
 #endif
 };
 
@@ -145,9 +151,9 @@ struct UploadContext
 
 struct GPUCameraData
 {
-	glm::mat4 view;
-	glm::mat4 proj;
-	glm::mat4 viewproj;
+	glm::mat4 view = glm::mat4(0.f);
+	glm::mat4 proj = glm::mat4(0.f);
+	glm::mat4 viewproj = glm::mat4(0.f);
 };
 
 struct GPUSceneData 
@@ -310,7 +316,7 @@ public:
 	bool LoadShaderModule(uint32_t* ShaderCode, uint64_t ShaderSize, VkShaderModule& OutShaderModule);
 	void UnloadShaderModule(VkShaderModule& DeleteShader);
 
-	void MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, MaterialData& MaterialDataOut);
+	void MakeDefaultPipeline(const CrStandardPipelineInputs& Inputs, MaterialData& MaterialDataOut);
 	void DestroyMaterial(MaterialData& MaterialDataOut);
 
 	void SubmitRenderable(WP<RenderObject> RenderItem);

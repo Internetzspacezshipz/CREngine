@@ -177,7 +177,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<Type>>
 		}
 		return false;
 	}
-};
+};	
 
 //Tex editor, specifically looks up textures in the asset folder.
 template<StringLiteral TextBoxName>
@@ -187,7 +187,7 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrTexture>>
 	{
 		CrAssetReference IORef = Item.GetRef();
 
-		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crim">(IORef, GetAssetsPath()))
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crim">(IORef, GetDataPath()))
 		{
 			Item.Set(IORef);	
 			return true;

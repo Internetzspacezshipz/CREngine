@@ -22,6 +22,7 @@ class CrMesh : public CrManagedObject
 
 	Path ImportPath;
 
+	void MakeDefault();
 private:
 	bool bMeshLoaded = false;
 	MeshData Data;

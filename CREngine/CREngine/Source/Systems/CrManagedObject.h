@@ -143,6 +143,13 @@ public:
 	StringV GetClassPrettyName() const { return ThisGUID.GetStringPretty(); }
 };
 
+
+template<class NativeClass>
+class CrClassConcrete;
+
+template<typename To, typename From> 
+static SP<To> DCast(SP<From>& Object);
+
 class CrObjectFactory
 {
 	//constructors for each class type.

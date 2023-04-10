@@ -1,16 +1,15 @@
 #version 450
 
-layout(location = 0) in vec3 FragColor;
+layout(location = 0) in vec4 InColor;
 
-layout (location = 0) out vec4 OutColor;
-
-layout(push_constant) uniform Push
-{
-	mat4 Transform;
-	vec3 Color;
-} PushOb;
+layout(location = 0) out vec4 OutColor;
 
 void main()
 {
-	OutColor = vec4(FragColor, 1.0);
+	OutColor = InColor;
+	OutColor.w = 1.0;
+
+	OutColor.x = 1.0;
+	OutColor.y = 1.0;
+	OutColor.z = 0.5;
 }

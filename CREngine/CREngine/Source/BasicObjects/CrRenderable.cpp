@@ -56,6 +56,14 @@ void CrRenderable::LoadRenderable()
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
 		Material.SafeLoad();
+
+		//Some material stuff here that maybe could be moved later on.
+		CrPushConstantContainer FragPCContainer;
+		Material->FragmentShader->PushConstantsLayout.Make(FragPCContainer);
+
+		CrPushConstantContainer VertPCContainer;
+		Material->VertexShader->PushConstantsLayout.Make(VertPCContainer);
+
 		Mesh.SafeLoad();
 
 		//Ensure mesh is uploaded. -- nvm, should be loaded by CrMesh.
@@ -78,11 +86,11 @@ void CrRenderable::UnloadRenderable()
 
 MeshData* CrRenderable::GetMesh()
 {
-	return Mesh->GetData();
+	return Mesh.IsLoaded() ? Mesh->GetData() : nullptr;
 }
 
 MaterialData* CrRenderable::GetMaterial()
 {
 	//Later turn this into a thing that can return multiple materials.
-	return Material->GetData();
+	return Material.IsLoaded() ? Material->GetData() : nullptr;
 }

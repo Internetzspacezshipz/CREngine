@@ -63,28 +63,29 @@ void CrUI_AssetList::DrawUI()
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 
+			String DisplayPath = DirPath.generic_string();
+			String ActualDisp = DirPath.lexically_relative(BasePath()).generic_string();
 
 			if (Dir.is_directory())
 			{
-				if (ImGui::Button(DirName.c_str()))
+				ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.f, 0.5f));
+				//Size of -1 fills in a direction, only do this for horizontal.
+				if (ImGui::Button(ActualDisp, ImVec2(-1.f, 0.f)))
 				{
 					CurrentDirectory = DirPath;
 				}
+				ImGui::PopStyleVar();
 			}
 			else
 			{
-				//Remove ext.
-				//DirPath.replace_extension();
-				String NoExt = DirPath.generic_string();
-				
-				ImGui::Text(NoExt.c_str());
+				ImGui::Text(ActualDisp.c_str());
 
 				ImGui::TableNextColumn();
 				if (ImGui::Button("Copy reference"))
 				{
 					//Do copy to clipboard.
 					ImGui::LogToClipboard();
-					ImGui::LogText(NoExt.c_str());
+					ImGui::LogText(DisplayPath.c_str());
 					ImGui::LogFinish();
 				}
 				ImGui::SameLine();

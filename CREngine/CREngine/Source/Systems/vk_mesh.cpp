@@ -142,11 +142,12 @@ void MeshData::MakeFromShape(Shape InShape)
 	case ShapeNone:
 		return;
 	case ShapeTriangle:
+		//Verts = std::vector<Vertex>{ {0.5f,0.5f,0.5f},{0.5f,0.5f,0.5f},{0.5f,0.5f,0.5f} };
 		return;
 	case ShapeQuad:
 		CrTransformBox2D Box;
-		Box.TopLeft = { -.5f, -.5f };
-		Box.BotRight = { .5f, .5f };
+		Box.TopLeft = { .5f, .5f };
+		Box.BotRight = { -.5f, -.5f };
 		Box.CameraDistance = 0.5f;
 		Verts = Box.GetRenderTris();
 		return;

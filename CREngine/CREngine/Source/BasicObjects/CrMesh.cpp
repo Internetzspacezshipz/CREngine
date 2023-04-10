@@ -43,8 +43,7 @@ bool CrMesh::Import()
 
 	if (!bImportSuccess)
 	{
-		//setup standard mesh.
-		Data.MakeFromShape(ShapeQuad);
+		MakeDefault();
 		return false;
 	}
 
@@ -81,4 +80,10 @@ void CrMesh::UnloadMesh()
 		Engine->UnloadMesh(&Data);
 		bMeshLoaded = false;
 	}
+}
+
+void CrMesh::MakeDefault()
+{
+	//setup standard mesh.
+	Data.MakeFromShape(ShapeQuad);
 }

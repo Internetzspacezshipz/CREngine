@@ -114,8 +114,11 @@ void VulkanEngine::cleanup()
 void VulkanEngine::Draw()
 {
 	//check if window is minimized and skip drawing
+	//Note: blocks it from ever being opened again when this is done, so find a better method in the future.
 	//if (SDL_GetWindowFlags(_window) & SDL_WINDOW_MINIMIZED)
-		//return;
+	//{
+	//	return;
+	//}
 
 	int Width, Height;
 	SDL_GetWindowSize(_window, &Width, &Height);
@@ -173,16 +176,20 @@ void VulkanEngine::Draw()
 
 	RemoveInvalidRenderables();
 
-	//Array of shared render objects - set up so that they are not deleted until the end of scope.
-	Array<SP<RenderObject>> SharedRO;
-	for (auto& Elem : RenderItems)
+	//Scope for renderable lifetimes
 	{
-		SharedRO.push_back(Elem.lock());
+		//Array of shared render objects - set up so that they are not deleted until the end of scope.
+		Array<SP<RenderObject>> SharedRO;
+		SharedRO.reserve(RenderItems.size());
+		for (auto& Elem : RenderItems)
+		{
+			SharedRO.push_back(Elem.lock());
+		}
+
+		draw_objects(cmd);
+
+		DrawInterior(cmd);
 	}
-
-	draw_objects(cmd);
-
-	DrawInterior(cmd);
 
 	//finalize the render pass
 	vkCmdEndRenderPass(cmd);
@@ -233,8 +240,6 @@ void VulkanEngine::Draw()
 	_frameNumber++;
 
 	DescriptorAllocator->Flip();
-
-	SharedRO.clear();
 }
 
 void VulkanEngine::DrawInterior(VkCommandBuffer cmd)
@@ -744,9 +749,8 @@ void VulkanEngine::init_commands()
 	VkCommandPoolCreateInfo commandPoolInfo = vkinit::command_pool_create_info(_graphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
 	
-	for (int i = 0; i < FRAME_OVERLAP; i++) {
-
-	
+	for (int i = 0; i < FRAME_OVERLAP; i++)
+	{
 		VK_CHECK(vkCreateCommandPool(_device, &commandPoolInfo, nullptr, &_frames[i]._commandPool));
 
 		//allocate the default command buffer that we will use for rendering
@@ -1012,44 +1016,40 @@ void VulkanEngine::UnloadShaderModule(VkShaderModule& DeleteShader)
 	DeleteShader = nullptr;
 }
 
-void VulkanEngine::MakeDefaultPipeline(VkShaderModule VertShader, VkShaderModule FragShader, MaterialData& MaterialDataOut)
+void VulkanEngine::MakeDefaultPipeline(const CrStandardPipelineInputs& Inputs, MaterialData& MaterialDataOut)
 {
 	PipelineBuilder pipelineBuilder;
 
-	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, VertShader));
-	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, FragShader));
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, Inputs.VertShader));
+	pipelineBuilder._shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, Inputs.FragShader));
 
 	//we start from just the default empty pipeline layout info
 	VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
 
 	//setup push constants
-	VkPushConstantRange push_constant;
-	//offset 0
-	push_constant.offset = 0;
-	//size of a MeshPushConstant struct
-	push_constant.size = sizeof(MeshPushConstants);
-	//for the vertex shader
-	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	VkPushConstantRange push_constant[2];
 
-	mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
+	push_constant[0].offset = 0;
+	push_constant[0].size = Inputs.VertShaderPushConstantSize;
+	//for the vertex shader
+	push_constant[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	push_constant[1].offset = Inputs.VertShaderPushConstantSize;
+	push_constant[1].size = Inputs.FragShaderPushConstantSize;
+	//for the fragment shader
+	push_constant[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	mesh_pipeline_layout_info.pPushConstantRanges = push_constant;
 	mesh_pipeline_layout_info.pushConstantRangeCount = 1;
 
-	VkDescriptorSetLayout setLayouts[] = { _globalSetLayout, _objectSetLayout };
+	VkDescriptorSetLayout texturedSetLayouts[] = { _globalSetLayout, _objectSetLayout, _singleTextureSetLayout };
 
-	mesh_pipeline_layout_info.setLayoutCount = sizeof(setLayouts) / sizeof(VkDescriptorSetLayout);
-	mesh_pipeline_layout_info.pSetLayouts = setLayouts;
+	mesh_pipeline_layout_info.setLayoutCount = sizeof(texturedSetLayouts) / sizeof(VkDescriptorSetLayout);
+	mesh_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
 
 	VkPipelineLayout PipelineLayout;
 	VK_CHECK(vkCreatePipelineLayout(_device, &mesh_pipeline_layout_info, nullptr, &PipelineLayout));
 
-
-	//we start from  the normal mesh layout
-	VkPipelineLayoutCreateInfo textured_pipeline_layout_info = mesh_pipeline_layout_info;
-
-	VkDescriptorSetLayout texturedSetLayouts[] = { _globalSetLayout, _objectSetLayout, _singleTextureSetLayout };
-
-	textured_pipeline_layout_info.setLayoutCount = sizeof(texturedSetLayouts) / sizeof(VkDescriptorSetLayout);
-	textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
 
 	//hook the push constants layout
 	pipelineBuilder._pipelineLayout = PipelineLayout;
@@ -1264,23 +1264,39 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 
 	//Todo: something here for 2d shit./
 
+	//By default Vulkan's so called "canonical viewing volume" is:
+	// X: -1 to +1
+	// Y: -1 to +1
+	// Z:  0 to +1
+
+	{
+		GPUCameraData camData{};
+		void* data;
+		vmaMapMemory(_allocator, get_current_frame().cameraBuffer._allocation, &data);
+
+		memcpy(data, &camData, sizeof(GPUCameraData));
+
+		vmaUnmapMemory(_allocator, get_current_frame().cameraBuffer._allocation);
+	}
+
 #endif
 
-	float framed = (_frameNumber / 120.f);
+	{
+		float framed = (_frameNumber / 120.f);
 
-	_sceneParameters.ambientColor = { sin(framed), 0, cos(framed), 1 };
+		_sceneParameters.ambientColor = { sin(framed), 0, cos(framed), 1 };
 
-	char* sceneData;
-	vmaMapMemory(_allocator, _sceneParameterBuffer._allocation , (void**)&sceneData);
+		char* sceneData;
+		vmaMapMemory(_allocator, _sceneParameterBuffer._allocation, (void**)&sceneData);
 
-	int frameIndex = _frameNumber % FRAME_OVERLAP;
+		int frameIndex = _frameNumber % FRAME_OVERLAP;
 
-	sceneData += pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
+		sceneData += pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
 
-	memcpy(sceneData, &_sceneParameters, sizeof(GPUSceneData));
+		memcpy(sceneData, &_sceneParameters, sizeof(GPUSceneData));
 
-	vmaUnmapMemory(_allocator, _sceneParameterBuffer._allocation);
-
+		vmaUnmapMemory(_allocator, _sceneParameterBuffer._allocation);
+	}
 
 	void* objectData;
 	vmaMapMemory(_allocator, get_current_frame().objectBuffer._allocation, &objectData);
@@ -1326,11 +1342,11 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 
 			//bug here somewhere probably!
 
-			uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
-		
-			//object data descriptor
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
+			//uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
+			//vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
+			//
+			////object data descriptor
+			//vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, Matp->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
 
 			if (Matp->textureSet != VK_NULL_HANDLE)
 			{

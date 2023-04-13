@@ -33,11 +33,11 @@ class CrSoundPlayer : public CrManagedObject
 
 	virtual void Construct() override;
 
-	CrLoadable<CrSound> LoadableSound;
+	CrLoadable<CrSound> Sound;
+	CrSoundSetting Settings;
 
 protected:
 	CrAudioSystem* AudioSystem = nullptr;
-	CrSoundSetting Settings;
 	SoLoud::handle SoundHandle = 0;
 };
 

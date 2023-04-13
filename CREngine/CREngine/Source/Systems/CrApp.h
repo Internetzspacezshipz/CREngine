@@ -31,6 +31,9 @@ public:
 	//passes it back to whoever called this function after adding it to the active UI list under the instance ID.
 	SP<CrUI_Base> MakeUI(CrID Class);
 
+	//Same as above, but does not add it to the active UI list. It will instead be owned by whatever created it.
+	SP<CrUI_Base> MakeUINoAdd(CrID Class);
+
 	template<typename Type>
 	SP<Type> MakeUI() { return DCast<Type>(MakeUI(Type::StaticClass())); }
 

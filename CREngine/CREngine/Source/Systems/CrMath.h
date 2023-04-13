@@ -104,6 +104,7 @@ inline float ClampAngle(float AngleDegrees, float MinAngleDegrees, float MaxAngl
 	return NormalizeAxis(AngleDegrees);
 }
 
+/*
 struct CrTransform
 {
 	glm::vec3 Translation{};
@@ -156,7 +157,7 @@ struct CrTransform
 		Transform = glm::scale(Transform, Scale);
 		return Transform;
 	}
-};
+};*/
 
 struct CrVertex
 {

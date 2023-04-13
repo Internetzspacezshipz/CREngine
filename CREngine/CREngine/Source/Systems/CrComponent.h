@@ -4,18 +4,28 @@
 
 //CAUTION - NOT TESTED.
 
+template<typename ComponentType, StringLiteral Name>
+struct CrComponent;
+
 //Component base type - don't create this, use the template instead.
-class CrComponentBase
+struct CrComponentBase
 {
 protected:
 	//Make friend with the serialize operator
-	friend void operator <=>(CrArchive& Arch, CrComponentBase& ToSerialize);
-	UP<CrManagedObject>Component;
+	template<typename CompType, StringLiteral Name>
+	friend void operator <=>(CrArchive& Arch, CrComponent<CompType, Name>& ToSerialize);
+	SP<CrManagedObject>Component;
+
+public:
+	SP<CrManagedObject> Get() const 
+	{
+		return Component;
+	}
 };
 
 //A component whose liftime is completely controlled by its owner.
 template<typename ComponentType, StringLiteral Name>
-class CrComponent : public CrComponentBase
+struct CrComponent : public CrComponentBase
 {
 	ComponentType* operator->()
 	{
@@ -29,11 +39,12 @@ class CrComponent : public CrComponentBase
 
 	CrComponent()
 	{
-		Component = MkUP(CrObjectFactory::Get().Create(ComponentType::StaticClass(), CrID::Constant<Name>()));
+		Component = CrObjectFactory::Get().Create(ComponentType::StaticClass(), CrID::Constant<Name>());
 	}
 };
 
-__forceinline static void operator <=>(CrArchive& Arch, CrComponentBase& ToSerialize)
+template<typename CompType, StringLiteral Name>
+__forceinline static void operator <=>(CrArchive& Arch, CrComponent<CompType, Name>& ToSerialize)
 {
 	//Simply forward the serialization to the object.
 	ToSerialize.Component->BinSerialize(Arch);

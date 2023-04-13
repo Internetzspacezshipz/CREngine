@@ -12,7 +12,7 @@ CrSoundPlayer::~CrSoundPlayer()
 
 void CrSoundPlayer::BinSerialize(CrArchive& Arch)
 {
-	//Arch <=> AudioFile;
+	Arch <=> Sound;
 	Arch <=> Settings;
 
 	//Load audio.
@@ -24,11 +24,11 @@ void CrSoundPlayer::BinSerialize(CrArchive& Arch)
 
 bool CrSoundPlayer::LoadSound()
 {
-	if (LoadableSound.IsLoadedOrLoadable())
+	if (Sound.IsLoadedOrLoadable())
 	{
-		if (false == LoadableSound.IsLoaded())
+		if (false == Sound.IsLoaded())
 		{
-			LoadableSound.Load();
+			Sound.Load();
 		}
 		return true;
 	}
@@ -47,9 +47,9 @@ void CrSoundPlayer::UpdateSettings()
 
 bool CrSoundPlayer::Play()
 {
-	if (LoadableSound.IsLoaded())
+	if (Sound.IsLoaded())
 	{
-		SoundHandle = AudioSystem->PlaySound(LoadableSound->WaveObject);
+		SoundHandle = AudioSystem->PlaySound(Sound->WaveObject);
 		return true;
 	}
 	return false;
@@ -67,7 +67,7 @@ bool CrSoundPlayer::Stop()
 
 float CrSoundPlayer::GetDuration()
 {
-	return LoadableSound->WaveObject.getLength();
+	return Sound->WaveObject.getLength();
 }
 
 void CrSoundPlayer::Construct()

@@ -186,12 +186,21 @@
     <ClCompile Include="Source\BasicObjects\CrSoundPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Game\TestGO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
       <Filter>Source Files</Filter>
     </None>
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Source\UserInterface\AssetEditors\CrComponentEditor.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
@@ -440,6 +449,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CrSoundPlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\TestGO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

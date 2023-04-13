@@ -16,6 +16,13 @@ public:
 	static CrEditorUIManager& Get();
 
 	bool MakeEditUI(CrLoadable<CrManagedObject> Object);
+	SP<CrUI_Editor_AssetBase> MakeEditUI_Returned(CrLoadable<CrManagedObject> Object);
+
+	SP<CrUI_Editor_AssetBase> MakeSubEditUI(SP<CrManagedObject> Existing);
+
+	SP<CrUI_Editor_AssetBase> FindExisting(SP<CrManagedObject> Existing);
+
+
 	bool HasEditUI(ClassGUID Class);
 	ClassGUID FindUIClass(ClassGUID Class);
 };

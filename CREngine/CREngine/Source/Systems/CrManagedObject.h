@@ -47,7 +47,7 @@ ClassGUID NEW_CLASS_NAME::GetClass() const																														\
 //1. inheriting from an object that inherits from CrManagedObject or is CrManagedObject itself.
 //2. use DEF_CLASS macro in the body of the new class (preferrably at the top).
 //3. use the REGISTER_CLASS macro in the cpp implementation file.
-class CrManagedObject : public CrBinSerializable
+class CrManagedObject : public CrBinSerializable, public std::enable_shared_from_this<CrManagedObject>
 {
 	friend class CrSerialization;
 	CrID ID;
@@ -90,6 +90,12 @@ public:
 
 	// Inherited via CrSerializerInterface
 	virtual void BinSerialize(CrArchive& Data) override;
+
+	template<typename T>
+	SP<T> SharedThis()
+	{
+		return DCast<T>(shared_from_this());
+	}
 };
 
 //Class flags that adjust how this class can be used.
@@ -357,6 +363,7 @@ static SP<To> DCast(SP<From>&& Object)
 	To* Item = DCast<To>(Object.get());
 	if (Item)
 	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
 		return SP<To>(std::move(Object), Item);
 	}
 	return SP<To>();
@@ -368,6 +375,7 @@ static WP<To> DCast(WP<From>&& Object)
 	To* Item = DCast<To>(Object.lock());
 	if (Item)
 	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
 		return WP<To>(std::move(Object), Item);
 	}
 	return WP<To>();
@@ -407,6 +415,7 @@ static SP<To> DCast(SP<From>& Object)
 	To* Item = DCast<To>(Object.get());
 	if (Item)
 	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
 		return SP<To>(Object, Item);
 	}
 	return SP<To>();
@@ -418,6 +427,7 @@ static WP<To> DCast(WP<From>& Object)
 	To* Item = DCast<To>(Object.lock());
 	if (Item)
 	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
 		return WP<To>(Object, Item);
 	}
 	return WP<To>();

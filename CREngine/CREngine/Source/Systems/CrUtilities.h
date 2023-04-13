@@ -11,6 +11,20 @@ forceinline void RemoveByPredicate(Array<VecElementType>& Target, const Predicat
 	}
 }
 
+template<typename VecElementType, typename PredicateType>
+forceinline VecElementType FindByPredicate(Array<VecElementType>& Target, const PredicateType& Predicate)
+{
+	if (Target.size())
+	{
+		auto FP = std::find_if(Target.begin(), Target.end(), Predicate);
+		if (FP != Target.end())
+		{
+			return *FP;
+		}
+	}
+	return VecElementType();
+}
+
 template<typename KeyType, typename ElementType, typename PredicateType>
 forceinline void RemoveByPredicate(Map<KeyType, ElementType>& Target, const PredicateType& Predicate)
 {

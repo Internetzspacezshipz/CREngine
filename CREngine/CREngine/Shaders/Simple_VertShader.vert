@@ -12,6 +12,8 @@ void main()
 	OutColor.x = color.x;
 	OutColor.y = color.y;
 	OutColor.z = color.z;
-	OutColor.w = 0.75;
+	OutColor.w = 1;
+
+	//Position must be less than 1.0 to be rendered.
 	gl_Position = vec4(position, 0.5f);
 }

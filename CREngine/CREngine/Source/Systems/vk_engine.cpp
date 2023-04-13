@@ -1,9 +1,11 @@
 ﻿
 #include "vk_engine.h"
 
-//CRE includes
+//Cr includes
 #include "CrPaths.h"
 #include "CrGlobals.h"
+#include "BasicObjects/CrRenderable.h"
+
 
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -28,6 +30,7 @@
 
 //Imgui incl
 #include "ThirdParty/ThirdPartyLibs.h"
+
 
 constexpr bool bUseValidationLayers = true;
 
@@ -179,7 +182,7 @@ void VulkanEngine::Draw()
 	//Scope for renderable lifetimes
 	{
 		//Array of shared render objects - set up so that they are not deleted until the end of scope.
-		Array<SP<RenderObject>> SharedRO;
+		Array<SP<CrRenderable>> SharedRO;
 		SharedRO.reserve(RenderItems.size());
 		for (auto& Elem : RenderItems)
 		{
@@ -316,7 +319,7 @@ FrameData& VulkanEngine::get_last_frame()
 
 void VulkanEngine::RemoveInvalidRenderables()
 {
-	RemoveByPredicate(RenderItems, [](WP<RenderObject> Rendwp) { return Rendwp.expired(); });
+	RemoveByPredicate(RenderItems, [](WP<CrRenderable> Rendwp) { return Rendwp.expired(); });
 }
 
 void VulkanEngine::init_vulkan()
@@ -1116,9 +1119,9 @@ void VulkanEngine::DestroyMaterial(MaterialData& MaterialDataOut)
 	}
 }
 
-void VulkanEngine::SubmitRenderable(WP<RenderObject> RenderItem)
+void VulkanEngine::SubmitRenderable(SP<CrRenderable> RenderItem)
 {
-	RenderItems.push_back(RenderItem);
+	RenderItems.push_back(std::move(RenderItem));
 }
 
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device, VkRenderPass pass)
@@ -1301,13 +1304,13 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd)
 	void* objectData;
 	vmaMapMemory(_allocator, get_current_frame().objectBuffer._allocation, &objectData);
 	
-	GPUObjectData* objectSSBO = (GPUObjectData*)objectData;
+	CrTransform* objectSSBO = (CrTransform*)objectData;
 	
 
 	for (int i = 0; i < RenderItems.size(); i++)
 	{
 		auto object = RenderItems[i].lock();
-		objectSSBO[i] = object->GPUData;
+		objectSSBO[i] = object->Transform;
 	}
 	
 	vmaUnmapMemory(_allocator, get_current_frame().objectBuffer._allocation);
@@ -1679,7 +1682,7 @@ void VulkanEngine::init_descriptors()
 		_frames[i].cameraBuffer = create_buffer(sizeof(GPUCameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 		const int MAX_OBJECTS = 10000;
-		_frames[i].objectBuffer = create_buffer(sizeof(GPUObjectData) * MAX_OBJECTS, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		_frames[i].objectBuffer = create_buffer(sizeof(CrTransform) * MAX_OBJECTS, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 		assert(GetDescAlloc().Allocate(_globalSetLayout, _frames[i].globalDescriptor));
 
@@ -1703,7 +1706,7 @@ void VulkanEngine::init_descriptors()
 		VkDescriptorBufferInfo objectBufferInfo;
 		objectBufferInfo.buffer = _frames[i].objectBuffer._buffer;
 		objectBufferInfo.offset = 0;
-		objectBufferInfo.range = sizeof(GPUObjectData) * MAX_OBJECTS;
+		objectBufferInfo.range = sizeof(CrTransform) * MAX_OBJECTS;
 		VkWriteDescriptorSet objectWrite = vkinit::write_descriptor_buffer(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, _frames[i].objectDescriptor, &objectBufferInfo, 0);
 
 		VkWriteDescriptorSet setWrites[] = { cameraWrite, sceneWrite, objectWrite };

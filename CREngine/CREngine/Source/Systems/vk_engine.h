@@ -23,6 +23,7 @@
 #include "CrUtilities.h"
 #include "CrTypes.h"
 
+class CrRenderable;
 
 class PipelineBuilder 
 {
@@ -88,7 +89,7 @@ struct alignas(uint64_t) MeshPushConstants
 };
 
 //A struct that is sent to the GPU in a large buffer for each object.
-struct alignas(uint64_t) GPUObjectData
+struct alignas(uint64_t) CrTransform
 {
 #if ENGINE_MODE_3D
 	glm::mat4 modelMatrix;
@@ -115,15 +116,14 @@ struct TextureData
 	VkSampler Sampler;
 };
 
-struct RenderObject 
-{
-	virtual MeshData* GetMesh() = 0;
-	virtual MaterialData* GetMaterial() = 0;
-
-	//Data we push to the GPU every frame. Includes transform information.
-	GPUObjectData GPUData;
-};
-
+//struct RenderObject 
+//{
+//	virtual MeshData* GetMesh() = 0;
+//	virtual MaterialData* GetMaterial() = 0;
+//	//Data we push to the GPU every frame. Includes transform information.
+//	virtual CrTransform* GetTransform() = 0;
+//	//CrTransform GPUData;
+//};
 
 struct FrameData 
 {
@@ -272,18 +272,6 @@ public:
 	FrameData& get_current_frame();
 	FrameData& get_last_frame();
 
-	//Pipelines
-
-	//VkPipelineLayout meshPipeLayout;
-	//VkPipelineLayout texturedPipeLayout;
-	//
-	//VkPipeline meshPipeline;
-	//VkPipeline texPipeline;
-
-
-	//weak pointer array of render objects. If actual render object is destroyed by dereferencing, it will be destroyed here if not in use.
-	std::vector<WP<RenderObject>> _renderables;
-
 	//The minimum size of the _renderables vector
 	void RemoveInvalidRenderables();
 
@@ -303,8 +291,7 @@ public:
 	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 
 
-	//New CRE funcs
-
+	//New Cr funcs
 	void UploadTexture(TextureData* NewTexture, VkFormat Format);
 	void UnloadTexture(TextureData* DeleteTex);
 
@@ -319,9 +306,9 @@ public:
 	void MakeDefaultPipeline(const CrStandardPipelineInputs& Inputs, MaterialData& MaterialDataOut);
 	void DestroyMaterial(MaterialData& MaterialDataOut);
 
-	void SubmitRenderable(WP<RenderObject> RenderItem);
+	void SubmitRenderable(SP<CrRenderable> RenderItem);
 
-	Array<WP<RenderObject>> RenderItems;
+	Array<WP<CrRenderable>> RenderItems;
 
 	//Functions to delete objects that were to be unloaded during the frame, but might have already been asked to render.
 	Array<Func<void(VulkanEngine*)>> NextFrameDeletors;

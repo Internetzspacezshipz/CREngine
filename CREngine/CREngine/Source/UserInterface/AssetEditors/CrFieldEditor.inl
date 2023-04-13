@@ -12,6 +12,7 @@
 #include "BasicObjects/CrShader.h"
 #include "BasicObjects/CrMesh.h"
 #include "BasicObjects/CrMaterial.h"
+#include "BasicObjects/CrSound.h"
 
 template<
 	StringLiteral TextBoxName,
@@ -249,6 +250,23 @@ struct CrFieldEditor<TextBoxName, CrLoadable<CrMaterial>>
 		CrAssetReference IORef = Item.GetRef();
 
 		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crmat">(IORef, GetDataPath()))
+		{
+			Item.Set(IORef);
+			return true;
+		}
+		return false;
+	}
+};
+
+//Material editor, specifically looks up materials in the data folder.
+template<StringLiteral TextBoxName>
+struct CrFieldEditor<TextBoxName, CrLoadable<CrSound>>
+{
+	static bool Call(CrLoadable<CrSound>& Item)
+	{
+		CrAssetReference IORef = Item.GetRef();
+
+		if (ComboBox_FilterableDirectoryIterator_Asset<TextBoxName, ".crsnd">(IORef, GetDataPath()))
 		{
 			Item.Set(IORef);
 			return true;

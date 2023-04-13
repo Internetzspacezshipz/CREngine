@@ -274,6 +274,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.cpp" />
     <ClCompile Include="Source\BasicObjects\CrSoundPlayer.cpp" />
     <ClCompile Include="Source\Systems\CrComponent.cpp" />
     <ClCompile Include="Source\Systems\CrAudioSystem.cpp" />
@@ -330,6 +331,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClCompile Include="Source\Systems\vk_initializers.cpp" />
     <ClCompile Include="Source\Systems\vk_mesh.cpp" />
     <ClCompile Include="Source\Systems\vk_textures.cpp" />
+    <ClCompile Include="Source\Game\TestGO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat" />
@@ -339,9 +341,11 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <CustomBuild Include="Shaders\Simple_VertShader.vert">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="Source\UserInterface\AssetEditors\CrComponentEditor.inl" />
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.h" />
     <ClInclude Include="Source\BasicObjects\CrSoundPlayer.h" />
     <ClInclude Include="Source\Systems\CrComponent.h" />
     <ClInclude Include="Source\Systems\CrAudioSystem.h" />
@@ -424,6 +428,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <ClInclude Include="Source\Systems\vk_mesh.h" />
     <ClInclude Include="Source\Systems\vk_textures.h" />
     <ClInclude Include="Source\Systems\vk_types.h" />
+    <ClInclude Include="Source\Game\TestGO.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

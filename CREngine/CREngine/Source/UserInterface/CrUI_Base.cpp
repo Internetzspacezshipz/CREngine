@@ -27,4 +27,7 @@ void CrUI_Base::RemoveUI(bool bPromptAllowed)
 void CrUI_Base::Construct()
 {
 	WindowTitle = String(GetID().GetStringPretty());
+	//Weird method of inserting ##, since we want the index still, 
+	WindowTitle.insert(WindowTitle.find_last_of('_'), "#");
+	WindowTitle[WindowTitle.find_last_of('_')] = '#';
 }

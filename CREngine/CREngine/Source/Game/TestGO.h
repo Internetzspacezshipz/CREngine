@@ -1,0 +1,30 @@
+#pragma once
+#include "CrManagedObject.h"
+
+#include "CrComponent.h"
+#include <BasicObjects/CrRenderable.h>
+#include <BasicObjects/CrSoundPlayer.h>
+#include "UserInterface/AssetEditors/CrUI_Editor_AssetBase.h"
+
+//A 2d object that is renderable in the scene.
+//Todo: remove RenderObject inheritance and turn it to composition instead.
+class TestGO : public CrManagedObject
+{
+	DEF_CLASS(TestGO, CrManagedObject);
+
+	CrComponent<CrRenderable, "Renderable"> Renderable;
+	CrComponent<CrSoundPlayer, "SoundPlayer"> SoundPlayer;
+
+	virtual ~TestGO();
+
+	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
+	virtual void BinSerialize(CrArchive& Arch) override;
+};
+
+
+class UI_TestGO : public CrUI_Editor_AssetBase
+{
+	DEF_CLASS(UI_TestGO, CrUI_Editor_AssetBase);
+
+	virtual void DrawUI() override;
+};

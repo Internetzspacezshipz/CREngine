@@ -17,6 +17,7 @@ REGISTER_CLASS(CrUI_Editor_AssetBase);
 void CrUI_Editor_AssetBase::Construct()
 {
 	Super::Construct();
+
 	CrKeySystem* KeySys = CrGlobals::GetKeySystemPointer();
 	KeySys->BindToKeys({SDLK_LCTRL, SDLK_s},
 		[this](bool bPressed)
@@ -30,39 +31,43 @@ void CrUI_Editor_AssetBase::Construct()
 
 void CrUI_Editor_AssetBase::DrawUI()
 {
-	ImGui::Begin(WindowTitle, &bOpen, GetWindowFlags());
-	ImGui::SetWindowSize(DefaultEditorWindowSize, ImGuiCond_Once);
-	ImGui::SetWindowPos({ 200.f, 50.f }, ImGuiCond_Once);
-
-	if (ActiveEditFilename.size() == 0)
+	//Only allow main window if we're not the child of something.
+	if (Parent.expired())
 	{
-		ActiveEditFilename = CurrentEditedAsset.GetID().GetString();
+		ImGui::Begin(WindowTitle, &bOpen, GetWindowFlags());
+		ImGui::SetWindowSize(DefaultEditorWindowSize, ImGuiCond_Once);
+		ImGui::SetWindowPos({ 200.f, 50.f }, ImGuiCond_Once);
+
+		if (ActiveEditFilename.size() == 0)
+		{
+			ActiveEditFilename = CurrentEditedAsset.GetID().GetString();
+		}
+
+		//Edit filename. Popup opens in PopupUI() func
+		if (ImGui::Button("Save Asset"))
+		{
+			SaveAssetWithPrompts();
+		}
+
+		ImGui::SameLine();
+
+		ImGui::InputText("Filename", &ActiveEditFilename);
+
+		if (ActiveEditFilename != CurrentEditedAsset.GetID().GetString())
+		{
+			MarkAssetNeedsSave();
+		}
+
+		if (!bOpen)
+		{
+			bOpen = true;
+			RemoveUIWithPrompt();
+		}
+
+		PopupUI();
+
+		ImGui::End();
 	}
-
-	//Edit filename. Popup opens in PopupUI() func
-	if (ImGui::Button("Save Asset"))
-	{
-		SaveAssetWithPrompts();
-	}
-
-	ImGui::SameLine();
-
-	ImGui::InputText("Filename", &ActiveEditFilename);
-
-	if (ActiveEditFilename != CurrentEditedAsset.GetID().GetString())
-	{
-		MarkAssetNeedsSave();
-	}
-
-	if (!bOpen)
-	{
-		bOpen = true;
-		RemoveUIWithPrompt();
-	}
-
-	PopupUI();
-
-	ImGui::End();
 }
 
 void CrUI_Editor_AssetBase::RemoveUI(bool bPromptAllowed)
@@ -165,6 +170,12 @@ void CrUI_Editor_AssetBase::PopupUI()
 			Serial.Move(ARef, NewRef);
 			CurrentEditedAsset.Rename(NewRef.AssetID);
 			CurrentEditedAsset.Save();
+
+			//Ensure we set all our children to also no longer want a save.
+			for (auto& Child : Children)
+			{
+				Child->bWantsSave = false;
+			}
 			bWantsSave = false;
 
 			//Save first and then unload.

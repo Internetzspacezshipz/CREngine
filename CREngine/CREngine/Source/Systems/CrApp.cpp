@@ -66,12 +66,22 @@ void CrApp::Cleanup()
 
 SP<CrUI_Base> CrApp::MakeUI(CrID Class)
 {
+    SP<CrUI_Base> NewlyMade = MakeUINoAdd(Class);
+    if (NewlyMade == nullptr)
+    {
+        return NewlyMade;
+    }
+    AddUI(NewlyMade->GetID(), NewlyMade);
+    return NewlyMade;
+}
+
+SP<CrUI_Base> CrApp::MakeUINoAdd(CrID Class)
+{
     if (Class.IsValidID())
     {
         CrObjectFactory& ObjectFactory = CrObjectFactory::Get();
         if (SP<CrUI_Base> NewUI = DCast<CrUI_Base>(ObjectFactory.Create(Class)))
         {
-            AddUI(NewUI->GetID(), NewUI);
             return NewUI;
         }
     }

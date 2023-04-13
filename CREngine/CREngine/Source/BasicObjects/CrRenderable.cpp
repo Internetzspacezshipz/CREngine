@@ -71,8 +71,7 @@ void CrRenderable::LoadRenderable()
 		bHasBeenLoaded = true;
 
 		//Make a shared pointer from ourself.
-		SP<RenderObject> FromThis(static_cast<SP<RenderObject>>(shared_from_this()));
-		Engine->SubmitRenderable(FromThis);
+		Engine->SubmitRenderable(SharedThis<CrRenderable>());
 	}
 }
 

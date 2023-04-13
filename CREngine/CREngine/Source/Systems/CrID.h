@@ -34,7 +34,8 @@ class CrObjectIDRegistry
 				//Shorten string view
 				StringV View = StringV(GetStringArr()[Itr->second]);
 				View = View.substr(View.find_last_of('/') + 1);
-				View = View.substr(0, View.find_last_of('_'));
+				//This is removed since we need the unique idents at the end for ImGui.
+				//View = View.substr(0, View.find_last_of('_'));
 				return View;
 			}
 			else
@@ -65,7 +66,9 @@ public:
 	void SetFlags(const FlagSize& Value);
 	FlagSize GetFlags() const;
 
+	//Returns path/item_instancenumber
 	StringV GetString() const;
+	//Returns name with no path info.
 	StringV GetStringPretty() const;
 	IDNum_t GetNumber() const { return Number; }
 

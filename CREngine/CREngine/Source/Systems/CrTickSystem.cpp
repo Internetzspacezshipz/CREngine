@@ -137,7 +137,10 @@ CrTick::CrTick(const LocalityNumber& LNum)
 
 void CrTick::ChangeTickSettings(bool bInDisabled, Seconds NewTimeBetweenTicks)
 {
-	Disable();
+	if (!bDisabled)
+	{
+		Disable();
+	}
 	bDisabled = bInDisabled;
 	if (bDisabled)
 	{

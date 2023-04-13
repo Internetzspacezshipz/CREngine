@@ -1,17 +1,29 @@
 #include "TestGO.h"
 #include "UserInterface/AssetEditors/CrEditorUIManager.h"
 #include "UserInterface/AssetEditors/CrComponentEditor.inl"
+#include "UserInterface/AssetEditors/CrFieldEditor.inl"
 
 REGISTER_CLASS(TestGO);
 
+TestGO::TestGO() : CrTick(GetClass())
+{
+
+}
+
 TestGO::~TestGO()
 {
+
 }
 
 void TestGO::BinSerialize(CrArchive& Arch)
 {
 	Arch <=> Renderable;
 	Arch <=> SoundPlayer;
+}
+
+void TestGO::DoTick(Seconds DeltaTime)
+{
+	//CrLOG("Some sorta log with delta time %f", DeltaTime);
 }
 
 REGISTER_CLASS(UI_TestGO);
@@ -35,6 +47,7 @@ void UI_TestGO::DrawUI()
 
 	auto SThis = DCast<UI_TestGO>(shared_from_this());
 
+	bWasEdited |= EditTick<"Tick">(Casted.get());
 	bWasEdited |= EditComponent(Casted->Renderable, SThis);
 	bWasEdited |= EditComponent(Casted->SoundPlayer, SThis);
 

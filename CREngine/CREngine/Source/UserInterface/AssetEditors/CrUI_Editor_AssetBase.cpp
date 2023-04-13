@@ -14,10 +14,8 @@
 
 REGISTER_CLASS(CrUI_Editor_AssetBase);
 
-void CrUI_Editor_AssetBase::Construct()
+CrUI_Editor_AssetBase::CrUI_Editor_AssetBase()
 {
-	Super::Construct();
-
 	CrKeySystem* KeySys = CrGlobals::GetKeySystemPointer();
 	KeySys->BindToKeys({SDLK_LCTRL, SDLK_s},
 		[this](bool bPressed)

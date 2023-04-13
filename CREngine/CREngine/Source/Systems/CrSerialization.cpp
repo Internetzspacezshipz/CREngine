@@ -217,7 +217,7 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 	
 	if (std::filesystem::file_size(TargetPath) == 0)
 	{
-		CrLOG("%s has a file size of 0. We cannot load that!", TargetPath.generic_string().c_str());
+		CrLOG("{} has a file size of 0. We cannot load that!", TargetPath.generic_string().c_str());
 		return; 
 	}
 

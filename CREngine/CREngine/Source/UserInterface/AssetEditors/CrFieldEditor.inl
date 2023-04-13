@@ -296,3 +296,32 @@ struct CrFieldEditor<TextBoxName, CrTextureFormatTypes>
 		return false;
 	}
 };
+
+//Maybe remove this later
+#include "CrTickSystem.h"
+
+//UI related function for editing the tick
+// I don't like this, maybe change it later to make it nicer.
+template<StringLiteral TextBoxName>
+bool EditTick(CrTick* Tick)
+{
+	bool bEdited = false;
+	ImGui::SeparatorText(TextBoxName.Value);
+
+	bool bDisabled = Tick->GetIsDisabled();
+	if (ImGui::Checkbox("Enabled", &bDisabled))
+	{
+		Tick->ChangeTickSettings(bDisabled);
+		bEdited = true;
+	}
+
+	Seconds TimeBetweenTicks = Tick->GetTimeBetweenTicks();
+	if (ImGui::InputFloat("Time between ticks", &TimeBetweenTicks))
+	{
+		Tick->ChangeTickSettings(Tick->GetIsDisabled(), TimeBetweenTicks);
+		bEdited = true;
+	}
+
+	ImGui::Separator();
+	return bEdited;
+}

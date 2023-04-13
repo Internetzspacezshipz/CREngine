@@ -7,9 +7,8 @@ class CrUI_MenuBar : public CrUI_Base
 {
 	DEF_CLASS(CrUI_MenuBar, CrUI_Base);
 
+	CrUI_MenuBar();
 	virtual void DrawUI() override;
-
-	virtual void Construct() override;
 
 	bool bIsOpen = false;
 	bool bOpenDemo = false;

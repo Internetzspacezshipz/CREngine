@@ -192,6 +192,9 @@
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Systems\CrTickSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -455,6 +458,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Systems\CrTickSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

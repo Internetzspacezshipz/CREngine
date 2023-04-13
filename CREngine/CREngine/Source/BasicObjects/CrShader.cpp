@@ -6,6 +6,18 @@ REGISTER_CLASS_FLAGS(CrShader, CrClassFlags_Unique);
 
 REGISTER_EXTENSION(CrShader, ".crsh");
 
+CrShader::CrShader()
+{
+	//ensure this is zerofilled.
+	ShaderData = nullptr;
+
+	PushConstantsLayout.SetLayout({
+		CrPushConstantType_float,
+		CrPushConstantType_float,
+		CrPushConstantType_float
+		});
+}
+
 CrShader::~CrShader()
 {
 	UnloadShader();
@@ -89,16 +101,4 @@ VkShaderModule CrShader::GetShader()
 		LoadShader();
 	}
 	return ShaderData;
-}
-
-void CrShader::Construct()
-{
-	//ensure this is zerofilled.
-	ShaderData = nullptr;
-
-	PushConstantsLayout.SetLayout({
-		CrPushConstantType_float,
-		CrPushConstantType_float,
-		CrPushConstantType_float
-		});
 }

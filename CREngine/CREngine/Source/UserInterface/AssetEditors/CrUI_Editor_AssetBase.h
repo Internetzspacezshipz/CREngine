@@ -7,7 +7,7 @@ class CrUI_Editor_AssetBase : public CrUI_Base
 {
 	DEF_CLASS(CrUI_Editor_AssetBase, CrUI_Base);
 
-	virtual void Construct() override;
+	CrUI_Editor_AssetBase();
 
 	virtual void DrawUI() override;
 

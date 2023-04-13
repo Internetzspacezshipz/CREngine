@@ -274,6 +274,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Systems\CrTickSystem.cpp" />
     <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.cpp" />
     <ClCompile Include="Source\BasicObjects\CrSoundPlayer.cpp" />
     <ClCompile Include="Source\Systems\CrComponent.cpp" />
@@ -345,6 +346,7 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Systems\CrTickSystem.h" />
     <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_SoundPlayerEditor.h" />
     <ClInclude Include="Source\BasicObjects\CrSoundPlayer.h" />
     <ClInclude Include="Source\Systems\CrComponent.h" />

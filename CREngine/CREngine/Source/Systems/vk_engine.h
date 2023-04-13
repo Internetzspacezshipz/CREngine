@@ -188,7 +188,7 @@ public:
 
 
 	//Call to this every frame for drawing ImGui UI elements.
-	std::function<void()> UIDrawFunction;
+	Func<void()> UIDrawFunction;
 
 
 	//Shared pointers to keybinds.

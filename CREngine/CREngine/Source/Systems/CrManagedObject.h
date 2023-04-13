@@ -18,10 +18,6 @@ class CrClass;
 #define DEF_CLASS(NEW_CLASS_NAME, BASE_CLASS_NAME) public:																			\
 static ClassGUID StaticClass();																										\
 virtual ClassGUID GetClass() const override;																						\
-NEW_CLASS_NAME(const ObjGUID& InObjGUID) : Super(InObjGUID)																			\
-{																																	\
-	Construct();																													\
-}																																	\
 typedef BASE_CLASS_NAME Super;
 
 
@@ -41,7 +37,6 @@ ClassGUID NEW_CLASS_NAME::GetClass() const																														\
 //Register class should be done inside the CPP file of each class.
 #define REGISTER_CLASS(NEW_CLASS_NAME) REGISTER_CLASS_FLAGS(NEW_CLASS_NAME, CrClassFlags_None)
 
-
 //Virtual base class for all classes to inherit from.
 //Must be set up by:
 //1. inheriting from an object that inherits from CrManagedObject or is CrManagedObject itself.
@@ -50,11 +45,17 @@ ClassGUID NEW_CLASS_NAME::GetClass() const																														\
 class CrManagedObject : public CrBinSerializable, public std::enable_shared_from_this<CrManagedObject>
 {
 	friend class CrSerialization;
+	friend class CrObjectFactory;
+
 	CrID ID;
+	void SetID(const CrID& NewID) { ID = NewID; }
 
 public:
 	//typedef super as void to make sure it follows the normal pattern for managed objects.
 	typedef void Super;
+
+	CrManagedObject() = default;
+	virtual ~CrManagedObject() {}
 
 	//delete copy.
 	CrManagedObject(const CrManagedObject&) = delete;
@@ -68,11 +69,10 @@ public:
 	static ClassGUID StaticClass();
 	virtual ClassGUID GetClass() const;
 	CrClass* GetClassObj() const;
-
-	CrManagedObject(const ObjGUID& InObjGUID) : ID(InObjGUID) {}
-	virtual ~CrManagedObject() {}
-
 	ObjGUID GetID() const { return ID; }
+
+	//Start function, similar to UE's BeginPlay, it is called after construction.
+	virtual void Start() {};
 
 	void Rename(const ObjGUID& In);
 	virtual void OnRename() {};
@@ -84,9 +84,6 @@ public:
 		Out.ClassID = GetClass();//Get actual class type.
 		return Out;
 	}
-
-	//The "Constructor", which we call in the actual constructor.
-	virtual void Construct() {};
 
 	// Inherited via CrSerializerInterface
 	virtual void BinSerialize(CrArchive& Data) override;
@@ -159,7 +156,7 @@ static SP<To> DCast(SP<From>& Object);
 class CrObjectFactory
 {
 	//constructors for each class type.
-	Map<ClassGUID, std::function<SP<CrManagedObject>(const ObjGUID&)>> ClassCreators;
+	Map<ClassGUID, Func<SP<CrManagedObject>()>> ClassCreators;
 	//Info objects about the layout of the class inheritance.
 	Map<ClassGUID, CrClass*> ClassInfos;
 
@@ -170,8 +167,8 @@ public:
 	template<class T>
 	void RegisterClass(const ClassGUID& ClassID)
 	{
-		CrLOG("Register Class : Index: <%ul>   Name: <%s>     x", ClassID.GetNumber(), String(ClassID.GetString()).c_str());
-		ClassCreators.insert({ ClassID, [](const ObjGUID& Name)->SP<CrManagedObject> { return DCast<CrManagedObject>(std::make_shared<T>(Name)); } });
+		CrLOG("Register Class : Index: <{:10}>   Name: <{}>", ClassID.GetNumber(), String(ClassID.GetString()).c_str());
+		ClassCreators.insert({ ClassID, []()->SP<CrManagedObject> { return DCast<CrManagedObject>(std::make_shared<T>()); } });
 		ClassInfos.insert({ ClassID, &CrClassConcrete<T>::Get() });
 	}
 
@@ -182,14 +179,19 @@ public:
 		{
 			return nullptr; // not a derived class
 		}
+
+		auto* ClassInfo = ClassInfos[it->first];
+
 		if (!Name.IsValidID())
 		{
 			//Add the data folder as the base.
-			String BaseName = DataPath.generic_string() + "/" + String(ClassInfos[it->first]->GetClassName());
+			String BaseName = DataPath.generic_string() + "/" + String(ClassInfo->GetClassName());
 			Name = CrObjectIDRegistry::CreateUniqueID(BaseName);
 		}
 
-		SP<CrManagedObject> NewOb = (it->second)(Name);
+		SP<CrManagedObject> NewOb = (it->second)();
+		NewOb->SetID(Name);
+		NewOb->Start();
 		//If we want to save a list of all objects in the future, this is the spot to do it.
 		return NewOb;
 	}

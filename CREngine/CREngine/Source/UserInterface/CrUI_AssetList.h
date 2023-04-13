@@ -8,8 +8,7 @@ class CrUI_AssetList : public CrUI_Base
 
 	Path CurrentDirectory;
 
+	CrUI_AssetList();
 	virtual void DrawUI() override;
-
-	virtual void Construct() override;
 };
 

@@ -115,6 +115,7 @@ class CrShader : public CrManagedObject
 {
 	DEF_CLASS(CrShader, CrManagedObject);
 
+	CrShader();
 	virtual ~CrShader();
 
 	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
@@ -134,7 +135,6 @@ class CrShader : public CrManagedObject
 	//The layout for the push constants used in the shader.
 	CrPushConstantLayout PushConstantsLayout;
 
-	virtual void Construct() override;
 private:
 
 	VkShaderModule ShaderData;

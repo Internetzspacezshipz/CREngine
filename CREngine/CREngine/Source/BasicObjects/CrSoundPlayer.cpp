@@ -4,6 +4,11 @@
 
 REGISTER_CLASS_FLAGS(CrSoundPlayer, CrClassFlags_Component);
 
+CrSoundPlayer::CrSoundPlayer()
+{
+	AudioSystem = CrGlobals::GetAudioSystemPointer();
+}
+
 CrSoundPlayer::~CrSoundPlayer()
 {
 	//Simply reduces the reference counter in the mini audio manager.
@@ -68,9 +73,4 @@ bool CrSoundPlayer::Stop()
 float CrSoundPlayer::GetDuration()
 {
 	return Sound->WaveObject.getLength();
-}
-
-void CrSoundPlayer::Construct()
-{
-	AudioSystem = CrGlobals::GetAudioSystemPointer();
 }

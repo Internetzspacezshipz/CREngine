@@ -13,6 +13,7 @@ class CrSound : public CrManagedObject
 	friend class CrUI_SoundEditor;
 	friend class CrSoundPlayer;
 
+	CrSound();
 	virtual ~CrSound();
 
 	virtual void BinSerialize(CrArchive& Arch) override;
@@ -27,7 +28,6 @@ class CrSound : public CrManagedObject
 	void StopThrowaway();
 
 	float GetDuration();
-	virtual void Construct() override;
 
 	Path ImportPath;
 

@@ -6,6 +6,20 @@
 
 REGISTER_CLASS(CrUI_MenuBar);
 
+CrUI_MenuBar::CrUI_MenuBar()
+{
+	CrKeySystem* KeySystem = CrGlobals::GetKeySystemPointer();
+
+	OpenKeyBind = KeySystem->BindToKey(SDLK_BACKQUOTE,
+		[this](bool bButtonDown)
+		{
+			if (bButtonDown)
+			{
+				bIsOpen = !bIsOpen;
+			}
+		});
+}
+
 void CrUI_MenuBar::DrawUI()
 {
 	if (bIsOpen)
@@ -54,18 +68,4 @@ void CrUI_MenuBar::DrawUI()
 	{
 		ImGui::ShowDemoWindow(&bOpenDemo);
 	}
-}
-
-void CrUI_MenuBar::Construct()
-{
-	CrKeySystem* KeySystem = CrGlobals::GetKeySystemPointer();
-
-	OpenKeyBind = KeySystem->BindToKey(SDLK_BACKQUOTE,
-		[this](bool bButtonDown)
-		{
-			if (bButtonDown)
-			{
-				bIsOpen = !bIsOpen;
-			}
-		});
 }

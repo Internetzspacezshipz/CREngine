@@ -20,6 +20,7 @@
 
 //UI
 #include "UserInterface/CrUI_MenuBar.h"
+#include <CrTickSystem.h>
 
 CrApp::CrApp()
 {
@@ -42,6 +43,8 @@ void CrApp::Setup()
 
 void CrApp::DrawUIObjects()
 {
+    CrTickSystem::Get().RunTicks();
+
     for (auto& Element : UIObjects)
     {
         //keep a copy of the temp shared pointer here in case the UI tries to remove itself before it's done execution.

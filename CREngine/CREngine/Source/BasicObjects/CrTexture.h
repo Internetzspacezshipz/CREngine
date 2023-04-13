@@ -9,7 +9,7 @@
 class CrTexture : public CrManagedObject
 {
 	DEF_CLASS(CrTexture, CrManagedObject);
-
+	CrTexture();
 	virtual ~CrTexture();
 
 	//virtual void Serialize(bool bSerializing, nlohmann::json& TargetJson) override;
@@ -27,8 +27,6 @@ class CrTexture : public CrManagedObject
 	TextureData* GetData() { return TexData.get(); };
 
 	bool ValidData() { return TexData.get(); }
-
-	virtual void Construct() override;
 
 	VkFormat GetVkFormat();
 

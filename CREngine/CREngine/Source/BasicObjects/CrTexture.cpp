@@ -11,6 +11,12 @@ REGISTER_CLASS_FLAGS(CrTexture, CrClassFlags_Unique);
 
 REGISTER_EXTENSION(CrTexture, ".crim");
 
+CrTexture::CrTexture()
+{
+	TexData = std::make_unique<TextureData>();
+	CompressionType = BC1;
+}
+
 CrTexture::~CrTexture()
 {
 	//Remember to unload when destroying
@@ -101,12 +107,6 @@ void CrTexture::OnRename()
 	//???? Should we unload and reload here?
 }
 
-void CrTexture::Construct()
-{
-	TexData = std::make_unique<TextureData>();
-	CompressionType = BC1;
-}
-
 VkFormat CrTexture::GetVkFormat()
 {
 	switch (CompressionType)
@@ -124,7 +124,7 @@ VkFormat CrTexture::GetVkFormat()
 	case BC6HS: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
 	case BC7: return VK_FORMAT_BC7_UNORM_BLOCK;
 	default:
-		CrLOGf("Returned default VkFormat from object {}! Something is very wrong.", GetID().GetString());
+		CrLOG("Returned default VkFormat from object {}! Something is very wrong.", GetID().GetString());
 		return VK_FORMAT_R8G8B8A8_SRGB;
 	}
 }

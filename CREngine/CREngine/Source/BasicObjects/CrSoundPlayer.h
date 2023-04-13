@@ -18,6 +18,7 @@ class CrSoundPlayer : public CrManagedObject
 
 	friend class CrUI_SoundEditor;
 
+	CrSoundPlayer();
 	virtual ~CrSoundPlayer();
 
 	virtual void BinSerialize(CrArchive& Arch) override;
@@ -31,7 +32,6 @@ class CrSoundPlayer : public CrManagedObject
 
 	float GetDuration();
 
-	virtual void Construct() override;
 
 	CrLoadable<CrSound> Sound;
 	CrSoundSetting Settings;

@@ -7,9 +7,22 @@
 
 REGISTER_CLASS(CrUI_Base);
 
+CrUI_Base::CrUI_Base()
+{
+
+}
+
 CrUI_Base::~CrUI_Base()
 {
 
+}
+
+void CrUI_Base::Start()
+{
+	WindowTitle = String(GetID().GetStringPretty());
+	//Weird method of inserting ##, since we want the index still, 
+	WindowTitle.insert(WindowTitle.find_last_of('_'), "#");
+	WindowTitle[WindowTitle.find_last_of('_')] = '#';
 }
 
 void CrUI_Base::DrawUI()
@@ -24,10 +37,3 @@ void CrUI_Base::RemoveUI(bool bPromptAllowed)
 	CrGlobals::GetAppPointer()->RemoveUI(GetID());
 }
 
-void CrUI_Base::Construct()
-{
-	WindowTitle = String(GetID().GetStringPretty());
-	//Weird method of inserting ##, since we want the index still, 
-	WindowTitle.insert(WindowTitle.find_last_of('_'), "#");
-	WindowTitle[WindowTitle.find_last_of('_')] = '#';
-}

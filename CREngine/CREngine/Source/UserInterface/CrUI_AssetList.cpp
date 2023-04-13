@@ -4,6 +4,11 @@
 
 REGISTER_CLASS(CrUI_AssetList);
 
+CrUI_AssetList::CrUI_AssetList()
+{
+	CurrentDirectory = CrSerialization::Get().GetBaseAssetPath();
+}
+
 void CrUI_AssetList::DrawUI()
 {
 	ImGui::Begin(WindowTitle, &bOpen);
@@ -114,8 +119,3 @@ void CrUI_AssetList::DrawUI()
 	}
 }
 
-void CrUI_AssetList::Construct()
-{
-	Super::Construct();
-	CurrentDirectory = CrSerialization::Get().GetBaseAssetPath();
-}

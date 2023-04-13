@@ -9,6 +9,11 @@ REGISTER_CLASS_FLAGS(CrSound, CrClassFlags_Unique);
 
 REGISTER_EXTENSION(CrSound, ".crsnd");
 
+CrSound::CrSound()
+{
+	AudioSystem = CrGlobals::GetAudioSystemPointer();
+}
+
 CrSound::~CrSound()
 {
 	//Simply reduces the reference counter in the mini audio manager.
@@ -92,7 +97,3 @@ float CrSound::GetDuration()
 	return WaveObject.getLength();
 }
 
-void CrSound::Construct()
-{
-	AudioSystem = CrGlobals::GetAudioSystemPointer();
-}

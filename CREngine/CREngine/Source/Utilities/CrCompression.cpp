@@ -159,13 +159,13 @@ namespace CrCompression
 
 		if (GetFileInfo(FilePath, TextureWidth, TextureHeight, TextureChannelsActual, bIsFP) == false)
 		{
-			CrLOGf("Failed to load \"{}\"", FilePath);
+			CrLOG("Failed to load \"{}\"", FilePath);
 			return false;
 		}
 
 		if (bIsFP != Attrib.bFloat)
 		{
-			CrLOGf("Filename \"{}\" was in a different format than expected.", FilePath);
+			CrLOG("Filename \"{}\" was in a different format than expected.", FilePath);
 			return false;
 		}
 

@@ -9,7 +9,10 @@ class CrUI_Base : public CrManagedObject
 {
 	DEF_CLASS(CrUI_Base, CrManagedObject);
 
+	CrUI_Base();
 	virtual ~CrUI_Base();
+
+	virtual void Start() override;
 
 	//Main function to override for drawing UI.
 	virtual void DrawUI();
@@ -22,9 +25,6 @@ class CrUI_Base : public CrManagedObject
 	//Default implementation does not care about bPromptAllowed.
 	virtual void RemoveUI(bool bPromptAllowed = false);
 	forceinline void RemoveUIWithPrompt() { RemoveUI(true); };
-
-	//Override construct to inject this UI into the engine.
-	virtual void Construct() override;
 };
 
 

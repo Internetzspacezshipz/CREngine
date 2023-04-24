@@ -3,7 +3,7 @@
 #include "UserInterface/AssetEditors/CrComponentEditor.inl"
 #include "UserInterface/AssetEditors/CrFieldEditor.inl"
 
-REGISTER_CLASS(TestGO);
+REGISTER_CLASS_FLAGS(TestGO, CrClassFlags_Instanceable);
 
 TestGO::TestGO() : CrTick(GetClass())
 {

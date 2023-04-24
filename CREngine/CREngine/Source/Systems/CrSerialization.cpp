@@ -1,6 +1,6 @@
 #include "CrSerialization.h"
 
-#include "CrAssetList.h"
+#include "CrManagedObject.h"
 
 //Boost
 #include <fstream>
@@ -178,6 +178,22 @@ SP<CrManagedObject> CrSerialization::Load(const Path& ToLoad)
 	return Load(PathToRef(ToLoad));
 }
 
+CrAssetReference CrSerialization::PeekFile(const Path& ToPeek)
+{
+	if (std::filesystem::file_size(ToPeek) != 0)
+	{
+		CrArchiveIn LoadedFile{ ToPeek.generic_string() };
+
+		CrAssetReference Out;
+
+		LoadedFile <=> Out;
+
+		return Out;
+	}
+	CrLOG("{} has a file size of 0. We cannot load that!", ToPeek.generic_string().c_str());
+	return CrAssetReference();
+}
+
 void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrID& ToLoad)
 {
 	if (Target)
@@ -225,8 +241,13 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 
 	if (!Target)
 	{
+		CrAssetReference LoadRef;
+		LoadedFile <=> LoadRef;
+
+		/*
 		CrID ClassID;
 		CrID NameID = ToLoad.AssetID;
+
 		if (bIsDataOnlyClass)
 		{
 			ClassID = GetClassForExtension(TargetPath.extension().generic_string());
@@ -236,14 +257,16 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 			LoadedFile <=> ClassID;
 			LoadedFile <=> NameID;
 		}
-	
-		if (ClassID.IsValidID())
+		
+
+		if (ClassID.IsValidID())*/
+		if (LoadRef.ClassID.IsValidID())
 		{
 			CrObjectFactory& Factory = CrObjectFactory::Get();
 			//Find our actual class object ot check its class flags to see if we should add it to the non-instanced map.
-			if (CrClass* Class = Factory.GetClass(ClassID))
+			if (CrClass* Class = Factory.GetClass(LoadRef.ClassID))
 			{
-				auto Object = Factory.Create(ClassID, ToLoad.AssetID);
+				auto Object = Factory.Create(LoadRef.ClassID, ToLoad.AssetID);
 
 				if (Class->HasFlag(CrClassFlags_Unique))
 				{
@@ -253,7 +276,7 @@ void CrSerialization::Reload(SP<CrManagedObject>& Target, const CrAssetReference
 				Target.swap(Object);
 			}
 		}
-		Target->ID = NameID;
+		Target->ID = LoadRef.AssetID;
 	}
 
 	if (Target)
@@ -277,8 +300,14 @@ void CrSerialization::Save(SP<CrManagedObject> ToSave)
 	const String StrPath = (BasePath() / ToSave->GetID().GetString()).generic_string() + GetExtensionForClass(ToSave->GetClass());
 	CrArchiveOut OutArch { StrPath };
 	CrID ClassID = ToSave->GetClass();
+
+	CrAssetReference ARef{ ToSave->ID, ClassID };
+	OutArch <=> ARef;
+
+	/*
 	OutArch <=> ClassID;
-	OutArch <=> ToSave->ID;
+	OutArch <=> ToSave->ID;*/
+
 	ToSave->BinSerialize(OutArch);
 }
 

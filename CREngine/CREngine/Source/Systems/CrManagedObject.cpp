@@ -1,7 +1,5 @@
 #include "CrManagedObject.h"
 
-#include <iostream>
-
 REGISTER_CLASS(CrManagedObject);
 
 CrObjectFactory& CrObjectFactory::Get()
@@ -26,5 +24,14 @@ void CrManagedObject::Rename(const ObjGUID& In)
 
 void CrManagedObject::BinSerialize(CrArchive& Data)
 {
+}
 
+CrManagedObject::CrManagedObject()
+{
+	//CrLOGD(TRACK_OBJECT_LIFETIMES, "Object was created...");
+}
+
+CrManagedObject::~CrManagedObject()
+{
+	CrLOGD(TRACK_OBJECT_LIFETIMES, "Object was destroyed: Name: {} - Class:{}", GetID().GetString(), GetClass().GetString());
 }

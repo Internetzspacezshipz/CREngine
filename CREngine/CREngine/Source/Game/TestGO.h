@@ -6,10 +6,11 @@
 #include <BasicObjects/CrSoundPlayer.h>
 #include "UserInterface/AssetEditors/CrUI_Editor_AssetBase.h"
 #include "CrTickSystem.h"
+#include "Utilities/CrGrid.h"
 
 //A 2d object that is renderable in the scene.
 //Todo: remove RenderObject inheritance and turn it to composition instead.
-class TestGO : public CrManagedObject, public CrTick
+class TestGO : public CrManagedObject, public CrTick, public CrGridCell
 {
 	DEF_CLASS(TestGO, CrManagedObject);
 

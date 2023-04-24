@@ -1,6 +1,7 @@
 #include "CrApp.h"
 #include "CrSerialization.h"
-#include "CrAssetList.h"
+#include "CrVerse.h"
+
 #include "CrGlobals.h"
 
 #include "BasicObjects/CrRenderable.h"
@@ -70,11 +71,10 @@ void CrApp::Cleanup()
 SP<CrUI_Base> CrApp::MakeUI(CrID Class)
 {
     SP<CrUI_Base> NewlyMade = MakeUINoAdd(Class);
-    if (NewlyMade == nullptr)
+    if (NewlyMade != nullptr)
     {
-        return NewlyMade;
+        AddUI(NewlyMade->GetID(), NewlyMade);
     }
-    AddUI(NewlyMade->GetID(), NewlyMade);
     return NewlyMade;
 }
 

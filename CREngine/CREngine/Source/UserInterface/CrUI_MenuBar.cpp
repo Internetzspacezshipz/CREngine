@@ -4,6 +4,9 @@
 #include "CrUI_ClassList.h"
 #include "CrUI_AssetList.h"
 
+#include "CrSerialization.h"
+#include "AssetEditors/CrEditorUIManager.h"
+
 REGISTER_CLASS(CrUI_MenuBar);
 
 CrUI_MenuBar::CrUI_MenuBar()
@@ -28,16 +31,16 @@ void CrUI_MenuBar::DrawUI()
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				CrApp* App = CrGlobals::GetAppPointer();
+
 				if (ImGui::MenuItem("Class Selector Window"))
 				{
-					CrApp* App = CrGlobals::GetAppPointer();
-					auto Item = App->MakeUI<CrUI_ClassList>();
+					App->MakeUI<CrUI_ClassList>();
 				}
 
 				if (ImGui::MenuItem("Asset Selector Window"))
 				{
-					CrApp* App = CrGlobals::GetAppPointer();
-					auto Item = App->MakeUI<CrUI_AssetList>();
+					App->MakeUI<CrUI_AssetList>()->SetOnOpenAction(CrAssetListFunctionality::OpenEditor);
 				}
 
 				if (ImGui::MenuItem("ImGui demo window"))

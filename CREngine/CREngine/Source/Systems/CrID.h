@@ -20,7 +20,6 @@ class CrObjectIDRegistry
 
 	static void Emplace(IDNum_t Number, String&& InString);
 
-	static CrID CreateUniqueID(const String& In);
 
 	template<bool bPretty = false>
 	forceinline static StringV GetStringImpl(const IDNum_t& Number)
@@ -45,6 +44,9 @@ class CrObjectIDRegistry
 		}
 		return StringV("");
 	}
+
+public:
+	static CrID CreateUniqueID(const String& In);
 };
 
 //Avoid implicit typecasting in this class.
@@ -216,6 +218,6 @@ namespace std
 //Special serialize for IDs.
 inline static void operator <=>(CrArchive& Arch, CrAssetReference& ToSerialize)
 {
-	Arch <=> ToSerialize.AssetID;
 	Arch <=> ToSerialize.ClassID;
+	Arch <=> ToSerialize.AssetID;
 }

@@ -8,6 +8,7 @@ class CrMesh : public CrManagedObject
 {
 	DEF_CLASS(CrMesh, CrManagedObject);
 
+	CrMesh();
 	virtual ~CrMesh();
 
 	virtual void BinSerialize(CrArchive& Arch) override;
@@ -18,14 +19,14 @@ class CrMesh : public CrManagedObject
 	bool UploadMesh();
 	void UnloadMesh();
 
-	MeshData* GetData() { return &Data; }
+	MeshData* GetData() { return Data.get(); }
 
 	Path ImportPath;
 
 	void MakeDefault();
 private:
 	bool bMeshLoaded = false;
-	MeshData Data;
+	UP<MeshData> Data;
 };
 
 

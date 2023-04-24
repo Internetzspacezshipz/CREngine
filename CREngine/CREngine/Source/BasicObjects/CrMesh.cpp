@@ -7,6 +7,11 @@ REGISTER_CLASS_FLAGS(CrMesh, CrClassFlags_Unique);
 
 REGISTER_EXTENSION(CrMesh, ".crob");
 
+CrMesh::CrMesh()
+{
+	Data = MkUP<MeshData>();
+}
+
 CrMesh::~CrMesh()
 {
 	UnloadMesh();
@@ -22,7 +27,7 @@ void CrMesh::BinSerialize(CrArchive& Arch)
 		Import();
 	}
 
-	Arch <=> Data.Verts;
+	Arch <=> Data->Verts;
 
 	//If loading
 	if (Arch.bSerializing == false)
@@ -37,8 +42,8 @@ bool CrMesh::Import()
 
 	if (!ImportPath.empty())
 	{
-		Data.Verts = {};
-		bImportSuccess = Data.LoadFromObj(ImportPath);
+		Data->Verts = {};
+		bImportSuccess = Data->LoadFromObj(ImportPath);
 	}
 
 	if (!bImportSuccess)
@@ -61,10 +66,10 @@ bool CrMesh::UploadMesh()
 
 	if (FileStr.empty() == false)
 	{
-		if (Data.LoadFromObj(FileStr.c_str()))
+		if (Data->LoadFromObj(FileStr.c_str()))
 		{
 			VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-			Engine->UploadMesh(&Data);
+			Engine->UploadMesh(Data.get());
 			bMeshLoaded = true;
 			return true;
 		}
@@ -77,7 +82,16 @@ void CrMesh::UnloadMesh()
 	if (bMeshLoaded == true)
 	{
 		VulkanEngine* Engine = CrGlobals::GetEnginePointer();
-		Engine->UnloadMesh(&Data);
+
+		//Ensure we use a next frame deletor for the mesh, since it might still be in use when this object is destroyed.
+		MeshData* MeshDataPtr = Data.release();
+		Engine->NextFrameDeletors.push_back(
+		[MeshDataPtr](VulkanEngine* Engine)
+		{
+			Engine->UnloadMesh(MeshDataPtr);
+			delete MeshDataPtr;
+		});
+
 		bMeshLoaded = false;
 	}
 }
@@ -85,5 +99,5 @@ void CrMesh::UnloadMesh()
 void CrMesh::MakeDefault()
 {
 	//setup standard mesh.
-	Data.MakeFromShape(ShapeQuad);
+	Data->MakeFromShape(ShapeQuad);
 }

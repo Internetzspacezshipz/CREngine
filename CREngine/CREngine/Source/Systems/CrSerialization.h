@@ -134,7 +134,7 @@ static typename std::enable_if<!Has_Serializer_Function<Type>::Value, void>::typ
 const String GenericItemExt = ".crap";
 
 class CrManagedObject;
-class CrAssetList;
+class CrVerse;
 
 //Class that handles serialization of assets.
 class CrSerialization
@@ -152,10 +152,10 @@ class CrSerialization
 	Map<String, CrID> ExtensionToClass;
 	Map<CrID, String> ClassToExtension;
 
+public:
 
 	Path RefToPath(const CrAssetReference& In) const;
 	CrAssetReference PathToRef(const Path& In) const;
-public:
 
 	static CrSerialization& Get()
 	{
@@ -174,6 +174,10 @@ public:
 
 	SP<CrManagedObject> Load(const CrAssetReference& ToLoad);
 	SP<CrManagedObject> Load(const Path& ToLoad);
+
+	//Peeks into a file to get the class in case it is a derived type.
+	CrAssetReference PeekFile(const Path& ToPeek);
+
 	//Reload that only takes in a target. Can fail.
 	void Reload(SP<CrManagedObject>& Target, const CrID& ToLoad);
 	//Reload that must have a class if the target is not valid.

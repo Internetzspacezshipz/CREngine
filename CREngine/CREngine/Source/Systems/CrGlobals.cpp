@@ -24,3 +24,9 @@ CrAudioSystem*& CrGlobals::GetAudioSystemPointer()
 	static CrAudioSystem* Audio = nullptr;
 	return Audio;
 }
+
+CrNetwork*& CrGlobals::GetNetworkPointer()
+{
+	static CrNetwork* Network = nullptr;
+	return Network;
+}

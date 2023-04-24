@@ -5,6 +5,7 @@ class VulkanEngine;
 class CrApp;
 class CrKeySystem;
 class CrAudioSystem;
+class CrNetwork;
 
 //Holds any global pointers for anything to get.
 namespace CrGlobals
@@ -16,5 +17,7 @@ namespace CrGlobals
 	extern inline CrKeySystem*& GetKeySystemPointer();
 
 	extern inline CrAudioSystem*& GetAudioSystemPointer();
+
+	extern inline CrNetwork*& GetNetworkPointer();
 	//TODO: Add settings object pointer here.
 }

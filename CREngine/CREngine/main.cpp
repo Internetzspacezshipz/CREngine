@@ -16,6 +16,7 @@
 #include "CrAudioSystem.h"
 #include "CrGlobals.h"
 
+#include "CrNetwork.h"
 
 int main(int argc, char* argv[])
 {
@@ -37,6 +38,8 @@ int main(int argc, char* argv[])
 	CrKeySystem InputSystem;
 	CrGlobals::GetKeySystemPointer() = &InputSystem;
 
+	CrNetwork Network;
+	CrGlobals::GetNetworkPointer() = &Network;
 
 	RenderEngine.init();
 

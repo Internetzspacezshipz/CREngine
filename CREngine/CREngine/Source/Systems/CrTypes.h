@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <filesystem>
+#include <semaphore>
 
 //Logging
 #include "CrLogging.h"
@@ -209,3 +210,5 @@ using Tuple = std::tuple<Types...>;
 
 template<class Type, size_t Size>
 using FixedArray = std::array<Type, Size>;
+
+using Semaphore = std::binary_semaphore;

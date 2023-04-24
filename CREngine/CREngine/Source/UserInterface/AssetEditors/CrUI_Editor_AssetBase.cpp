@@ -172,7 +172,10 @@ void CrUI_Editor_AssetBase::PopupUI()
 			//Ensure we set all our children to also no longer want a save.
 			for (auto& Child : Children)
 			{
-				Child->bWantsSave = false;
+				if (auto ABaseCh = DCast<CrUI_Editor_AssetBase>(Child))
+				{
+					ABaseCh->bWantsSave = false;
+				}
 			}
 			bWantsSave = false;
 

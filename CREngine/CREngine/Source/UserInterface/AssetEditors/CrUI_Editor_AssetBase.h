@@ -34,9 +34,6 @@ class CrUI_Editor_AssetBase : public CrUI_Base
 		return DCast<AsType>(CurrentEditedAsset.Get());
 	}
 
-	//Children of this editor window - this allows inline windows to be created under this one for editing things such as components.
-	Array<SP<CrUI_Editor_AssetBase>> Children;
-	WP<CrUI_Editor_AssetBase> Parent;
 	CrLoadable<CrManagedObject> CurrentEditedAsset;
 private:
 	//Variable for rename operation.

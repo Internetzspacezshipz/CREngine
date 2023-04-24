@@ -51,7 +51,7 @@
     <ClCompile Include="Source\ThirdParty\vkbootstrap\VkBootstrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\CrAssetList.cpp">
+    <ClCompile Include="Source\Systems\CrVerse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\BasicObjects\CrTexture.cpp">
@@ -84,7 +84,7 @@
     <ClCompile Include="Source\UserInterface\CrUI_Base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_AssetListEditor.cpp">
+    <ClCompile Include="Source\UserInterface\AssetEditors\CrUI_VerseEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\ThirdParty\imgui\imgui_stdlib.cpp">
@@ -195,6 +195,15 @@
     <ClCompile Include="Source\Systems\CrTickSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Utilities\CrCollision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utilities\CrGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\CrNetwork.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="compileShaders.bat">
@@ -250,7 +259,7 @@
     <ClInclude Include="Source\Systems\CrPaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Systems\CrAssetList.h">
+    <ClInclude Include="Source\Systems\CrVerse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\BasicObjects\CrTexture.h">
@@ -289,7 +298,7 @@
     <ClInclude Include="Source\UserInterface\CrUI_Base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_AssetListEditor.h">
+    <ClInclude Include="Source\UserInterface\AssetEditors\CrUI_VerseEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\imgui\imgui_stdlib.h">
@@ -461,6 +470,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Systems\CrTickSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utilities\CrCollision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utilities\CrGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Systems\CrNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

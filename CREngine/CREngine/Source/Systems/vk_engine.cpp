@@ -192,31 +192,33 @@ void VulkanEngine::Draw()
 		draw_objects(cmd);
 
 		DrawInterior(cmd);
+
+
+		//finalize the render pass
+		vkCmdEndRenderPass(cmd);
+		//finalize the command buffer (we can no longer add commands, but it can now be executed)
+		VK_CHECK(vkEndCommandBuffer(cmd));
+
+		//prepare the submission to the queue. 
+		//we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
+		//we will signal the _renderSemaphore, to signal that rendering has finished
+
+		VkSubmitInfo submit = vkinit::submit_info(&cmd);
+
+		VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		submit.pWaitDstStageMask = &waitStage;
+
+		submit.waitSemaphoreCount = 1;
+		submit.pWaitSemaphores = &get_current_frame()._presentSemaphore;
+
+		submit.signalSemaphoreCount = 1;
+		submit.pSignalSemaphores = &get_current_frame()._renderSemaphore;
+
+		//submit command buffer to the queue and execute it.
+		// _renderFence will now block until the graphic commands finish execution
+		auto QueueSubmitOutput = vkQueueSubmit(_graphicsQueue, 1, &submit, get_current_frame()._renderFence);
 	}
 
-	//finalize the render pass
-	vkCmdEndRenderPass(cmd);
-	//finalize the command buffer (we can no longer add commands, but it can now be executed)
-	VK_CHECK(vkEndCommandBuffer(cmd));
-
-	//prepare the submission to the queue. 
-	//we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
-	//we will signal the _renderSemaphore, to signal that rendering has finished
-
-	VkSubmitInfo submit = vkinit::submit_info(&cmd);
-	VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-	submit.pWaitDstStageMask = &waitStage;
-
-	submit.waitSemaphoreCount = 1;
-	submit.pWaitSemaphores = &get_current_frame()._presentSemaphore;
-
-	submit.signalSemaphoreCount = 1;
-	submit.pSignalSemaphores = &get_current_frame()._renderSemaphore;
-
-	//submit command buffer to the queue and execute it.
-	// _renderFence will now block until the graphic commands finish execution
-	auto QueueSubmitOutput = vkQueueSubmit(_graphicsQueue, 1, &submit, get_current_frame()._renderFence);
 
 	//prepare present
 	// this will put the image we just rendered to into the visible window.

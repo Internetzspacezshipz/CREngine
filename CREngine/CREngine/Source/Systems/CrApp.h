@@ -34,8 +34,18 @@ public:
 	//Same as above, but does not add it to the active UI list. It will instead be owned by whatever created it.
 	SP<CrUI_Base> MakeUINoAdd(CrID Class);
 
-	template<typename Type>
-	SP<Type> MakeUI() { return DCast<Type>(MakeUI(Type::StaticClass())); }
+	template<typename Type, bool bNoAdd = false>
+	SP<Type> MakeUI()
+	{
+		if constexpr (bNoAdd)
+		{
+			return DCast<Type>(MakeUINoAdd(Type::StaticClass()));
+		}
+		else
+		{
+			return DCast<Type>(MakeUI(Type::StaticClass()));
+		}
+	}
 
 	//Removes UI with an ID.
 	void RemoveUI(CrID Name);

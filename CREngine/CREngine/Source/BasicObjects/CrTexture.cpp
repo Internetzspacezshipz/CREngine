@@ -13,7 +13,7 @@ REGISTER_EXTENSION(CrTexture, ".crim");
 
 CrTexture::CrTexture()
 {
-	TexData = std::make_unique<TextureData>();
+	TexData = MkUP<TextureData>();
 	CompressionType = BC1;
 }
 

@@ -47,13 +47,13 @@ inline static void operator <=>(CrArchive& Arch, CrTick& ToSerialize)
 {
 	if (!Arch.bSerializing)
 	{
-		Arch.SerializeSpecific<bool, false, false>(ToSerialize.bDisabled);
-		Arch.SerializeSpecific<Seconds, false, false>(ToSerialize.TimeBetweenTicks);
+		Arch.SerializeSpecific<bool, false>(ToSerialize.bDisabled);
+		Arch.SerializeSpecific<Seconds, false>(ToSerialize.TimeBetweenTicks);
 	}
 	else
 	{
-		Arch.SerializeSpecific<bool, true, false>(ToSerialize.bDisabled);
-		Arch.SerializeSpecific<Seconds, true, false>(ToSerialize.TimeBetweenTicks);
+		Arch.SerializeSpecific<bool, true>(ToSerialize.bDisabled);
+		Arch.SerializeSpecific<Seconds, true>(ToSerialize.TimeBetweenTicks);
 	}
 	//Update tick settings in both cases.
 	ToSerialize.ChangeTickSettings(ToSerialize.bDisabled, ToSerialize.TimeBetweenTicks);

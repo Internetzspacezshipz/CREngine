@@ -104,6 +104,8 @@ CrID::CrID(String&& Name)
 
 CrID::CrID() : Number(0), FlagValue(0) { }
 
+#define ID_CONSTRUCTION_TRACK 0
+
 CrID::CrID(const IDNum_t& InNum, const String& InString) :
 	Number(InNum),
 	FlagValue(HasBeenSet)
@@ -111,14 +113,13 @@ CrID::CrID(const IDNum_t& InNum, const String& InString) :
 
 	auto& Reg = CrObjectIDRegistry::GetMap();
 	//If this is hit, that means somehow this constructor was hit twice for the same key, which should NOT happen.
-	assert(!Reg.contains(Number));
-
-	String NewString = InString;
-	//transform(NewString.begin(), NewString.end(), NewString.begin(), ::tolower);
-
-	//CrLOG("ID Made:   <%ul>    <%s>     x", Number, NewString.c_str());
-
-	CrObjectIDRegistry::Emplace(Number, std::move(NewString));
+	if (!Reg.contains(Number))
+	{
+		//Copied string.
+		String NewString = InString;
+		CrLOGD(ID_CONSTRUCTION_TRACK, "ID Made: {} {}", Number, NewString.c_str());
+		CrObjectIDRegistry::Emplace(Number, std::move(NewString));
+	}
 }
 
 String CrAssetReference::GetString() const

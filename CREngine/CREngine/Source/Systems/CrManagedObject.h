@@ -54,8 +54,8 @@ public:
 	//typedef super as void to make sure it follows the normal pattern for managed objects.
 	typedef void Super;
 
-	CrManagedObject() = default;
-	virtual ~CrManagedObject() {}
+	CrManagedObject();
+	virtual ~CrManagedObject();
 
 	//delete copy.
 	CrManagedObject(const CrManagedObject&) = delete;
@@ -104,7 +104,11 @@ enum CrClassFlags : uint32_t
 	CrClassFlags_Transient = 1 << 2, //Can never save this asset.
 	CrClassFlags_DataOnly = 1 << 3, //Asset is loaded directly from a data file such as .png, .obj, etc. You should not inherit from this class.
 	CrClassFlags_Component = 1 << 4, //Asset belongs to another object and will be saved into their file. It should never be instantiated standalone.
-	CrClassFlags_UNUSED = 1 << 5, //NOT USED YET.
+	CrClassFlags_Instanceable = 1 << 5, //Asset can be created to be spawned in a CrVerse. This is inherited from parents.
+	CrClassFlags_UNUSED = 1 << 6, //NOT USED YET.
+
+	//Add to here if you want the child class to inherit certain flags types
+	_CrClassFlags_InheritMask = CrClassFlags_Instanceable | CrClassFlags_Component | CrClassFlags_Unique | CrClassFlags_Transient,
 };
 
 //Contains info about what classes are derived, and what the parent class is.
@@ -115,6 +119,7 @@ protected:
 	Set<CrClass*> Children;
 	ClassGUID ThisGUID;
 	CrClassFlags ClassFlags = CrClassFlags_None;
+	size_t ClassSizeBytes = 0;
 public:
 	bool IsChildOf(ClassGUID ClassID) const
 	{
@@ -144,6 +149,8 @@ public:
 	Set<CrClass*> GetChildren() const { return Children; }
 	StringV GetClassName() const { return ThisGUID.GetString(); }
 	StringV GetClassPrettyName() const { return ThisGUID.GetStringPretty(); }
+	CrClassFlags GetClassFlags() const { return ClassFlags; }
+	size_t GetClassSizeBytes() const { return ClassSizeBytes; }
 };
 
 
@@ -152,6 +159,8 @@ class CrClassConcrete;
 
 template<typename To, typename From> 
 static SP<To> DCast(SP<From>& Object);
+
+#define TRACK_OBJECT_LIFETIMES 1
 
 class CrObjectFactory
 {
@@ -192,6 +201,9 @@ public:
 		SP<CrManagedObject> NewOb = (it->second)();
 		NewOb->SetID(Name);
 		NewOb->Start();
+
+		CrLOGD(TRACK_OBJECT_LIFETIMES, "Object was created: Name: {} - Class:{}", NewOb->GetID().GetString(), NewOb->GetClass().GetString());
+
 		//If we want to save a list of all objects in the future, this is the spot to do it.
 		return NewOb;
 	}
@@ -215,6 +227,22 @@ public:
 		{
 			assert(Ref.ClassID == Class::StaticClass());
 		}
+
+		return NewItem;
+	}
+
+	//Makes a new copy of the object passed in.
+	template<typename Type>
+	SP<Type> CopyFrom(SP<Type> InFrom)
+	{
+		CrClass* Class = InFrom->GetClassObj();
+		SP<Type> NewItem = DCast<Type>(Create(Class->GetClassGUID()));
+
+		assert(NewItem);
+
+		//This will probably break something at some point.......
+		//Maybe it should instead be passed through the serialization system to only use relevant fields.
+		memcpy(NewItem.get(), InFrom.get(), Class->ClassSizeBytes);
 
 		return NewItem;
 	}
@@ -254,11 +282,21 @@ public:
 		return *this;
 	}
 
+	//Must be called after setting the parent.
 	CrClassConcrete<NativeClass>& SetClassFlags(const CrClassFlags& InFlags)
 	{
 		//Must not allow setting of class flags more than once.
 		assert(HasFlag(CrClassFlags_HAS_BEEN_SET) == false);
-		ClassFlags = (CrClassFlags)(InFlags | CrClassFlags_HAS_BEEN_SET);
+		ClassFlags = (CrClassFlags)(InFlags | CrClassFlags_HAS_BEEN_SET | 
+			(Parent ? _CrClassFlags_InheritMask & Parent->GetClassFlags() : 0) //inherit flags from parent if needed.
+			);
+		return *this;
+	}
+
+	CrClassConcrete<NativeClass>& SetClassSize()
+	{
+		assert(ClassSizeBytes == 0);
+		ClassSizeBytes = sizeof(NativeClass);
 		return *this;
 	}
 
@@ -292,7 +330,8 @@ public:
 		CrClassConcrete<New>::Get()
 			.RegisterParent<Base>()
 			.SetClassID(NewID)
-			.SetClassFlags(Flags);
+			.SetClassFlags(Flags)
+			.SetClassSize();
 	}
 };
 
@@ -308,13 +347,14 @@ public:
 			.RegisterClass<New>(NewID);
 		CrClassConcrete<New>::Get()
 			.SetClassID(NewID)
-			.SetClassFlags(Flags);
+			.SetClassFlags(Flags)
+			.SetClassSize();
 	}
 };
 
 //Dynamic Cast.
 template<typename To>
-To* DCast(CrManagedObject* Object)
+static inline To* DCast(CrManagedObject* Object)
 {
 	if (Object != nullptr)
 	{
@@ -330,6 +370,8 @@ To* DCast(CrManagedObject* Object)
 }
 
 //Dynamic casts for smart pointers:
+
+// MOVE:
 
 //Upcasting
 //Use some new fancy C++20 shit to determine upcasting.
@@ -383,6 +425,8 @@ static WP<To> DCast(WP<From>&& Object)
 	return WP<To>();
 }
 
+// REF:
+
 //Upcasting
 //Use some new fancy C++20 shit to determine upcasting.
 template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
@@ -425,6 +469,58 @@ static SP<To> DCast(SP<From>& Object)
 
 template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
 static WP<To> DCast(WP<From>& Object)
+{
+	To* Item = DCast<To>(Object.lock());
+	if (Item)
+	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
+		return WP<To>(Object, Item);
+	}
+	return WP<To>();
+}
+
+
+// CONST REF:
+
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static SP<To> DCast(const SP<From>& Object)
+{
+	return SP<To>(Object, Object.get());
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<To, From> && !std::is_same_v<To, From>)
+static WP<To> DCast(const WP<From>& Object)
+{
+	return WP<To>(Object, Object.lock());
+}
+
+//Same type - no need to do anything.
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static SP<To> DCast(const SP<From>& Object)
+{
+	return Object;
+}
+
+template<typename To, typename From> requires (std::is_same_v<To, From>)
+static WP<To> DCast(const WP<From>& Object)
+{
+	return Object;
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static SP<To> DCast(const SP<From>& Object)
+{
+	To* Item = DCast<To>(Object.get());
+	if (Item)
+	{
+		//Returns what is called an "aliasing constructed" shared pointer, which should use the same reference block info, but with a different type
+		return SP<To>(Object, Item);
+	}
+	return SP<To>();
+}
+
+template<typename To, typename From> requires (std::is_base_of_v<From, To> && !std::is_same_v<To, From>)
+static WP<To> DCast(const WP<From>& Object)
 {
 	To* Item = DCast<To>(Object.lock());
 	if (Item)

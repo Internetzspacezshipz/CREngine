@@ -36,7 +36,6 @@ protected:
 	std::fstream Stream;
 	bool bIsNewFile;
 
-	bool bEncode;
 	std::string BufferString;
 	size_t BufferSize = 0;
 	size_t ReadOffset = 0;
@@ -107,7 +106,7 @@ public:
 
 	//Stupid specialized wchar_t, since it doesn't interact well with a normal char fstream,
 	//and I do not want to save into a wchar_t stream.
-	template<typename Type, bool tSerializing, bool Encoding>
+	template<typename Type, bool tSerializing>
 	__forceinline void SerializeSpecific(Type& Item)
 	{
 		if constexpr (tSerializing)
@@ -152,10 +151,10 @@ public:
 				uint32_t MidHashOld = 0;
 				uint32_t EndHashOld = 0;
 
-				SerializeSpecific<size_t, false, false>(OldSize);
-				SerializeSpecific<uint32_t, false, false>(BegHashOld);
-				SerializeSpecific<uint32_t, false, false>(MidHashOld);
-				SerializeSpecific<uint32_t, false, false>(EndHashOld);
+				SerializeSpecific<size_t, false>(OldSize);
+				SerializeSpecific<uint32_t, false>(BegHashOld);
+				SerializeSpecific<uint32_t, false>(MidHashOld);
+				SerializeSpecific<uint32_t, false>(EndHashOld);
 
 				bIsSameHash =
 					bLargeEnough &&
@@ -169,10 +168,10 @@ public:
 			{
 				//If it's not the same size/hash, write all values back into the file before we write our new data block.
 				Stream.seekg(StartPoint);
-				SerializeSpecific<size_t, true, false>(SizeBytes);
-				SerializeSpecific<uint32_t, true, false>(BegHashNew);
-				SerializeSpecific<uint32_t, true, false>(MidHashNew);
-				SerializeSpecific<uint32_t, true, false>(EndHashNew);
+				SerializeSpecific<size_t, true>(SizeBytes);
+				SerializeSpecific<uint32_t, true>(BegHashNew);
+				SerializeSpecific<uint32_t, true>(MidHashNew);
+				SerializeSpecific<uint32_t, true>(EndHashNew);
 				return true;
 			}
 		}
@@ -183,10 +182,10 @@ public:
 			uint32_t EndHashOld = 0;
 
 			//Read the hashes/sizes in order to keep everything going in the correct order.
-			SerializeSpecific<size_t, false, false>(SizeBytes);
-			SerializeSpecific<uint32_t, false, false>(BegHashOld);
-			SerializeSpecific<uint32_t, false, false>(MidHashOld);
-			SerializeSpecific<uint32_t, false, false>(EndHashOld);
+			SerializeSpecific<size_t, false>(SizeBytes);
+			SerializeSpecific<uint32_t, false>(BegHashOld);
+			SerializeSpecific<uint32_t, false>(MidHashOld);
+			SerializeSpecific<uint32_t, false>(EndHashOld);
 
 			//Maybe we could check the hashes here to ensure no alterations to the file were done...
 		}
@@ -214,7 +213,7 @@ public:
 		}
 	}
 
-	template<typename Type, bool tSerializing, bool Encoding>
+	template<typename Type, bool tSerializing>
 	__forceinline void SerializeSpecificContainer(Type& Item)
 	{
 		//retrieve element type that the container uses.
@@ -226,7 +225,7 @@ public:
 			V = Item.size();
 		}
 		//Serialize/deserialize size first so we know how long to loop.
-		SerializeSpecific<uint64_t, tSerializing, Encoding>(V);
+		SerializeSpecific<uint64_t, tSerializing>(V);
 		if constexpr (!tSerializing)
 		{
 			Item.resize(V);
@@ -246,7 +245,7 @@ public:
 		}
 		else if constexpr (std::is_fundamental<ElemType>::value == false)
 		{
-			constexpr bool HasSerFunc = requires(CrArchive & Ar, ElemType & Itm) { Ar.SerializeSpecific<ElemType, tSerializing, Encoding>(Itm); };
+			constexpr bool HasSerFunc = requires(CrArchive & Ar, ElemType & Itm) { Ar.SerializeSpecific<ElemType, tSerializing>(Itm); };
 			constexpr bool HasSerOper = requires(CrArchive & Ar, ElemType & Itm) { Ar <=> Itm; };
 			//Must have some type of serialization setup for these.
 			static_assert(HasSerFunc == true || HasSerOper == true);
@@ -256,7 +255,7 @@ public:
 				if constexpr (HasSerFunc)
 				{
 					//More optimized since it goes right to the serialize specific function instead of calling the func ptr
-					SerializeSpecific<ElemType, tSerializing, Encoding>(Item[i]);
+					SerializeSpecific<ElemType, tSerializing>(Item[i]);
 				}
 				else if constexpr (HasSerOper)
 				{
@@ -267,7 +266,7 @@ public:
 	}
 };
 
-template<bool ShouldSerialize, bool bEncoding>
+template<bool ShouldSerialize>
 class CrArchive_Implement : public CrArchive
 {
 public:
@@ -282,46 +281,31 @@ public:
 			assert(0);
 		}
 
-		if constexpr (bEncoding && !ShouldSerialize)
-		{
-			//Load the whole value (big copy potentially).
-			Stream >> BufferString;
-		}
-
-		VariableFunction(CrArchive, bool) = &CrArchive::SerializeSpecific<bool, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, char) = &CrArchive::SerializeSpecific<char, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, wchar_t) = &CrArchive::SerializeSpecific<wchar_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, uint8_t) = &CrArchive::SerializeSpecific<uint8_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, uint16_t) = &CrArchive::SerializeSpecific<uint16_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, uint32_t) = &CrArchive::SerializeSpecific<uint32_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, uint64_t) = &CrArchive::SerializeSpecific<uint64_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, int8_t) = &CrArchive::SerializeSpecific<int8_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, int16_t) = &CrArchive::SerializeSpecific<int16_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, int32_t) = &CrArchive::SerializeSpecific<int32_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, int64_t) = &CrArchive::SerializeSpecific<int64_t, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, float) = &CrArchive::SerializeSpecific<float, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, double) = &CrArchive::SerializeSpecific<double, ShouldSerialize, bEncoding>;
+		VariableFunction(CrArchive, bool) = &CrArchive::SerializeSpecific<bool, ShouldSerialize>;
+		VariableFunction(CrArchive, char) = &CrArchive::SerializeSpecific<char, ShouldSerialize>;
+		VariableFunction(CrArchive, wchar_t) = &CrArchive::SerializeSpecific<wchar_t, ShouldSerialize>;
+		VariableFunction(CrArchive, uint8_t) = &CrArchive::SerializeSpecific<uint8_t, ShouldSerialize>;
+		VariableFunction(CrArchive, uint16_t) = &CrArchive::SerializeSpecific<uint16_t, ShouldSerialize>;
+		VariableFunction(CrArchive, uint32_t) = &CrArchive::SerializeSpecific<uint32_t, ShouldSerialize>;
+		VariableFunction(CrArchive, uint64_t) = &CrArchive::SerializeSpecific<uint64_t, ShouldSerialize>;
+		VariableFunction(CrArchive, int8_t) = &CrArchive::SerializeSpecific<int8_t, ShouldSerialize>;
+		VariableFunction(CrArchive, int16_t) = &CrArchive::SerializeSpecific<int16_t, ShouldSerialize>;
+		VariableFunction(CrArchive, int32_t) = &CrArchive::SerializeSpecific<int32_t, ShouldSerialize>;
+		VariableFunction(CrArchive, int64_t) = &CrArchive::SerializeSpecific<int64_t, ShouldSerialize>;
+		VariableFunction(CrArchive, float) = &CrArchive::SerializeSpecific<float, ShouldSerialize>;
+		VariableFunction(CrArchive, double) = &CrArchive::SerializeSpecific<double, ShouldSerialize>;
 
 		//String types.
-		VariableFunction(CrArchive, String) = &CrArchive::SerializeSpecificContainer<String, ShouldSerialize, bEncoding>;
-		VariableFunction(CrArchive, WString) = &CrArchive::SerializeSpecificContainer<WString, ShouldSerialize, bEncoding>;
-	}
-
-	~CrArchive_Implement()
-	{
-		if constexpr (bEncoding && ShouldSerialize)
-		{
-			//Save the whole value (big copy potentially).
-			Stream << BufferString;
-		}
+		VariableFunction(CrArchive, String) = &CrArchive::SerializeSpecificContainer<String, ShouldSerialize>;
+		VariableFunction(CrArchive, WString) = &CrArchive::SerializeSpecificContainer<WString, ShouldSerialize>;
 	}
 };
 
 //Archive type that loads a file.
-typedef CrArchive_Implement<false, USE_VARINT> CrArchiveIn;
+typedef CrArchive_Implement<false> CrArchiveIn;
 
 //Archive that serializes to a file.
-typedef CrArchive_Implement<true, USE_VARINT> CrArchiveOut;
+typedef CrArchive_Implement<true> CrArchiveOut;
 
 struct CrBinSerializable
 {
@@ -363,11 +347,11 @@ __forceinline static void operator <=>(CrArchive& Arch, T& ToSerialize) requires
 {
 	if (Arch.bSerializing)
 	{
-		Arch.SerializeSpecificContainer<T, true, USE_VARINT>(ToSerialize);
+		Arch.SerializeSpecificContainer<T, true>(ToSerialize);
 	}
 	else
 	{
-		Arch.SerializeSpecificContainer<T, false, USE_VARINT>(ToSerialize);
+		Arch.SerializeSpecificContainer<T, false>(ToSerialize);
 	}
 }
 

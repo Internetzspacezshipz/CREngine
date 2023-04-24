@@ -4,6 +4,36 @@
 
 REGISTER_CLASS(CrUI_AssetList);
 
+
+void CrUI_AssetList::SetOnOpenAction(CrAssetListFunctionality Chosen)
+{
+	if (CrAssetListFunctionality::None == Chosen)
+	{
+		OpenAction = nullptr;
+		return;
+	}
+	else if (CrAssetListFunctionality::OpenEditor == Chosen)
+	{
+		OpenAction = [](const Path& DirPath)
+		{
+			if (ImGui::Button("Open in editor"))
+			{
+				auto Loaded = CrSerialization::Get().Load(DirPath);
+				if (Loaded)
+				{
+					CrEditorUIManager& UIMan = CrEditorUIManager::Get();
+					UIMan.MakeEditUI(Loaded);
+				}
+			}
+		};
+	}
+}
+
+void CrUI_AssetList::SetOnOpenAction(Func<void(const Path&)> NewOpenAction)
+{
+	OpenAction = NewOpenAction;
+}
+
 CrUI_AssetList::CrUI_AssetList()
 {
 	CurrentDirectory = CrSerialization::Get().GetBaseAssetPath();
@@ -94,17 +124,9 @@ void CrUI_AssetList::DrawUI()
 					ImGui::LogFinish();
 				}
 				ImGui::SameLine();
-				if (Serial.IsSupportedFileType(DirPath))
+				if (OpenAction && Serial.IsSupportedFileType(DirPath))
 				{
-					if (ImGui::Button("Open in editor"))
-					{
-						auto Loaded = CrSerialization::Get().Load(DirPath);
-						if (Loaded)
-						{
-							CrEditorUIManager& UIMan = CrEditorUIManager::Get();
-							UIMan.MakeEditUI(Loaded);
-						}
-					}
+					OpenAction(DirPath);
 				}
 			}
 			ImGui::PopID();

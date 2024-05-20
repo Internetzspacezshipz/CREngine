@@ -3,7 +3,7 @@
 #include "CrTypes.h"
 #include "CrID.h"
 
-using Seconds = float;
+using Seconds = Real;
 
 //A number that should be different for each class of object that uses the ticking system ideally.
 //This is mainly as an implementation since the processor will likely stay in the same cache location instead of jumping around for each different implementation of the tick function.

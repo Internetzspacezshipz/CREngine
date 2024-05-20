@@ -183,6 +183,8 @@ struct StringLiteral2
 
 #define StrLitFrom(ToText) StringLiteral2(""#ToText"")
 
+#define CrAssert(cond) if (!cond) { __debugbreak(); assert(false); }
+
 //hide shared_ptr and such.
 #define SP std::shared_ptr
 #define SharedFromThis std::enable_shared_from_this
@@ -204,6 +206,9 @@ typedef glm::vec3 Vec3;
 
 typedef glm::mat2 Mat2;
 typedef glm::vec2 Vec2;
+
+//Use Real instead of float for possibility of changing to double in future.
+typedef float Real;
 
 template<typename ...Types>
 using Tuple = std::tuple<Types...>;

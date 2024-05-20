@@ -41,7 +41,7 @@ public:
 	void Load() const
 	{
 		//Nothing should be loaded at this point.
-		assert(!LoadedObject && Reference.IsValidID());
+		CrAssert(!LoadedObject && Reference.IsValidID());
 		LoadedObject = DCast<Type>(CrSerialization::Get().Load(Reference));
 	}
 

@@ -155,9 +155,9 @@ void VulkanEngine::Draw()
 	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
 
-	//make a clear-color from frame number. This will flash with a 120 frame period.
+	//make a clear-color from frame number. This will flash with a 1200 frame period.
 	VkClearValue clearValue;
-	float flash = abs(sin(_frameNumber / 120.f));
+	float flash = abs(sin(_frameNumber / 1200.f));
 	clearValue.color = { { 0.0f, 0.0f, flash, 1.0f } };
 
 	//clear depth at 1

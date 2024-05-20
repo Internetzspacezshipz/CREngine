@@ -93,6 +93,12 @@ public:
 	{
 		return DCast<T>(shared_from_this());
 	}
+
+	template<typename T>
+	WP<T> WeakThis()
+	{
+		return DCast<T>(weak_from_this());
+	}
 };
 
 //Class flags that adjust how this class can be used.

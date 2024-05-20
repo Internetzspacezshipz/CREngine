@@ -52,6 +52,8 @@ public:
 	//Removes UI by the pointer (can do by doing RemoveUI(this)). Really just uses the ID under the hood.
 	void RemoveUI(CrUI_Base* ActualUI);
 
+	Map<CrID, Array<SP<CrManagedObject>>> RootObjects;
+
 private:
 	void LoadGameObjects();
 

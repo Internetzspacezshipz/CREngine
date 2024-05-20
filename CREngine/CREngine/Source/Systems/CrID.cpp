@@ -75,7 +75,7 @@ bool CrID::IsValidID() const
 
 CrID& CrID::operator=(const CrID& CopyFrom)
 {
-	assert(CopyFrom.FlagValue);
+	CrAssert(CopyFrom.FlagValue);
 	Number = CopyFrom.Number;
 	FlagValue = CopyFrom.FlagValue;
 	return *this;

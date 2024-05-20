@@ -276,6 +276,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Game\DgCharacter.cpp" />
+    <ClCompile Include="Source\Game\DgMainMenu.cpp" />
     <ClCompile Include="Source\Systems\CrNetwork.cpp" />
     <ClCompile Include="Source\Utilities\CrGrid.cpp" />
     <ClCompile Include="Source\Utilities\CrCollision.cpp" />
@@ -351,6 +353,8 @@ echo d | xcopy  "$(ProjectDir)Shaders\Compiled" "$(SolutionDir)$(IntDir)Shaders\
     <None Include="Source\UserInterface\AssetEditors\CrFieldEditor.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Game\DgCharacter.h" />
+    <ClInclude Include="Source\Game\DgMainMenu.h" />
     <ClInclude Include="Source\Systems\CrNetwork.h" />
     <ClInclude Include="Source\Utilities\CrGrid.h" />
     <ClInclude Include="Source\Utilities\CrCollision.h" />

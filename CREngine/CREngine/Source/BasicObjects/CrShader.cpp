@@ -37,7 +37,7 @@ void CrShader::BinSerialize(CrArchive& Arch)
 	//Import/export shader code.
 	Arch <=> ShaderCode;
 
-	if (!Arch.bSerializing)
+	if (!Arch.bSerializing && ShaderCode.size())
 	{
 		assert(LoadShader());
 	}

@@ -61,6 +61,9 @@ void CrApp::LoadInitialGameFiles()
 {
     //Add default menu bar
     MakeUI(CrUI_MenuBar::StaticClass());
+
+    // load game-specific main menu.
+    MakeUI(CrID::Constant<"DgMainMenu">());
 }
 
 void CrApp::Cleanup()
